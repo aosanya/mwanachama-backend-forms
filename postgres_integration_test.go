@@ -18,7 +18,6 @@ import (
 	"gorm.io/gorm"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 	"github.com/aosanya/mwanachama-backend-shared/postgres"
 )
 
@@ -69,7 +68,7 @@ func TestPostgres_FormLifecycle_RoundTrip(t *testing.T) {
 	mgr := newPostgresManager(t)
 	ctx := context.Background()
 
-	created, err := mgr.Create(ctx, models.Form{
+	created, err := mgr.Create(ctx, mwanachamaforms.Form{
 		Title: "Postgres round-trip", OriginatorChapterID: "chapter-1",
 		ClosesAt: time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano),
 	})
@@ -81,18 +80,18 @@ func TestPostgres_FormLifecycle_RoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	if got.Title != "Postgres round-trip" || got.Status != models.StatusDraft {
+	if got.Title != "Postgres round-trip" || got.Status != mwanachamaforms.StatusDraft {
 		t.Errorf("round-trip mismatch: %+v", got)
 	}
 
-	if _, err := mgr.AddTarget(ctx, models.Target{FormID: created.ID, ChapterID: "chapter-2"}); err != nil {
+	if _, err := mgr.AddTarget(ctx, mwanachamaforms.Target{FormID: created.ID, ChapterID: "chapter-2"}); err != nil {
 		t.Fatalf("AddTarget: %v", err)
 	}
 	out, _, err := mgr.Publish(ctx, created.ID, "", "admin")
 	if err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
-	if out.Status != models.StatusOpen {
+	if out.Status != mwanachamaforms.StatusOpen {
 		t.Errorf("Publish result = %+v", out)
 	}
 
@@ -109,14 +108,14 @@ func TestPostgres_AnswerConstraint_ExactlyOneValue(t *testing.T) {
 	mgr := newPostgresManager(t)
 	ctx := context.Background()
 
-	f, err := mgr.Create(ctx, models.Form{
+	f, err := mgr.Create(ctx, mwanachamaforms.Form{
 		Title: "Postgres answer constraint", OriginatorChapterID: "chapter-1",
 		ClosesAt: time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano),
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	q, _, err := mgr.AddQuestion(ctx, models.Question{FormID: f.ID, AnswerType: models.AnswerYesNo, Prompt: "Active?"}, nil)
+	q, _, err := mgr.AddQuestion(ctx, mwanachamaforms.Question{FormID: f.ID, AnswerType: mwanachamaforms.AnswerYesNo, Prompt: "Active?"}, nil)
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}
@@ -125,7 +124,7 @@ func TestPostgres_AnswerConstraint_ExactlyOneValue(t *testing.T) {
 	}
 
 	yes := true
-	if _, err := mgr.SubmitAnswers(ctx, f.ID, "member-1", "chapter-2", []models.Answer{{QuestionID: q.ID, ValueBool: &yes}}); err != nil {
+	if _, err := mgr.SubmitAnswers(ctx, f.ID, "member-1", "chapter-2", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueBool: &yes}}); err != nil {
 		t.Fatalf("SubmitAnswers: %v", err)
 	}
 }

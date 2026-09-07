@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aosanya/mwanachama-backend-forms/models"
+	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
 )
 
 func TestRegister_FiltersAndCounts(t *testing.T) {
@@ -15,11 +15,11 @@ func TestRegister_FiltersAndCounts(t *testing.T) {
 		t.Fatalf("Submit: %v", err)
 	}
 
-	page, err := um.Register(context.Background(), models.RegisterQuery{ChapterID: "chapter-1"})
+	page, err := um.Register(context.Background(), mwanachamaforms.RegisterQuery{ChapterID: "chapter-1"})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
-	if page.Total != 2 || page.ByStatus[models.StatusDraft] != 1 || page.ByStatus[models.StatusSubmitted] != 1 {
+	if page.Total != 2 || page.ByStatus[mwanachamaforms.StatusDraft] != 1 || page.ByStatus[mwanachamaforms.StatusSubmitted] != 1 {
 		t.Fatalf("unexpected page: %+v", page)
 	}
 }
@@ -28,7 +28,7 @@ func TestRegister_SearchByTitle(t *testing.T) {
 	um := newTestManager(t)
 	newDraftForm(t, um) // "Chapter Health Check"
 
-	page, err := um.Register(context.Background(), models.RegisterQuery{Search: "health"})
+	page, err := um.Register(context.Background(), mwanachamaforms.RegisterQuery{Search: "health"})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -36,7 +36,7 @@ func TestRegister_SearchByTitle(t *testing.T) {
 		t.Fatalf("unexpected page: %+v", page)
 	}
 
-	page, err = um.Register(context.Background(), models.RegisterQuery{Search: "nonexistent"})
+	page, err = um.Register(context.Background(), mwanachamaforms.RegisterQuery{Search: "nonexistent"})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -51,7 +51,7 @@ func TestRegister_Pagination(t *testing.T) {
 		newDraftForm(t, um)
 	}
 	limit := 2
-	page, err := um.Register(context.Background(), models.RegisterQuery{Limit: &limit})
+	page, err := um.Register(context.Background(), mwanachamaforms.RegisterQuery{Limit: &limit})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}

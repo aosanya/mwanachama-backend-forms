@@ -7,13 +7,12 @@ import (
 	"strconv"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
 // CreateForm handles POST — decode, create, encode.
 func CreateForm(fm mwanachamaforms.FormManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var in models.Form
+		var in mwanachamaforms.Form
 		if err := readJSON(r, &in); err != nil {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return
@@ -31,10 +30,10 @@ func CreateForm(fm mwanachamaforms.FormManager) http.HandlerFunc {
 // params: q (title substring), chapter_id, status, limit, offset.
 func RegisterForms(fm mwanachamaforms.FormManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		q := models.RegisterQuery{
+		q := mwanachamaforms.RegisterQuery{
 			Search:    r.URL.Query().Get("q"),
 			ChapterID: r.URL.Query().Get("chapter_id"),
-			Status:    models.Status(r.URL.Query().Get("status")),
+			Status:    mwanachamaforms.Status(r.URL.Query().Get("status")),
 		}
 		if v := r.URL.Query().Get("limit"); v != "" {
 			n, err := strconv.Atoi(v)
@@ -76,11 +75,11 @@ func GetForm(fm mwanachamaforms.FormManager) http.HandlerFunc {
 // formEditBody is the wire shape for UpdateForm — the five columns
 // UserManager.Update writes.
 type formEditBody struct {
-	Title          string                `json:"title"`
-	ClosesAt       string                `json:"closes_at"`
-	OpensAt        string                `json:"opens_at"`
-	Audience       models.Audience       `json:"audience"`
-	CollectionMode models.CollectionMode `json:"collection_mode"`
+	Title          string                         `json:"title"`
+	ClosesAt       string                         `json:"closes_at"`
+	OpensAt        string                         `json:"opens_at"`
+	Audience       mwanachamaforms.Audience       `json:"audience"`
+	CollectionMode mwanachamaforms.CollectionMode `json:"collection_mode"`
 }
 
 // UpdateForm handles PATCH {formID}.
@@ -91,7 +90,7 @@ func UpdateForm(fm mwanachamaforms.FormManager) http.HandlerFunc {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		out, err := fm.Update(r.Context(), models.Form{
+		out, err := fm.Update(r.Context(), mwanachamaforms.Form{
 			ID: r.PathValue("formID"), Title: body.Title, ClosesAt: body.ClosesAt,
 			OpensAt: body.OpensAt, Audience: body.Audience, CollectionMode: body.CollectionMode,
 		})
@@ -155,8 +154,8 @@ func WithdrawForm(fm mwanachamaforms.FormManager) http.HandlerFunc {
 // publishResponse carries both of Publish's return values — a draft/
 // approved member-audience form's response has an empty "public_link".
 type publishResponse struct {
-	Form       models.Form       `json:"form"`
-	PublicLink models.PublicLink `json:"public_link,omitzero"`
+	Form       mwanachamaforms.Form       `json:"form"`
+	PublicLink mwanachamaforms.PublicLink `json:"public_link,omitzero"`
 }
 
 // PublishForm handles POST {formID}/publish.

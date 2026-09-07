@@ -6,37 +6,36 @@ import (
 	"net/http"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
 type optionBody struct {
 	Label string `json:"label"`
 }
 
-func toOptions(bodies []optionBody) []models.QuestionOption {
-	out := make([]models.QuestionOption, len(bodies))
+func toOptions(bodies []optionBody) []mwanachamaforms.QuestionOption {
+	out := make([]mwanachamaforms.QuestionOption, len(bodies))
 	for i, b := range bodies {
-		out[i] = models.QuestionOption{Label: b.Label}
+		out[i] = mwanachamaforms.QuestionOption{Label: b.Label}
 	}
 	return out
 }
 
 type questionBody struct {
-	AnswerType   models.AnswerType `json:"answer_type"`
-	Prompt       string            `json:"prompt"`
-	Placeholder  string            `json:"placeholder,omitempty"`
-	MaxLength    *int              `json:"max_length,omitempty"`
-	UnitLabel    string            `json:"unit_label,omitempty"`
-	Helper       string            `json:"helper,omitempty"`
-	CurrencyCode string            `json:"currency_code,omitempty"`
-	QuickPicks   []float64         `json:"quick_picks,omitempty"`
-	YesLabel     string            `json:"yes_label,omitempty"`
-	NoLabel      string            `json:"no_label,omitempty"`
-	Options      []optionBody      `json:"options,omitempty"`
+	AnswerType   mwanachamaforms.AnswerType `json:"answer_type"`
+	Prompt       string                     `json:"prompt"`
+	Placeholder  string                     `json:"placeholder,omitempty"`
+	MaxLength    *int                       `json:"max_length,omitempty"`
+	UnitLabel    string                     `json:"unit_label,omitempty"`
+	Helper       string                     `json:"helper,omitempty"`
+	CurrencyCode string                     `json:"currency_code,omitempty"`
+	QuickPicks   []float64                  `json:"quick_picks,omitempty"`
+	YesLabel     string                     `json:"yes_label,omitempty"`
+	NoLabel      string                     `json:"no_label,omitempty"`
+	Options      []optionBody               `json:"options,omitempty"`
 }
 
-func (b questionBody) toQuestion() models.Question {
-	return models.Question{
+func (b questionBody) toQuestion() mwanachamaforms.Question {
+	return mwanachamaforms.Question{
 		AnswerType: b.AnswerType, Prompt: b.Prompt, Placeholder: b.Placeholder,
 		MaxLength: b.MaxLength, UnitLabel: b.UnitLabel, Helper: b.Helper,
 		CurrencyCode: b.CurrencyCode, QuickPicks: b.QuickPicks, YesLabel: b.YesLabel, NoLabel: b.NoLabel,
@@ -44,8 +43,8 @@ func (b questionBody) toQuestion() models.Question {
 }
 
 type questionResponse struct {
-	Question models.Question         `json:"question"`
-	Options  []models.QuestionOption `json:"options"`
+	Question mwanachamaforms.Question         `json:"question"`
+	Options  []mwanachamaforms.QuestionOption `json:"options"`
 }
 
 // AddQuestion handles POST {formID}/questions.

@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
 type answerBody struct {
@@ -32,9 +31,9 @@ func SubmitAnswers(fm mwanachamaforms.FormManager) http.HandlerFunc {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		answers := make([]models.Answer, len(body.Answers))
+		answers := make([]mwanachamaforms.Answer, len(body.Answers))
 		for i, a := range body.Answers {
-			answers[i] = models.Answer{
+			answers[i] = mwanachamaforms.Answer{
 				QuestionID: a.QuestionID, OptionIDs: a.OptionIDs, ValueText: a.ValueText,
 				ValueNumber: a.ValueNumber, ValueDate: a.ValueDate, ValueTime: a.ValueTime, ValueBool: a.ValueBool,
 			}

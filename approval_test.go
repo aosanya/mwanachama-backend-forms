@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
 func TestSubmit(t *testing.T) {
@@ -16,7 +15,7 @@ func TestSubmit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Submit: %v", err)
 	}
-	if out.Status != models.StatusSubmitted || out.SubmittedBy != "author" {
+	if out.Status != mwanachamaforms.StatusSubmitted || out.SubmittedBy != "author" {
 		t.Fatalf("unexpected form: %+v", out)
 	}
 	approvals, err := um.ListApprovals(context.Background(), f.ID)
@@ -49,14 +48,14 @@ func TestApprove(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Approve: %v", err)
 	}
-	if out.Status != models.StatusApproved || out.ApprovedBy != "reviewer" {
+	if out.Status != mwanachamaforms.StatusApproved || out.ApprovedBy != "reviewer" {
 		t.Fatalf("unexpected form: %+v", out)
 	}
 	approvals, err := um.ListApprovals(context.Background(), f.ID)
 	if err != nil {
 		t.Fatalf("ListApprovals: %v", err)
 	}
-	if len(approvals) != 1 || approvals[0].Decision != models.DecisionApproved {
+	if len(approvals) != 1 || approvals[0].Decision != mwanachamaforms.DecisionApproved {
 		t.Fatalf("unexpected approvals: %+v", approvals)
 	}
 }
@@ -82,7 +81,7 @@ func TestRefuse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Refuse: %v", err)
 	}
-	if out.Status != models.StatusDraft || out.SubmittedBy != "" {
+	if out.Status != mwanachamaforms.StatusDraft || out.SubmittedBy != "" {
 		t.Fatalf("unexpected form: %+v", out)
 	}
 }
@@ -97,14 +96,14 @@ func TestWithdraw(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Withdraw: %v", err)
 	}
-	if out.Status != models.StatusDraft {
+	if out.Status != mwanachamaforms.StatusDraft {
 		t.Fatalf("unexpected form: %+v", out)
 	}
 	approvals, err := um.ListApprovals(context.Background(), f.ID)
 	if err != nil {
 		t.Fatalf("ListApprovals: %v", err)
 	}
-	if len(approvals) != 1 || approvals[0].Decision != models.DecisionRefused {
+	if len(approvals) != 1 || approvals[0].Decision != mwanachamaforms.DecisionRefused {
 		t.Fatalf("unexpected approvals: %+v", approvals)
 	}
 }

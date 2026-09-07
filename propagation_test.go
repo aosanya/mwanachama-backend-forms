@@ -6,13 +6,12 @@ import (
 	"testing"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
 func TestPickUp(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	if _, err := um.AddTarget(context.Background(), models.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
+	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
 		t.Fatalf("AddTarget: %v", err)
 	}
 	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
@@ -23,7 +22,7 @@ func TestPickUp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("PickUp: %v", err)
 	}
-	if p.State != models.PropagationPickedUp || p.PickedUpAt == "" {
+	if p.State != mwanachamaforms.PropagationPickedUp || p.PickedUpAt == "" {
 		t.Fatalf("unexpected propagation: %+v", p)
 	}
 

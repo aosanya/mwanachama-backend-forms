@@ -10,7 +10,6 @@ import (
 	"net/http"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
 func writeLinkNotFound(w http.ResponseWriter) {
@@ -18,8 +17,8 @@ func writeLinkNotFound(w http.ResponseWriter) {
 }
 
 type resolvedLinkResponse struct {
-	Link models.PublicLink `json:"link"`
-	Form models.Form       `json:"form"`
+	Link mwanachamaforms.PublicLink `json:"link"`
+	Form mwanachamaforms.Form       `json:"form"`
 }
 
 // ResolveLinkKey handles GET {key}.
@@ -58,7 +57,7 @@ func UpsertRespondent(fm mwanachamaforms.FormManager) http.HandlerFunc {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		out, err := fm.UpsertRespondent(r.Context(), models.Respondent{PublicKey: body.PublicKey})
+		out, err := fm.UpsertRespondent(r.Context(), mwanachamaforms.Respondent{PublicKey: body.PublicKey})
 		if err != nil {
 			writeFormErr(w, err)
 			return
@@ -88,7 +87,7 @@ func DeclareChapter(fm mwanachamaforms.FormManager) http.HandlerFunc {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		out, err := fm.Declare(r.Context(), models.Declaration{
+		out, err := fm.Declare(r.Context(), mwanachamaforms.Declaration{
 			RespondentID: body.RespondentID, FormID: f.ID,
 			DeclaredChapterID: body.DeclaredChapterID, DeclaredText: body.DeclaredText,
 		})

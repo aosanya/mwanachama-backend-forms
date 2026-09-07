@@ -7,13 +7,12 @@ import (
 	"time"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
 func TestAddTarget(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	tg, err := um.AddTarget(context.Background(), models.Target{FormID: f.ID, ChapterID: "chapter-2"})
+	tg, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"})
 	if err != nil {
 		t.Fatalf("AddTarget: %v", err)
 	}
@@ -25,23 +24,23 @@ func TestAddTarget(t *testing.T) {
 func TestAddTarget_Duplicate(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	if _, err := um.AddTarget(context.Background(), models.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
+	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
 		t.Fatalf("AddTarget: %v", err)
 	}
-	if _, err := um.AddTarget(context.Background(), models.Target{FormID: f.ID, ChapterID: "chapter-2"}); !errors.Is(err, mwanachamaforms.ErrDuplicateTarget) {
+	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"}); !errors.Is(err, mwanachamaforms.ErrDuplicateTarget) {
 		t.Fatalf("err = %v, want ErrDuplicateTarget", err)
 	}
 }
 
 func TestAddTarget_PublicFormRefused(t *testing.T) {
 	um := newTestManager(t)
-	f, err := um.Create(context.Background(), models.Form{
-		Title: "Public", OriginatorChapterID: "chapter-1", ClosesAt: futureRFC3339(time.Hour), Audience: models.AudiencePublic,
+	f, err := um.Create(context.Background(), mwanachamaforms.Form{
+		Title: "Public", OriginatorChapterID: "chapter-1", ClosesAt: futureRFC3339(time.Hour), Audience: mwanachamaforms.AudiencePublic,
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	if _, err := um.AddTarget(context.Background(), models.Target{FormID: f.ID, ChapterID: "chapter-2"}); !errors.Is(err, mwanachamaforms.ErrPublicFormNoTargets) {
+	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"}); !errors.Is(err, mwanachamaforms.ErrPublicFormNoTargets) {
 		t.Fatalf("err = %v, want ErrPublicFormNoTargets", err)
 	}
 }
@@ -49,7 +48,7 @@ func TestAddTarget_PublicFormRefused(t *testing.T) {
 func TestRemoveTarget(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	tg, err := um.AddTarget(context.Background(), models.Target{FormID: f.ID, ChapterID: "chapter-2"})
+	tg, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"})
 	if err != nil {
 		t.Fatalf("AddTarget: %v", err)
 	}
@@ -69,7 +68,7 @@ func TestRemoveTarget_ForeignTarget(t *testing.T) {
 	um := newTestManager(t)
 	f1 := newDraftForm(t, um)
 	f2 := newDraftForm(t, um)
-	tg, err := um.AddTarget(context.Background(), models.Target{FormID: f1.ID, ChapterID: "chapter-2"})
+	tg, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f1.ID, ChapterID: "chapter-2"})
 	if err != nil {
 		t.Fatalf("AddTarget: %v", err)
 	}

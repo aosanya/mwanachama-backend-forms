@@ -13,7 +13,6 @@ import (
 	"gorm.io/gorm"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 	"github.com/aosanya/mwanachama-backend-forms/routes"
 )
 
@@ -100,11 +99,11 @@ func TestCreateForm_Handler(t *testing.T) {
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
 	}
-	var out models.Form
+	var out mwanachamaforms.Form
 	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
-	if out.ID == "" || out.Title != "Chapter Census" || out.Status != models.StatusDraft {
+	if out.ID == "" || out.Title != "Chapter Census" || out.Status != mwanachamaforms.StatusDraft {
 		t.Fatalf("unexpected form: %+v", out)
 	}
 }
@@ -122,9 +121,9 @@ func TestCreateForm_MissingTitle(t *testing.T) {
 	}
 }
 
-func newFormViaHandler(t *testing.T, fm mwanachamaforms.FormManager) models.Form {
+func newFormViaHandler(t *testing.T, fm mwanachamaforms.FormManager) mwanachamaforms.Form {
 	t.Helper()
-	f, err := fm.Create(context.Background(), models.Form{
+	f, err := fm.Create(context.Background(), mwanachamaforms.Form{
 		Title: "Seed", OriginatorChapterID: "chapter-1", ClosesAt: time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano),
 	})
 	if err != nil {

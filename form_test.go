@@ -7,16 +7,15 @@ import (
 	"time"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
 func futureRFC3339(d time.Duration) string {
 	return time.Now().Add(d).UTC().Format(time.RFC3339Nano)
 }
 
-func newDraftForm(t *testing.T, um mwanachamaforms.FormManager) models.Form {
+func newDraftForm(t *testing.T, um mwanachamaforms.FormManager) mwanachamaforms.Form {
 	t.Helper()
-	f, err := um.Create(context.Background(), models.Form{
+	f, err := um.Create(context.Background(), mwanachamaforms.Form{
 		Title:               "Chapter Health Check",
 		OriginatorChapterID: "chapter-1",
 		ClosesAt:            futureRFC3339(24 * time.Hour),
@@ -30,14 +29,14 @@ func newDraftForm(t *testing.T, um mwanachamaforms.FormManager) models.Form {
 func TestCreate(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	if f.ID == "" || f.Status != models.StatusDraft || f.Audience != models.AudienceMember || f.CollectionMode != models.CollectionSelf {
+	if f.ID == "" || f.Status != mwanachamaforms.StatusDraft || f.Audience != mwanachamaforms.AudienceMember || f.CollectionMode != mwanachamaforms.CollectionSelf {
 		t.Fatalf("unexpected form: %+v", f)
 	}
 }
 
 func TestCreate_MissingTitle(t *testing.T) {
 	um := newTestManager(t)
-	_, err := um.Create(context.Background(), models.Form{ClosesAt: futureRFC3339(time.Hour)})
+	_, err := um.Create(context.Background(), mwanachamaforms.Form{ClosesAt: futureRFC3339(time.Hour)})
 	if !errors.Is(err, mwanachamaforms.ErrMissingTitle) {
 		t.Fatalf("err = %v, want ErrMissingTitle", err)
 	}
@@ -45,7 +44,7 @@ func TestCreate_MissingTitle(t *testing.T) {
 
 func TestCreate_MissingClosesAt(t *testing.T) {
 	um := newTestManager(t)
-	_, err := um.Create(context.Background(), models.Form{Title: "x"})
+	_, err := um.Create(context.Background(), mwanachamaforms.Form{Title: "x"})
 	if !errors.Is(err, mwanachamaforms.ErrMissingClosesAt) {
 		t.Fatalf("err = %v, want ErrMissingClosesAt", err)
 	}
@@ -53,7 +52,7 @@ func TestCreate_MissingClosesAt(t *testing.T) {
 
 func TestCreate_ClosesInPast(t *testing.T) {
 	um := newTestManager(t)
-	_, err := um.Create(context.Background(), models.Form{Title: "x", ClosesAt: futureRFC3339(-time.Hour)})
+	_, err := um.Create(context.Background(), mwanachamaforms.Form{Title: "x", ClosesAt: futureRFC3339(-time.Hour)})
 	if !errors.Is(err, mwanachamaforms.ErrClosesInPast) {
 		t.Fatalf("err = %v, want ErrClosesInPast", err)
 	}
@@ -61,7 +60,7 @@ func TestCreate_ClosesInPast(t *testing.T) {
 
 func TestCreate_WindowInvalid(t *testing.T) {
 	um := newTestManager(t)
-	_, err := um.Create(context.Background(), models.Form{
+	_, err := um.Create(context.Background(), mwanachamaforms.Form{
 		Title: "x", ClosesAt: futureRFC3339(time.Hour), OpensAt: futureRFC3339(2 * time.Hour),
 	})
 	if !errors.Is(err, mwanachamaforms.ErrWindowInvalid) {
@@ -71,9 +70,9 @@ func TestCreate_WindowInvalid(t *testing.T) {
 
 func TestCreate_AudienceConflict(t *testing.T) {
 	um := newTestManager(t)
-	_, err := um.Create(context.Background(), models.Form{
+	_, err := um.Create(context.Background(), mwanachamaforms.Form{
 		Title: "x", ClosesAt: futureRFC3339(time.Hour),
-		Audience: models.AudienceMember, CollectionMode: models.CollectionInterviewer,
+		Audience: mwanachamaforms.AudienceMember, CollectionMode: mwanachamaforms.CollectionInterviewer,
 	})
 	if !errors.Is(err, mwanachamaforms.ErrAudienceConflict) {
 		t.Fatalf("err = %v, want ErrAudienceConflict", err)
@@ -128,7 +127,7 @@ func TestListForChapter(t *testing.T) {
 func TestPublish_MemberAudienceCreatesPropagation(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	if _, err := um.AddTarget(context.Background(), models.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
+	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
 		t.Fatalf("AddTarget: %v", err)
 	}
 
@@ -136,7 +135,7 @@ func TestPublish_MemberAudienceCreatesPropagation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
-	if out.Status != models.StatusOpen || link.ID != "" {
+	if out.Status != mwanachamaforms.StatusOpen || link.ID != "" {
 		t.Fatalf("unexpected publish result: %+v %+v", out, link)
 	}
 	rollup, err := um.Rollup(context.Background(), f.ID)
@@ -150,9 +149,9 @@ func TestPublish_MemberAudienceCreatesPropagation(t *testing.T) {
 
 func TestPublish_PublicAudienceCreatesLink(t *testing.T) {
 	um := newTestManager(t)
-	f, err := um.Create(context.Background(), models.Form{
+	f, err := um.Create(context.Background(), mwanachamaforms.Form{
 		Title: "Public Census", OriginatorChapterID: "chapter-1",
-		ClosesAt: futureRFC3339(time.Hour), Audience: models.AudiencePublic,
+		ClosesAt: futureRFC3339(time.Hour), Audience: mwanachamaforms.AudiencePublic,
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
@@ -161,7 +160,7 @@ func TestPublish_PublicAudienceCreatesLink(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
-	if out.Status != models.StatusOpen || link.Key != "abc123" || link.Status != models.LinkActive {
+	if out.Status != mwanachamaforms.StatusOpen || link.Key != "abc123" || link.Status != mwanachamaforms.LinkActive {
 		t.Fatalf("unexpected publish result: %+v %+v", out, link)
 	}
 }
@@ -187,7 +186,7 @@ func TestClose(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Close: %v", err)
 	}
-	if out.Status != models.StatusClosed {
+	if out.Status != mwanachamaforms.StatusClosed {
 		t.Fatalf("unexpected form: %+v", out)
 	}
 }

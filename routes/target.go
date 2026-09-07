@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
 // AddTarget handles POST {formID}/targets.
@@ -19,7 +18,7 @@ func AddTarget(fm mwanachamaforms.FormManager) http.HandlerFunc {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		out, err := fm.AddTarget(r.Context(), models.Target{
+		out, err := fm.AddTarget(r.Context(), mwanachamaforms.Target{
 			FormID: r.PathValue("formID"), ChapterID: body.ChapterID, IncludesDescendants: body.IncludesDescendants,
 		})
 		if err != nil {
