@@ -9,6 +9,109 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
+// Form, Question, Target, ... are aliases of their models. counterparts,
+// and the constants and functions below forward to their models. namesakes,
+// so a caller needs only this package's import, never models's directly.
+type (
+	Form                  = models.Form
+	Status                = models.Status
+	Audience              = models.Audience
+	CollectionMode        = models.CollectionMode
+	Question              = models.Question
+	QuestionOption        = models.QuestionOption
+	AddOptionResult       = models.AddOptionResult
+	VersionQuestionResult = models.VersionQuestionResult
+	Target                = models.Target
+	Rollup                = models.Rollup
+	Propagation           = models.Propagation
+	PropagationKind       = models.PropagationKind
+	RegisterQuery         = models.RegisterQuery
+	RegisterRow           = models.RegisterRow
+	RegisterPage          = models.RegisterPage
+	Approval              = models.Approval
+	Decision              = models.Decision
+	PublicLink            = models.PublicLink
+	LinkStatus            = models.LinkStatus
+	Respondent            = models.Respondent
+	Declaration           = models.Declaration
+	Answer                = models.Answer
+	AnswerType            = models.AnswerType
+)
+
+// Status values.
+const (
+	StatusDraft     = models.StatusDraft
+	StatusSubmitted = models.StatusSubmitted
+	StatusApproved  = models.StatusApproved
+	StatusOpen      = models.StatusOpen
+	StatusClosed    = models.StatusClosed
+)
+
+// Audience values.
+const (
+	AudienceMember = models.AudienceMember
+	AudiencePublic = models.AudiencePublic
+)
+
+// CollectionMode values.
+const (
+	CollectionSelf        = models.CollectionSelf
+	CollectionInterviewer = models.CollectionInterviewer
+)
+
+// Decision values.
+const (
+	DecisionApproved = models.DecisionApproved
+	DecisionRefused  = models.DecisionRefused
+)
+
+// AnswerType values in active use — see [models.AnswerType]'s doc for the
+// full schema-parity set.
+const (
+	AnswerYesNo        = models.AnswerYesNo
+	AnswerSingleChoice = models.AnswerSingleChoice
+	AnswerFreeText     = models.AnswerFreeText
+)
+
+// LinkStatus values.
+const (
+	LinkActive = models.LinkActive
+)
+
+// PropagationKind values ever written by this package — see
+// [models.PropagationKind]'s doc for the full schema-parity set.
+const (
+	PropagationTargeted = models.PropagationTargeted
+	PropagationPickedUp = models.PropagationPickedUp
+)
+
+// TimeLayout forwards to [models.TimeLayout].
+const TimeLayout = models.TimeLayout
+
+// NowRFC3339 forwards to [models.NowRFC3339].
+func NowRFC3339() string { return models.NowRFC3339() }
+
+// ValidateAnswer forwards to [models.ValidateAnswer].
+func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {
+	return models.ValidateAnswer(q, options, a)
+}
+
+// ValidateWindow forwards to [models.ValidateWindow].
+func ValidateWindow(opensAt, closesAt string) error {
+	return models.ValidateWindow(opensAt, closesAt)
+}
+
+// ValidateAudienceCollection forwards to [models.ValidateAudienceCollection].
+func ValidateAudienceCollection(a Audience, m CollectionMode) error {
+	return models.ValidateAudienceCollection(a, m)
+}
+
+// VisibleToMembers forwards to [models.VisibleToMembers].
+func VisibleToMembers(s Status) bool { return models.VisibleToMembers(s) }
+
+// Deletable forwards to [models.Deletable].
+func Deletable(s Status) bool { return models.Deletable(s) }
+
 // FormManager is the primary interface for Form lifecycle management —
 // compose, approve, publish, answer, close — and every type nested under a
 // Form (Question, QuestionOption, Target, Approval, Propagation,
