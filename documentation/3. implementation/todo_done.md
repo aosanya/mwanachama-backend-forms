@@ -39,3 +39,23 @@ literal file-for-file copy of `mwanachama-backend-actor`.
 Not done, by explicit scope decision: wiring this package into
 `mwanachama-backend-api-gateway` itself (a new adapter satisfying
 `internal/domain/survey.Repository`/`.RegisterReader`) — see `todo.md`.
+
+## Gateway wiring — actually already done, corrected 2026-09-15
+
+The line immediately above (and `todo.md`'s matching prose) was stale, not
+an open task — caught while `developer`'s compiled cross-repo backlog
+pointed at it as "no board id exists for this." Checked against
+`mwanachama-backend-api-gateway`'s current code before minting a row for
+it: no `internal/domain/survey` package was ever created there. The
+gateway's `internal/store/formsadapter` (built as part of this repo's own
+2026-09-04 initial-build session, see above) declares its own
+`Repository`/`RegisterReader` interfaces directly and already *is* the
+complete wiring — `formsadapter.New(formManager, custodyLog)` is
+constructed in both `cmd/server/stores.go` backends, gated on the live
+"forms" Module (`cmd/server/modules.go`/`router.go`), backing 24+
+registered routes across that repo's `survey_*_handlers.go` files. The
+note above was almost certainly accurate the moment it was written — right
+after this repo's own extraction, before the gateway-side wiring had
+happened yet — and simply never got updated once that wiring shipped.
+`todo.md` corrected to "nothing open" instead of minting a task for
+already-done work.
