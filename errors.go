@@ -18,6 +18,9 @@ var (
 	// ErrDuplicateTarget is returned when AddTarget names a (form, chapter)
 	// pair that is already targeted.
 	ErrDuplicateTarget = errors.New("mwanachamaforms: chapter is already targeted")
+	// ErrLinkKeyTaken is returned when Publish's candidate public-link key is
+	// already held by another form's link.
+	ErrLinkKeyTaken = errors.New("mwanachamaforms: public link key is already taken")
 )
 
 // Form-frame validation errors — Create/Update.

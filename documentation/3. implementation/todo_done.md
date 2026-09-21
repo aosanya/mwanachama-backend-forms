@@ -59,3 +59,15 @@ after this repo's own extraction, before the gateway-side wiring had
 happened yet — and simply never got updated once that wiring shipped.
 `todo.md` corrected to "nothing open" instead of minting a task for
 already-done work.
+
+## F1 — `CreateForm` ignores a caller-supplied `id` — 2026-09-21
+
+`form_impl.go`'s `Create` now clears `f.ID` before building the row, so `FormRow.BeforeCreate` always mints the UUID; re-posting the same body creates a second distinct Form rather than a primary-key 500. The row also proposed a duplicate-id sentinel mapped to 409 in `formStatusFor`; not added, because with the id server-owned a collision can no longer come from caller input. The two pins in `routes/w_caller_supplied_id_test.go` went red as designed and were rewritten to assert the fixed behaviour. Verified: `go build ./... && go vet ./... && go test ./...` and `go test -tags=integration ./...` green, `gofmt -l .` clean. Done with taskmanager W11 and assetmanager A12.
+
+## F2 — `Declare` rejects a respondent that does not exist — 2026-09-21
+
+`public_impl.go`'s `Declare` now counts `Respondents` rows with the given id first and returns `ErrInvalidReference` (already mapped to 400 in `formStatusFor`, and documented as "a write names an id that does not exist") when there is none, instead of upserting a Declaration for a phantom id. Fixed in the manager rather than only the `DeclareChapter` handler so every caller gets it. No new sentinel. Not done: the check proves the respondent exists, not that it belongs to this form's link — `models/public.go` documents that a respondent key is deliberately not bound to one form, so binding it would be a design change. `routes/f2_phantom_declaration_test.go` now asserts a phantom id gets 400 and a respondent minted through `UpsertRespondent` still gets 201. Verified: `go build ./... && go vet ./... && go test ./...` and `go test -tags=integration ./...` green, `gofmt -l .` clean.
+
+## F3 — `Publish` no longer strands a Form `open` when its PublicLink insert fails — 2026-09-21
+
+`form_impl.go`'s `Publish` now runs the Form status update and the PublicLink insert (or, for member-audience forms, the per-Target Propagation inserts, which had the same partial-write shape) in one transaction, so any failure rolls the status back and the Form stays publishable. Added `ErrLinkKeyTaken` (409 in `routes/wire.go`) and a pre-check for the candidate key inside the transaction, so the common collision gives a clean conflict rather than an opaque 500; a true race between two publishers still hits the `PublicLinkRow.Key` unique index and rolls back, surfacing as a 500 with no stranded state. `Publish`'s doc comment now says the key is checked. `routes/f3_publish_key_collision_test.go` asserts 409, the Form not left `open`, and a retry with a fresh key minting a real link. Verified: `go build ./... && go vet ./... && go test ./...` and `go test -tags=integration ./...` green, `gofmt -l .` clean.

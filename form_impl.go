@@ -34,6 +34,7 @@ func validateFrame(f models.Form) error {
 // Create creates a new Form, always in StatusDraft — any lifecycle stamp the
 // caller supplied is discarded.
 func (m *formManager) Create(ctx context.Context, f models.Form) (models.Form, error) {
+	f.ID = "" // server-minted; a caller-supplied id is never honoured
 	if err := validateFrame(f); err != nil {
 		return models.Form{}, err
 	}
@@ -192,8 +193,9 @@ func (m *formManager) ListReachable(ctx context.Context, ancestry []string) ([]m
 
 // Publish opens a draft or approved Form. Idempotent on an already-open
 // form (no-op, no error). A public-audience form gets exactly one
-// PublicLink (candidateLinkKey stored verbatim — this package neither
-// generates nor deduplicates it); a member-audience form gets one
+// PublicLink (candidateLinkKey stored verbatim — this package does not
+// generate it, and a key already held by another link fails with
+// [ErrLinkKeyTaken], leaving the Form unpublished); a member-audience form gets one
 // Propagation per existing Target.
 func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publishedBy string) (models.Form, models.PublicLink, error) {
 	f, err := m.Get(ctx, id)
@@ -229,33 +231,48 @@ func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publish
 		updates["opens_at"] = now
 		f.OpensAt = now
 	}
-	if err := m.db.WithContext(ctx).Table(m.tables.Forms).Where("id = ?", id).Updates(updates).Error; err != nil {
-		return models.Form{}, models.PublicLink{}, fmt.Errorf("Publish: %w", err)
-	}
 	f.Status, f.PublishedAt, f.PublishedBy, f.LastUpdated = models.StatusOpen, now, publishedBy, now
 
+	// One transaction: a failed link/propagation insert must roll the status
+	// change back, or the Form is left open with no way to publish it again.
 	var link models.PublicLink
-	if f.Audience == models.AudiencePublic {
-		row := gormstore.PublicLinkToRow(models.PublicLink{
-			FormID: id, Key: candidateLinkKey, Status: models.LinkActive, CreatedAt: now, CreatedBy: f.CreatedBy,
-		})
-		if err := m.db.WithContext(ctx).Table(m.tables.PublicLinks).Create(&row).Error; err != nil {
-			return models.Form{}, models.PublicLink{}, fmt.Errorf("Publish: %w", err)
+	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Table(m.tables.Forms).Where("id = ?", id).Updates(updates).Error; err != nil {
+			return err
 		}
-		link = gormstore.PublicLinkFromRow(row)
-	} else {
+		if f.Audience == models.AudiencePublic {
+			var taken int64
+			if err := tx.Table(m.tables.PublicLinks).Where("key = ?", candidateLinkKey).Count(&taken).Error; err != nil {
+				return err
+			}
+			if taken > 0 {
+				return ErrLinkKeyTaken
+			}
+			row := gormstore.PublicLinkToRow(models.PublicLink{
+				FormID: id, Key: candidateLinkKey, Status: models.LinkActive, CreatedAt: now, CreatedBy: f.CreatedBy,
+			})
+			if err := tx.Table(m.tables.PublicLinks).Create(&row).Error; err != nil {
+				return err
+			}
+			link = gormstore.PublicLinkFromRow(row)
+			return nil
+		}
 		var targetRows []gormstore.TargetRow
-		if err := m.db.WithContext(ctx).Table(m.tables.Targets).Where("form_id = ?", id).Find(&targetRows).Error; err != nil {
-			return models.Form{}, models.PublicLink{}, fmt.Errorf("Publish: %w", err)
+		if err := tx.Table(m.tables.Targets).Where("form_id = ?", id).Find(&targetRows).Error; err != nil {
+			return err
 		}
 		for _, tr := range targetRows {
 			prow := gormstore.PropagationToRow(models.Propagation{
 				FormID: id, ChapterID: tr.ChapterID, State: models.PropagationTargeted, TargetedAt: now,
 			})
-			if err := m.db.WithContext(ctx).Table(m.tables.Propagation).Create(&prow).Error; err != nil {
-				return models.Form{}, models.PublicLink{}, fmt.Errorf("Publish: %w", err)
+			if err := tx.Table(m.tables.Propagation).Create(&prow).Error; err != nil {
+				return err
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		return models.Form{}, models.PublicLink{}, fmt.Errorf("Publish: %w", err)
 	}
 	return f, link, nil
 }

@@ -50,7 +50,8 @@ func formStatusFor(err error) int {
 		errors.Is(err, mwanachamaforms.ErrFormNotPublished),
 		errors.Is(err, mwanachamaforms.ErrFormNotOpen),
 		errors.Is(err, mwanachamaforms.ErrNotCurrentVersion),
-		errors.Is(err, mwanachamaforms.ErrDuplicateTarget):
+		errors.Is(err, mwanachamaforms.ErrDuplicateTarget),
+		errors.Is(err, mwanachamaforms.ErrLinkKeyTaken):
 		return http.StatusConflict
 
 	case errors.Is(err, mwanachamaforms.ErrInvalidReference),

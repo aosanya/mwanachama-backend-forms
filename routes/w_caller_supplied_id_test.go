@@ -1,13 +1,7 @@
 package routes_test
 
-// Pins a board row (see documentation/3. implementation/todo.md): CreateForm
-// honors a caller-supplied "id" instead of always minting its own, and a
-// duplicate id 500s instead of a clean conflict. Same bug class found this
-// same fleet sweep in mwanachama-backend-taskmanager, -assetmanager,
-// -accounting and -custody — this repo has neither the ID-clearing fix nor
-// a duplicate-id sentinel (unlike mwanachama-backend-actor/-comm, which
-// deliberately allow a caller-chosen id but classify a collision into a
-// clean ErrDuplicateID/ErrConflict).
+// Board row F1: CreateForm always mints its own id, so a caller-supplied "id"
+// is ignored and re-posting the same body cannot collide on the primary key.
 
 import (
 	"encoding/json"
@@ -21,10 +15,7 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/routes"
 )
 
-// Once fixed (form_impl.go's Create clearing f.ID before use, the same fix
-// applied elsewhere in this fleet's sweep), out.ID must NOT equal the
-// caller-supplied value.
-func TestCreateForm_PinsCallerSuppliedIDIsHonored(t *testing.T) {
+func TestCreateForm_IgnoresCallerSuppliedID(t *testing.T) {
 	fm := newTestManager(t)
 	handler := routes.CreateForm(fm)
 
@@ -42,16 +33,12 @@ func TestCreateForm_PinsCallerSuppliedIDIsHonored(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if out.ID != wanted {
-		t.Fatalf("appears fixed: CreateForm no longer honors a caller-supplied id (got %q) — update this pin to assert the new server-minted-id behavior instead", out.ID)
+	if out.ID == wanted {
+		t.Fatalf("a caller-supplied id was honoured (got %q) — the server must mint its own", out.ID)
 	}
 }
 
-// Once fixed (either the id-spoofing gap closes, or a genuine collision maps
-// to a 409 the way mwanachama-backend-actor's ErrDuplicateID/
-// mwanachama-backend-comm's ErrConflict already do), the second POST below
-// must NOT be 500.
-func TestCreateForm_PinsDuplicateCallerSuppliedIDReturns500NotConflict(t *testing.T) {
+func TestCreateForm_DuplicateCallerSuppliedIDMintsDistinctIDs(t *testing.T) {
 	fm := newTestManager(t)
 	handler := routes.CreateForm(fm)
 
@@ -68,7 +55,17 @@ func TestCreateForm_PinsDuplicateCallerSuppliedIDReturns500NotConflict(t *testin
 	second := httptest.NewRequest(http.MethodPost, "/forms", strings.NewReader(body))
 	secondRec := httptest.NewRecorder()
 	handler(secondRec, second)
-	if secondRec.Code != http.StatusInternalServerError {
-		t.Fatalf("appears fixed: duplicate id now returns %d (body %s), not the unmapped 500 this pin expects", secondRec.Code, secondRec.Body.String())
+	if secondRec.Code != http.StatusCreated {
+		t.Fatalf("second create: got %d, body %s", secondRec.Code, secondRec.Body.String())
+	}
+	var a, b mwanachamaforms.Form
+	if err := json.Unmarshal(firstRec.Body.Bytes(), &a); err != nil {
+		t.Fatalf("decode first: %v", err)
+	}
+	if err := json.Unmarshal(secondRec.Body.Bytes(), &b); err != nil {
+		t.Fatalf("decode second: %v", err)
+	}
+	if a.ID == b.ID || a.ID == "attacker-chosen-form-id-2" || b.ID == "attacker-chosen-form-id-2" {
+		t.Fatalf("expected two distinct server-minted ids, got %q and %q", a.ID, b.ID)
 	}
 }

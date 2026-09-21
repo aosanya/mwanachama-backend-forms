@@ -173,8 +173,16 @@ func (m *formManager) ListAnswers(ctx context.Context, formID, memberID string) 
 }
 
 // Declare records a respondent's self-reported chapter for a form, unique
-// per (RespondentID, FormID) — a repeat call overwrites in place.
+// per (RespondentID, FormID) — a repeat call overwrites in place. Returns
+// [ErrInvalidReference] when RespondentID names no Respondent row.
 func (m *formManager) Declare(ctx context.Context, in models.Declaration) (models.Declaration, error) {
+	var respondents int64
+	if err := m.db.WithContext(ctx).Table(m.tables.Respondents).Where("id = ?", in.RespondentID).Count(&respondents).Error; err != nil {
+		return models.Declaration{}, fmt.Errorf("Declare: %w", err)
+	}
+	if respondents == 0 {
+		return models.Declaration{}, fmt.Errorf("%w: respondent %q", ErrInvalidReference, in.RespondentID)
+	}
 	var existing gormstore.DeclarationRow
 	err := m.db.WithContext(ctx).Table(m.tables.Declarations).Where("respondent_id = ? AND form_id = ?", in.RespondentID, in.FormID).First(&existing).Error
 	switch {
