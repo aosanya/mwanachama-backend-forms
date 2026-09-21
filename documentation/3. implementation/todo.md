@@ -6,6 +6,8 @@ Everything else (completed rows, board context) is in [todo_done.md](todo_done.m
 | Task | Title | Status | Notes |
 |------|-------|--------|-------|
 
+_Nothing open — see [todo_done.md](todo_done.md) for F1–F3 and the rest._
+
 **The one prose line this board used to carry here** ("Wire
 `mwanachama-backend-api-gateway`'s `internal/domain/survey.Repository`/
 `.RegisterReader` to a new adapter type backed by `FormManager`... not
