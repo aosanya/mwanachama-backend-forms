@@ -16,11 +16,6 @@ var (
 	errNoDeclaration = errors.New("mwanachamaforms: no such declaration")
 )
 
-// ResolveLinkKey answers a key with the link and the form it opens. Every way
-// of failing — an unknown key, a retired link, a missing form, a form that is
-// not open, a form that is not public — answers not-found with no error, so
-// no caller can tell which of them it hit. It is an allow-list of the one
-// live state rather than a deny-list of reasons to refuse.
 func (m *formManager) ResolveLinkKey(ctx context.Context, key string) (models.PublicLink, models.Form, bool, error) {
 	var link models.PublicLink
 	err := m.take(m.q(ctx, rolePublicLink).Where("key = ?", key), rolePublicLink, &link, errNoLink)
@@ -47,9 +42,6 @@ func (m *formManager) ResolveLinkKey(ctx context.Context, key string) (models.Pu
 	return link, f, true, nil
 }
 
-// OpenPublicLink is ResolveLinkKey as an address answers it: the one live
-// state, or [ErrLinkNotFound]. Every way of failing is that one refusal, and
-// it carries no reason, so probing keys tells a caller nothing.
 func (m *formManager) OpenPublicLink(ctx context.Context, key string) (models.ResolvedLink, error) {
 	link, f, found, err := m.ResolveLinkKey(ctx, key)
 	if err != nil {
@@ -61,9 +53,6 @@ func (m *formManager) OpenPublicLink(ctx context.Context, key string) (models.Re
 	return models.ResolvedLink{Link: link, Form: f}, nil
 }
 
-// RegisterRespondent is UpsertRespondent behind a public link, which has to
-// still open before anything is written. Only the public view comes back:
-// which member a respondent turned out to be is never a public answer.
 func (m *formManager) RegisterRespondent(ctx context.Context, key, publicKey string) (models.RespondentPublicView, error) {
 	if _, err := m.OpenPublicLink(ctx, key); err != nil {
 		return models.RespondentPublicView{}, err
@@ -75,9 +64,6 @@ func (m *formManager) RegisterRespondent(ctx context.Context, key, publicKey str
 	return r.PublicView(), nil
 }
 
-// DeclareChapter is Declare behind a public link. The form is the one the
-// key opens rather than one the caller names, so a live key cannot be used
-// to write a declaration against some other form.
 func (m *formManager) DeclareChapter(ctx context.Context, key, respondentID, declaredChapterID, declaredText string) (models.Declaration, error) {
 	opened, err := m.OpenPublicLink(ctx, key)
 	if err != nil {
@@ -91,9 +77,6 @@ func (m *formManager) DeclareChapter(ctx context.Context, key, respondentID, dec
 	})
 }
 
-// UpsertRespondent answers with the row a token already has, untouched, or
-// mints one. It is a get-or-create and never a merge: a second visit from the
-// same device must not be able to rewrite what the first recorded.
 func (m *formManager) UpsertRespondent(ctx context.Context, in models.Respondent) (models.Respondent, error) {
 	if in.PublicKey != "" {
 		var held models.Respondent
@@ -115,12 +98,6 @@ func (m *formManager) UpsertRespondent(ctx context.Context, in models.Respondent
 	return in, nil
 }
 
-// SubmitAnswers checks every answer before writing any of them, so a batch
-// with one bad answer in it leaves nothing behind. Each lands on the row for
-// its own question and answerer, so a resubmission edits rather than doubles
-// — and an edit keeps the time and the group the first answer was given
-// from, because those record where the response came from rather than when it
-// was last touched.
 func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID, chapterID string, in []models.Answer) ([]models.Answer, error) {
 	f, err := m.Get(ctx, formID)
 	if err != nil {
@@ -154,8 +131,6 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID, chapt
 	return out, nil
 }
 
-// questionsAnswered reads each distinct question a batch answers, refusing
-// the whole batch if one of them belongs to another form.
 func (m *formManager) questionsAnswered(ctx context.Context, formID string, in []models.Answer) (map[string]models.Question, map[string][]models.QuestionOption, error) {
 	questions := map[string]models.Question{}
 	options := map[string][]models.QuestionOption{}
@@ -226,9 +201,6 @@ func (m *formManager) ListAnswers(ctx context.Context, formID, memberID string) 
 	return out, nil
 }
 
-// Declare records which group a respondent says they belong to, one per
-// respondent and form, so a repeat overwrites in place rather than leaving
-// two answers to the same question.
 func (m *formManager) Declare(ctx context.Context, in models.Declaration) (models.Declaration, error) {
 	var respondents int64
 	if err := m.q(ctx, roleRespondent).Where("id = ?", in.RespondentID).Count(&respondents).Error; err != nil {

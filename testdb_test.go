@@ -10,9 +10,6 @@ import (
 	"github.com/aosanya/mwanachama-backend-shared/spec"
 )
 
-// testSpec is the shipped domain spec under a test instance, so these tests
-// run against the same declaration the real mount does rather than a
-// table set that exists only here.
 func testSpec(t *testing.T, instance string) *spec.Spec {
 	t.Helper()
 	s, err := mwanachamaforms.SpecFor(instance)
@@ -28,8 +25,6 @@ func newTestManager(t *testing.T) mwanachamaforms.FormManager {
 	return mgr
 }
 
-// newTestManagerDB also hands back the database, for the tests that have to
-// plant a row the manager would refuse to write.
 func newTestManagerDB(t *testing.T) (mwanachamaforms.FormManager, *gorm.DB) {
 	t.Helper()
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})

@@ -187,9 +187,6 @@ func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publish
 	}
 	f.Status, f.PublishedAt, f.PublishedBy, f.LastUpdated = models.StatusOpen, now, publishedBy, now
 
-	// One transaction: a failed link or propagation insert must roll the
-	// status change back, or the Form is left open with no way to publish it
-	// again.
 	var link models.PublicLink
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		row, err := encode(m.st.Object(roleForm), f)
@@ -265,10 +262,6 @@ func (m *formManager) Close(ctx context.Context, id, closedBy string) (models.Fo
 	return f, nil
 }
 
-// Delete removes a Form and its Questions/QuestionOptions/Targets/Approvals.
-// Propagation, PublicLink, Declaration and Answer rows are not swept — by
-// construction they exist only once a form is published, and a published
-// form is never deletable, so none can be here to sweep.
 func (m *formManager) Delete(ctx context.Context, id string) error {
 	f, err := m.Get(ctx, id)
 	if err != nil {

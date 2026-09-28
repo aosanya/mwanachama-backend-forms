@@ -26,7 +26,7 @@ func TestRegister_FiltersAndCounts(t *testing.T) {
 
 func TestRegister_SearchByTitle(t *testing.T) {
 	um := newTestManager(t)
-	newDraftForm(t, um) // "Chapter Health Check"
+	newDraftForm(t, um)
 
 	page, err := um.Register(context.Background(), mwanachamaforms.RegisterQuery{Search: "health"})
 	if err != nil {

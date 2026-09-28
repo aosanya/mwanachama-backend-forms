@@ -4,132 +4,150 @@ Guidance for Claude Code working in this repository.
 
 ## Project: mwanachama-backend-forms
 
-Extraction of `mwanachama-backend-api-gateway`'s `survey` domain (renamed
-`Form` — the gateway's own domain, routes, and Postgres tables keep the word
-`survey`; only this package's public naming changed) onto GORM: domain logic
-AND storage both live in this package, imported directly by the gateway
-process — no separate service, no gRPC, no proto. Module path
-`github.com/aosanya/mwanachama-backend-forms`. Structured exactly like
-`mwanachama-backend-actor` (its own extraction of the gateway's `member` and
-`chapter` domains): same GORM-in-package pattern, same `models/`/`gormstore/`
-split, same route-builder shape, same test-file layout.
+Instruments: a form is composed, cleared, published, answered and closed.
+Domain logic AND storage both live in this package, imported directly by
+whatever mounts it — no separate service, no gRPC, no proto — the same shape
+`mwanachama-backend-catalog` and `mwanachama-backend-agency` already took.
+Module path `github.com/aosanya/mwanachama-backend-forms`.
 
-Built 2026-09-04, at the user's request, following `mwanachama-backend-actor`
-"exactly." No DSN-numbered decision record exists for this extraction in the
-gateway's `documentation/2. design/todo.md` — unlike actor (DSN-1698), this
-repo originates the decision rather than following one already recorded
-there.
+Extracted from `mwanachama-backend-api-gateway`'s `survey` domain on
+2026-09-04 and renamed: the gateway's `Survey` is `Form` here, and every
+`SurveyID` field is a `FormID`. Nothing else was renamed. Converted onto the
+declared-domain format on 2026-09-28 (F6–F12) — see
+[documentation/2. design/todo_details/FMD-001.md](documentation/2.%20design/todo_details/FMD-001.md)
+for what was decided and why.
 
-## Naming decision
+## Objects are declared, not written
 
-The gateway's `internal/domain/survey.Survey` becomes `Form` here — the
-user was asked whether to keep "Survey" (the word used everywhere else in
-the product: requirements docs, mockups, todo acts) or rename to "Form"
-(mirroring actor's own Member->Actor/Chapter->Group precedent, where the new
-repo's name drives its own vocabulary) and chose the rename. Every
-`SurveyID`/`survey_id` field across every type becomes `FormID`/`form_id`.
-No other type was renamed — `Question`, `QuestionOption`, `Target`,
-`Approval`, `Propagation`, `PublicLink`, `Respondent`, `Declaration`,
-`Answer` keep their names, the same way actor only renamed its two root
-nouns and left `Registration` (repackaged as `ActorGroupAssignment`, since it
-*was* the Member-Chapter relation) as the only knock-on rename.
+The tables come from a JSON spec, not from Go structs. The format's reference
+is
+[declared-domains.md](../mwanachama-backend-shared/documentation/2.%20design/declared-domains.md),
+and the route table's is
+[dispatcher.md](../mwanachama-backend-shared/documentation/2.%20design/dispatcher.md).
 
-## Porting notes
+- **`forms.blueprint.json`** — the module's ten objects, declared once, with
+  a description on every object and every field. Reached through
+  `Blueprint()`, `LoadSpec(path)`, `ParseSpec(raw)` and `SpecFor(instance)`.
+  Load a domain spec through those, never through `spec.Load`, or its roled
+  objects arrive with no fields.
+- **`forms.forms.json`** — the domain's own declaration: which object fills
+  each role, what it is called, and which table it lands in. It names
+  `wakala` as its instance by way of example; a mount chooses its own
+  through `SpecFor`.
+- **`forms.operations.json`** — the API's declaration. Thirty operations,
+  each with its method, path, manager method, gating action, status, prose
+  and arguments. `routes/` is an adapter over
+  `mwanachama-backend-shared/dispatch` and nothing else.
 
-- `manager.go`'s `FormManager` interface and `models/`'s domain types port
-  the gateway's `internal/domain/survey` package's 32-method
-  `Repository`/`RegisterReader` interface and 10 types field-for-field. The
-  business logic itself was ported from the gateway's **memory** store
-  (`internal/store/memory/survey_store*.go`), not its Postgres store — the
-  memory implementation is Go logic close to this repo's own shape, where
-  the Postgres store is SQL that would need re-deriving the same rules
-  anyway.
-- **Hand-formatted RFC3339 string timestamps, not GORM `time.Time`
-  columns.** Every `time.Time`/`*time.Time` field in the gateway's survey
-  types (there are many — `OpensAt`, `ClosesAt`, `PublishedAt`, ...) became a
-  plain `string` here, `""` meaning unset — the same sort-safety reasoning
-  actor's `models/time.go` documents, and the same "optional string, not
-  pointer" convention actor already uses for `Group.ParentID`.
-- **`Form` and `Target` gained `CreatedAt` fields they do not have upstream.**
-  The gateway's `Survey`/`Target` rely on sequential Postgres ids
-  (`"survey-1"`, `"st-1"`, ...) for `ORDER BY id` to mean "insertion order."
-  This repo mints ids as UUIDs (actor's own storage convention, adopted here
-  too), which carry no such order — so `ListForChapter` and `ListTargets`
-  needed a real timestamp to sort by instead. `Target.CreatedAt` and
-  `Form.CreatedAt`/`.LastUpdated` exist for exactly this reason, mirroring
-  the same fix actor already applied to `Group`/`ActorGroupAssignment` when
-  it made the identical UUID switch.
-- **No cross-repo FK.** `Answer.MemberID`/`.ChapterID` FK to the gateway's
-  own `member`/`chapter` Postgres tables upstream (migration 000057). Here
-  they are plain, unconstrained string columns — mirroring actor's own
-  documented choice for `Group.HierarchyID`/`.LevelID`/`.ParentID`
-  ("no foreign key back to those tables").
-- **No `Attributes`/`Property` catalog.** `attributes.go` and
-  `models/property.go` exist in actor because `Actor`/`Group` needed a
-  validated, extensible custom-field bag. Nothing in the survey/form domain
-  is a free-form attribute bag — every field is fixed-shape — so this repo
-  does not carry that machinery over. Skipping it is a deliberate deviation
-  from copying actor file-for-file, in service of copying actor's *pattern*
-  (build only the machinery a domain needs).
-- **No custody/act-log writing.** The gateway's `AddOption` and
-  `VersionQuestion` compose and write a custody `Entry` (an audit event) in
-  the same call as the content write. `custody` is a gateway-internal domain
-  this repo must not depend on — the same reasoning actor's
-  `registration_impl.go` already gives for why `Deregister` writes no
-  act-log row here. `models.AddOptionResult`/`.VersionQuestionResult` drop
-  the gateway's `CustodyEventID`/`CustodyOccurredAt` fields accordingly; the
-  gateway adapter, if one is ever written, is where that composition
-  belongs, in its own separate call.
-- **`ValidateAnswer`'s three gateway sentinels
-  (`ErrAnswerShape`/`ErrAnswerTooLong`/`ErrUnknownOption`) collapse into
-  one, `ErrInvalidAnswer`.** Every one of the three is caller input error
-  either way (400 either way at the HTTP layer), so this repo uses the same
-  one-sentinel-many-reasons shape `ErrInvalidActor` already uses for
-  `models.ValidateAttributes` in actor, rather than threading three
-  distinguishable sentinels through `models.ValidateAnswer`'s plain-error
-  return for no behavioral gain.
-- **`syncConstraints` (`gormstore/tables.go`), not
-  `syncUniqueAttributeIndexes`.** Actor's GORM `Migrate` only ever needed
-  postgres-dialect partial unique indexes for `Attributes` uniqueness. This
-  domain's gateway schema also carries a Postgres trigger (migration
-  000024's published-option-lock, refusing UPDATE/DELETE on a
-  `QuestionOption` once its form leaves draft) and a multi-column CHECK
-  (migration 000057's answer-has-exactly-one-value). `syncConstraints`
-  applies all three (the trigger, the CHECK, and the approval
-  one-open-per-form partial unique index) via raw SQL, postgres-only,
-  skipped on sqlite — best-effort schema parity, not a certified 1:1 SQL
-  port. `CollectionInterviewer` ports as a schema-valid enum value with its
-  existing `ValidateAudienceCollection` rule; no interview-capture-specific
-  behavior exists to port, upstream or here.
-- **`PropagationKind`'s `Localized`/`Pushed` values and
-  `Propagation.LastReminderAt` are inherited dead vocabulary, not a bug.**
-  Confirmed via the gateway's own memory-store logic: no method anywhere
-  transitions a row into `localized`/`pushed`, and nothing sets
-  `LastReminderAt` — this repo carries the same schema-level parity without
-  reproducing behavior that was never there to reproduce.
-- **`mwanachama-backend-shared`, `-actor`, `-git`, `-taskmanager` were NOT
-  touched** — this build was scoped to this repo only.
-- **`mwanachama-backend-api-gateway` was NOT touched and is not wired to
-  this repo** — no adapter satisfying its own `internal/domain/survey`
-  package's interfaces was written here; that is a follow-up change, by
-  explicit scope decision, the same as actor's own first build left the
-  gateway's `stores.go`/`user_instances.go` wiring for later.
+**Adding a field means editing the blueprint and the `models/` type
+together.** They are checked against each other in `NewFormManager`, so a
+declared column with no field to hold it, or a field with no column to land
+in, fails when the manager is built rather than dropping a value on every
+write. **Adding an address means editing `forms.operations.json`** — there is
+no route builder left to name.
+
+**A table is `<instance>_forms_<object>`.** The module segment is not
+decoration: without it two modules mounted under the same instance name want
+the same physical table and neither notices, because `create table if not
+exists` is a no-op against one that exists. `Provision(db, spec)` moves a
+pre-spec table set (`<instance>_<object>`) onto the declared names, and
+carries `updated_at` across to `last_updated`, before creating what is
+missing.
+
+**A column is found by field name, never by json tag** — `SubmittedBy`
+becomes `submitted_by`, `OptionIDs` becomes `option_ids`. The tag is a
+presentation choice, and a tag-reading codec would quietly stop storing any
+field a response hides.
+
+**Every declared column is written on every write.** A map missing a key
+means "leave it alone" to an update, so omitting empty values would make
+clearing a field impossible.
+
+**Five fields are nullable or collection-shaped**, which is why this repo is
+the reason `spec` has a `float` type and a `nullable` flag at all:
+`Question.MaxLength`, `Question.QuickPicks`, `Answer.OptionIDs`,
+`Answer.ValueNumber`, `Answer.ValueBool`. A nullable column must be carried
+by a pointer and a pointer must be declared nullable — `specstore` refuses
+the mismatch when the manager is built, because otherwise "nobody answered"
+and "answered zero" become the same stored row.
+
+## Rules are declared too, where they can be
+
+`validate.go` reads `required` and an enum's `values` off the spec and
+applies them on the way in, so a domain that adds a sixth status gets it
+enforced with no Go change. `Check(spec, role, value)` is the same
+validation without a database.
+
+**What stays in Go is what a spec cannot say**, and each piece lives with
+the type it is about: `models.ValidateWindow` (a closing time falls after an
+opening one), `models.ValidateAudienceCollection` (a member audience is
+never interviewed), `models.ValidateAnswer` (a value fits the shape its own
+question asks for), and the lifecycle transitions themselves.
+
+## Behaviours to preserve
+
+- **A public link's refusal names no reason.** An unknown key, a retired
+  link, a missing form and a form that is not open and public are all
+  `ErrLinkNotFound`, whose text is `not found` and nothing more. Splitting
+  them lets anyone enumerate unpublished forms by trying keys.
+- **Answering is not anonymous.** This module cannot tell a public
+  respondent from a member, so `forms.answer.submit` is gated like every
+  other write. Only three actions are on `routes.AnonymousActions`, and
+  adding a fourth is a decision, not a convenience.
+- **The address outranks the body.** A question or a target posted under one
+  form lands on that form whatever the body claims. Declared as `into`, and
+  pinned.
+- **Server-owned fields are the store's.** `id`, `created_at`, a target's
+  `created_at`, an answer's `answered_at`/`chapter_id` on an edit — all
+  minted or carried forward by the manager, never read from a request. This
+  is where F4 was closed.
+- **`actor_id` comes from the mount**, through `from: caller`, so no request
+  and no tool can name who did something.
+- **A resubmitted answer edits in place** and keeps the time and group the
+  first answer was given from; only `edited_at` moves.
+- **A failed publish leaves the form unpublished.** The status change, the
+  link and the propagation rows are one transaction, so a colliding link key
+  is a clean 409 and the form is still publishable.
+- **Only the current version of a question may be superseded** — the history
+  is a chain, not a tree.
+
+## Consumers
+
+- **`mwanachama-wakala-api`** mounts the declared operations at `/forms`
+  (`cmd/server/forms.go`, `internal/api/http/forms_routes.go`), gated
+  through `mwanachama-backend-permissions` under the scope `module:forms`.
+  Unset `FORMS_DATABASE_URL`/`FORMS_INSTANCE` leaves it unmounted.
+- **`mwanachama-backend-api-gateway`** does not use this repo's `routes/` at
+  all. It drives `FormManager` through its own
+  `internal/store/formsadapter` and serves its own `survey_*_handlers.go`
+  addresses. Changing a *manager signature* reaches it; changing an
+  *address* does not.
 
 ## Conventions
 
+- `go test ./...` (sqlite via `glebarez/sqlite`) is the expected way to
+  verify a change here — do not reach for a real Postgres. The Postgres-only
+  rules `Provision` applies as raw SQL (the published-option lock, the
+  answer has-exactly-one-value CHECK, the one-open-approval index) live in
+  `postgres_integration_test.go`, which is `//go:build integration`, gated on
+  `POSTGRES_URL`, and **not** part of `go test ./...`.
 - Task status lives on
-  [documentation/3. implementation/todo.md](documentation/3.%20implementation/todo.md).
+  [documentation/3. implementation/todo.md](documentation/3.%20implementation/todo.md);
+  design decisions live on
+  [documentation/2. design/todo.md](documentation/2.%20design/todo.md) as
+  `FMD-XXX`.
 - Four-phase `documentation/` layout — see
-  [documentation/README.md](documentation/README.md).
-- Route builder functions are named `"<ModelType>Routes"` exactly
-  (`FormRoutes`, `QuestionRoutes`, `TargetRoutes`, `ApprovalRoutes`,
-  `PropagationRoutes`, `PublicLinkRoutes`, `AnswerRoutes`) — see
-  [routes/routes.go](routes/routes.go).
-- Before wiring into `mwanachama-backend-api-gateway`, the interface that
-  must NOT change is `internal/domain/survey.Repository`/`.RegisterReader` —
-  route paths, request/response shapes and status codes all depend on that
-  staying byte-for-byte identical. New adapter types satisfying it belong in
-  the gateway's own `internal/store` tree, not here.
+  [documentation/README.md](documentation/README.md). What the code used to
+  say in comments is in
+  [documentation/2. design/storage.md](documentation/2.%20design/storage.md)
+  — the timestamp layout, the absent foreign keys, and the three SQL rules.
+- **There is no `doc.go`.** A package doc is a doc comment, and this repo
+  carries none; `documentation/2. design/README.md` is the orientation page
+  instead.
+- There are no hand-written route builders left to name, so this repo is no
+  longer an example of the `"<ModelType>Routes"` convention. Do not
+  reintroduce the `mwanachama-backend-actor` `models/` + `gormstore/` +
+  route-builder shape here.
 
 ## Code comments
 

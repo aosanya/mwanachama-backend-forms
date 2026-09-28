@@ -9,9 +9,6 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-// Rollup counts how far a form has spread. Stalled is exactly "reached but
-// never picked up" — there is no staleness threshold, so a group that took
-// it up a second later and one that never did are the only two cases.
 func (m *formManager) Rollup(ctx context.Context, formID string) (models.Rollup, error) {
 	rows, err := m.propagationFor(ctx, formID)
 	if err != nil {
@@ -31,9 +28,6 @@ func (m *formManager) Rollup(ctx context.Context, formID string) (models.Rollup,
 	return out, nil
 }
 
-// PickUp records a group taking up a form it was reached with. It never
-// creates the row — publishing does that — so a group that was never reached
-// is refused rather than quietly recorded. A second call is a no-op.
 func (m *formManager) PickUp(ctx context.Context, formID, chapterID string) (models.Propagation, error) {
 	var p models.Propagation
 	q := m.q(ctx, rolePropagation).Where("form_id = ? AND chapter_id = ?", formID, chapterID)

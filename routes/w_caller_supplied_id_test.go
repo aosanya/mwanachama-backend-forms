@@ -1,30 +1,22 @@
 package routes_test
 
-// Board row F1: CreateForm always mints its own id, so a caller-supplied "id"
-// is ignored and re-posting the same body cannot collide on the primary key.
-
 import (
 	"encoding/json"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/routes"
 )
 
 func TestCreateForm_IgnoresCallerSuppliedID(t *testing.T) {
 	fm := newTestManager(t)
-	handler := routes.CreateForm(fm)
+	mux := mount(t, fm)
 
 	closesAt := time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano)
 	const wanted = "attacker-chosen-form-id"
 	body := `{"id":"` + wanted + `","title":"Chapter Census","originator_chapter_id":"chapter-1","closes_at":"` + closesAt + `"}`
-	req := httptest.NewRequest(http.MethodPost, "/forms", strings.NewReader(body))
-	rec := httptest.NewRecorder()
-	handler(rec, req)
+	rec := do(t, mux, http.MethodPost, "/forms", body)
 
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("create form: got %d, body %s", rec.Code, rec.Body.String())
@@ -40,21 +32,17 @@ func TestCreateForm_IgnoresCallerSuppliedID(t *testing.T) {
 
 func TestCreateForm_DuplicateCallerSuppliedIDMintsDistinctIDs(t *testing.T) {
 	fm := newTestManager(t)
-	handler := routes.CreateForm(fm)
+	mux := mount(t, fm)
 
 	closesAt := time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano)
 	body := `{"id":"attacker-chosen-form-id-2","title":"Chapter Census","originator_chapter_id":"chapter-1","closes_at":"` + closesAt + `"}`
 
-	first := httptest.NewRequest(http.MethodPost, "/forms", strings.NewReader(body))
-	firstRec := httptest.NewRecorder()
-	handler(firstRec, first)
+	firstRec := do(t, mux, http.MethodPost, "/forms", body)
 	if firstRec.Code != http.StatusCreated {
 		t.Fatalf("first create: got %d, body %s", firstRec.Code, firstRec.Body.String())
 	}
 
-	second := httptest.NewRequest(http.MethodPost, "/forms", strings.NewReader(body))
-	secondRec := httptest.NewRecorder()
-	handler(secondRec, second)
+	secondRec := do(t, mux, http.MethodPost, "/forms", body)
 	if secondRec.Code != http.StatusCreated {
 		t.Fatalf("second create: got %d, body %s", secondRec.Code, secondRec.Body.String())
 	}

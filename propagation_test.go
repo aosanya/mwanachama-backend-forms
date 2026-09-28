@@ -34,7 +34,6 @@ func TestPickUp(t *testing.T) {
 		t.Fatalf("unexpected rollup: %+v", rollup)
 	}
 
-	// Idempotent repeat.
 	again, err := um.PickUp(context.Background(), f.ID, "chapter-2")
 	if err != nil {
 		t.Fatalf("PickUp (repeat): %v", err)

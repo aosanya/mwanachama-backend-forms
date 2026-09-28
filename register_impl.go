@@ -9,9 +9,6 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-// lastMoved is the stamp the register sorts on: the latest stage a form has
-// reached, preferred over the earlier ones. A form that never left draft has
-// none, and sorts last rather than first.
 func lastMoved(f models.Form) (string, bool) {
 	for _, t := range []string{f.ClosedAt, f.PublishedAt, f.ApprovedAt, f.SubmittedAt} {
 		if t != "" {
@@ -27,8 +24,6 @@ func (m *formManager) respondentCount(ctx context.Context, formID string) (int, 
 	return int(count), err
 }
 
-// currentQuestionCount counts the prompts nothing has superseded, which is
-// what a reader would be asked, rather than every revision ever written.
 func (m *formManager) currentQuestionCount(ctx context.Context, formID string) (int, error) {
 	var count int64
 	superseded := m.db.Table(m.table(roleQuestion)).
@@ -39,9 +34,6 @@ func (m *formManager) currentQuestionCount(ctx context.Context, formID string) (
 	return int(count), err
 }
 
-// Register returns a filtered, sorted, paginated page of forms. The totals
-// are computed over everything the filter matched, before the page is cut, so
-// a short page still reports how much there is.
 func (m *formManager) Register(ctx context.Context, q models.RegisterQuery) (models.RegisterPage, error) {
 	query := m.q(ctx, roleForm)
 	if q.ChapterID != "" {

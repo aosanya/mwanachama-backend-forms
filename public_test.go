@@ -68,7 +68,7 @@ func TestUpsertRespondent(t *testing.T) {
 func TestSubmitAnswers(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	yn, _, err := um.AddQuestion(context.Background(), mwanachamaforms.Question{FormID: f.ID, AnswerType: mwanachamaforms.AnswerYesNo, Prompt: "Active chapter?"}, nil)
+	yn, _, err := um.AddQuestion(context.Background(), mwanachamaforms.QuestionDraft{Question: mwanachamaforms.Question{FormID: f.ID, AnswerType: mwanachamaforms.AnswerYesNo, Prompt: "Active chapter?"}})
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}
@@ -106,7 +106,7 @@ func TestSubmitAnswers(t *testing.T) {
 func TestSubmitAnswers_FormNotOpen(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	q, _, err := um.AddQuestion(context.Background(), mwanachamaforms.Question{FormID: f.ID, AnswerType: mwanachamaforms.AnswerFreeText, Prompt: "x"}, nil)
+	q, _, err := um.AddQuestion(context.Background(), mwanachamaforms.QuestionDraft{Question: mwanachamaforms.Question{FormID: f.ID, AnswerType: mwanachamaforms.AnswerFreeText, Prompt: "x"}})
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}
@@ -119,7 +119,7 @@ func TestSubmitAnswers_FormNotOpen(t *testing.T) {
 func TestSubmitAnswers_InvalidShape(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	q, _, err := um.AddQuestion(context.Background(), mwanachamaforms.Question{FormID: f.ID, AnswerType: mwanachamaforms.AnswerYesNo, Prompt: "x"}, nil)
+	q, _, err := um.AddQuestion(context.Background(), mwanachamaforms.QuestionDraft{Question: mwanachamaforms.Question{FormID: f.ID, AnswerType: mwanachamaforms.AnswerYesNo, Prompt: "x"}})
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}

@@ -8,9 +8,6 @@ import (
 	"github.com/aosanya/mwanachama-backend-shared/spec"
 )
 
-// Provision brings a database up to what s declares: it moves a pre-spec
-// table set onto the declared names, creates whatever is missing, and
-// applies the rules a spec has no way to state.
 func Provision(db *gorm.DB, s *spec.Spec) error {
 	if err := renameLegacy(db, s); err != nil {
 		return err
@@ -21,9 +18,6 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 	return syncConstraints(db, s)
 }
 
-// legacyTable is what this object's table was called before the module
-// segment existed: <instance>_<table>, where the declared name is
-// <instance>_<module>_<table>.
 func legacyTable(s *spec.Spec, o spec.Object) string {
 	return s.Instance + "_" + o.Table
 }
@@ -66,10 +60,6 @@ func renameLegacy(db *gorm.DB, s *spec.Spec) error {
 	return nil
 }
 
-// renameTimestamp carries a pre-spec row's updated_at across to the column
-// the declared field name derives, which is last_updated. The store joins a
-// declared column to a Go field by name, so leaving the old one behind would
-// read every timestamp back empty rather than fail.
 func renameTimestamp(db *gorm.DB, s *spec.Spec, o spec.Object) error {
 	declared := s.TableFor(o)
 	if !db.Migrator().HasTable(declared) || !declaresColumn(o, timestampColumn) {
@@ -151,16 +141,6 @@ func tableFor(s *spec.Spec, role string) string {
 	return s.TableFor(o)
 }
 
-// syncConstraints applies the three rules the declaration has no way to
-// carry: an option may not move once its form has left draft, an answer
-// fills exactly one value column, and a form has at most one undecided
-// approval. The first two have no declared equivalent at all; the third is a
-// partial index over a condition that is not `deleted`, which is the only
-// one the format names.
-//
-// Postgres only, as it was before the conversion — SQLite runs the unit
-// tests without them, and the Go rules that also enforce all three are what
-// those tests exercise.
 func syncConstraints(db *gorm.DB, s *spec.Spec) error {
 	if db.Dialector.Name() != "postgres" {
 		return nil

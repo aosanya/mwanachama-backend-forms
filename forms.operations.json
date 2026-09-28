@@ -1,4 +1,429 @@
 {
-  "errors": {},
-  "operations": {}
+  "errors": {
+    "ErrFormNotFound": 404,
+    "ErrQuestionNotFound": 404,
+    "ErrTargetNotFound": 404,
+    "ErrLinkNotFound": 404,
+
+    "ErrNotDraft": 409,
+    "ErrNotWithdrawable": 409,
+    "ErrNotSubmitted": 409,
+    "ErrAwaitingApproval": 409,
+    "ErrNotOpen": 409,
+    "ErrPublished": 409,
+    "ErrPublicFormNoTargets": 409,
+    "ErrFormNotPublished": 409,
+    "ErrFormNotOpen": 409,
+    "ErrNotCurrentVersion": 409,
+    "ErrDuplicateTarget": 409,
+    "ErrLinkKeyTaken": 409,
+
+    "ErrInvalidReference": 400,
+    "ErrInvalidForm": 400,
+    "ErrInvalidQuestion": 400,
+    "ErrInvalidAnswer": 400,
+    "ErrMissingTitle": 400,
+    "ErrMissingClosesAt": 400,
+    "ErrClosesInPast": 400,
+    "ErrWindowInvalid": 400,
+    "ErrAudienceConflict": 400,
+    "ErrMissingPrompt": 400,
+    "ErrMissingOptionLabel": 400,
+    "ErrMissingNote": 400,
+    "ErrQuestionNotOnForm": 400
+  },
+  "operations": {
+    "create_form": {
+      "method": "POST",
+      "path": "/forms",
+      "call": "Create",
+      "action": "forms.form.create",
+      "status": 201,
+      "title": "Compose a form",
+      "description": "Write a new instrument. It starts as a draft whatever the request says, and every lifecycle stamp on it is the store's to set.",
+      "args": [{"from": "body", "whole": true}],
+      "returns": [{"body": true}]
+    },
+    "register_forms": {
+      "method": "GET",
+      "path": "/forms",
+      "call": "Register",
+      "action": "forms.form.list",
+      "title": "Search forms",
+      "description": "A page of instruments, narrowed by title, group and state, with how many prompts and how many people answered each. The totals count everything matched, not just the page.",
+      "args": [{"from": "query", "whole": true}],
+      "returns": [{"body": true}]
+    },
+    "get_form": {
+      "method": "GET",
+      "path": "/forms/{form_id}",
+      "call": "Get",
+      "action": "forms.form.read",
+      "title": "Read form",
+      "description": "Read one instrument: its title, its window, its audience and where it has got to.",
+      "args": [{"from": "path", "as": "form_id", "description": "The instrument to read."}],
+      "returns": [{"body": true}]
+    },
+    "update_form": {
+      "method": "PATCH",
+      "path": "/forms/{form_id}",
+      "call": "Update",
+      "action": "forms.form.update",
+      "title": "Edit form",
+      "description": "Change a draft's title, its window, its audience and how it is collected. Nothing else about it is editable, and it stops being editable once it leaves draft.",
+      "args": [
+        {"from": "body", "whole": true},
+        {"from": "path", "as": "form_id", "into": "ID", "description": "The instrument to edit."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "delete_form": {
+      "method": "DELETE",
+      "path": "/forms/{form_id}",
+      "call": "Delete",
+      "action": "forms.form.delete",
+      "status": 204,
+      "title": "Delete form",
+      "description": "Remove an instrument and everything composed into it. A form that has been published cannot be deleted, because people have answered it.",
+      "args": [{"from": "path", "as": "form_id", "description": "The instrument to remove."}],
+      "returns": [{"body": true}]
+    },
+    "submit_form": {
+      "method": "POST",
+      "path": "/forms/{form_id}/submit",
+      "call": "Submit",
+      "action": "forms.form.submit",
+      "title": "Send for a decision",
+      "description": "Hand a draft to whoever clears it, opening a round that waits for an answer.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument being sent."},
+        {"from": "body", "as": "submitted_by", "description": "Who is sending it."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "withdraw_form": {
+      "method": "POST",
+      "path": "/forms/{form_id}/withdraw",
+      "call": "Withdraw",
+      "action": "forms.form.withdraw",
+      "title": "Take it back",
+      "description": "Pull an instrument back to draft before or after it was cleared, closing the round that was waiting.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument being pulled back."},
+        {"from": "body", "as": "actor_id", "description": "Who is pulling it back."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "publish_form": {
+      "method": "POST",
+      "path": "/forms/{form_id}/publish",
+      "call": "Publish",
+      "action": "forms.form.publish",
+      "title": "Open for answers",
+      "description": "Start taking answers. A public instrument gets its shareable link here; a member one reaches every group it was aimed at. Publishing twice changes nothing.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument to open."},
+        {"from": "body", "as": "candidate_link_key", "description": "The token the shareable link should carry, for a public instrument. Refused if another link already holds it."},
+        {"from": "body", "as": "published_by", "description": "Who is opening it."}
+      ],
+      "returns": [
+        {"as": "form", "description": "The instrument, now open."},
+        {"as": "public_link", "description": "The shareable link, empty for a member-audience instrument."}
+      ]
+    },
+    "close_form": {
+      "method": "POST",
+      "path": "/forms/{form_id}/close",
+      "call": "Close",
+      "action": "forms.form.close",
+      "title": "Stop taking answers",
+      "description": "Close an open instrument. Closing twice changes nothing.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument to close."},
+        {"from": "body", "as": "closed_by", "description": "Who is closing it."}
+      ],
+      "returns": [{"body": true}]
+    },
+
+    "approve_form": {
+      "method": "POST",
+      "path": "/forms/{form_id}/approvals/approve",
+      "call": "Approve",
+      "action": "forms.approval.approve",
+      "title": "Clear a form",
+      "description": "Decide the open round in favour, which clears the instrument to be published.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument awaiting a decision."},
+        {"from": "body", "as": "approver_id", "description": "Who is deciding."},
+        {"from": "body", "as": "note", "description": "Anything they want recorded with it."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "refuse_form": {
+      "method": "POST",
+      "path": "/forms/{form_id}/approvals/refuse",
+      "call": "Refuse",
+      "action": "forms.approval.refuse",
+      "title": "Refuse a form",
+      "description": "Decide the open round against, sending the instrument back to draft. A refusal has to say why.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument awaiting a decision."},
+        {"from": "body", "as": "approver_id", "description": "Who is deciding."},
+        {"from": "body", "as": "note", "description": "Why it was refused. Required."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_approvals": {
+      "method": "GET",
+      "path": "/forms/{form_id}/approvals",
+      "call": "ListApprovals",
+      "action": "forms.approval.list",
+      "title": "Decision history",
+      "description": "Every round one instrument has been through, most recent first.",
+      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose history to read."}],
+      "returns": [{"body": true}]
+    },
+    "list_awaiting_approval": {
+      "method": "GET",
+      "path": "/approvals/awaiting",
+      "call": "ListAwaitingApproval",
+      "action": "forms.approval.list_awaiting",
+      "title": "Waiting on a decision",
+      "description": "Every instrument anywhere that is waiting to be cleared, the longest wait first.",
+      "args": [{"from": "query", "as": "limit", "description": "How many to return. Absent or zero returns all of them."}],
+      "returns": [{"body": true}]
+    },
+
+    "add_question": {
+      "method": "POST",
+      "path": "/forms/{form_id}/questions",
+      "call": "AddQuestion",
+      "action": "forms.question.create",
+      "status": 201,
+      "title": "Add a question",
+      "description": "Append a prompt, and the choices it offers, to a draft. Its position and its version are the store's to set.",
+      "args": [
+        {"from": "body", "whole": true},
+        {"from": "path", "as": "form_id", "into": "FormID", "description": "The instrument to append to."}
+      ],
+      "returns": [
+        {"as": "question", "description": "The prompt as written."},
+        {"as": "options", "description": "The choices it offers, in the order they will be shown."}
+      ]
+    },
+    "list_questions": {
+      "method": "GET",
+      "path": "/forms/{form_id}/questions",
+      "call": "ListQuestions",
+      "action": "forms.question.list",
+      "title": "List questions",
+      "description": "Every version of every prompt on one instrument, in the order they are asked.",
+      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose prompts to read."}],
+      "returns": [{"body": true}]
+    },
+    "update_question": {
+      "method": "PATCH",
+      "path": "/forms/{form_id}/questions/{question_id}",
+      "call": "UpdateQuestion",
+      "action": "forms.question.update",
+      "title": "Rewrite a question",
+      "description": "Replace a draft prompt's wording and its whole set of choices. The old choices are removed rather than merged, so their ids stop resolving.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument the prompt belongs to."},
+        {"from": "path", "as": "question_id", "description": "The prompt to rewrite."},
+        {"from": "body", "whole": true}
+      ],
+      "returns": [
+        {"as": "question", "description": "The prompt as rewritten."},
+        {"as": "options", "description": "Its new choices."}
+      ]
+    },
+    "list_options": {
+      "method": "GET",
+      "path": "/forms/{form_id}/questions/{question_id}/options",
+      "call": "ListOptions",
+      "action": "forms.question_option.list",
+      "title": "List choices",
+      "description": "The choices one prompt offers, in the order they are shown.",
+      "args": [
+        {"from": "path", "as": "form_id", "ignored": true, "description": "The instrument the prompt belongs to. Part of the address, not of the call."},
+        {"from": "path", "as": "question_id", "description": "The prompt whose choices to read."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "add_option": {
+      "method": "POST",
+      "path": "/forms/{form_id}/questions/{question_id}/options",
+      "call": "AddOption",
+      "action": "forms.question_option.create",
+      "status": 201,
+      "title": "Add a choice",
+      "description": "Append one more choice to a prompt, whatever state its instrument is in. It is the one content edit a published instrument allows, because adding a choice cannot invalidate an answer already given.",
+      "args": [
+        {"from": "path", "as": "form_id", "ignored": true, "description": "The instrument the prompt belongs to. Part of the address, not of the call."},
+        {"from": "path", "as": "question_id", "description": "The prompt to add to."},
+        {"from": "body", "as": "label", "description": "The choice as it should be shown."},
+        {"from": "caller", "as": "actor_id"}
+      ],
+      "returns": [{"body": true}]
+    },
+    "version_question": {
+      "method": "POST",
+      "path": "/forms/{form_id}/questions/{question_id}/versions",
+      "call": "VersionQuestion",
+      "action": "forms.question.version",
+      "status": 201,
+      "title": "Supersede a question",
+      "description": "Replace a published prompt with a new one, leaving the old prompt and the answers already given against it untouched. Only the version nothing has superseded may be superseded.",
+      "args": [
+        {"from": "path", "as": "form_id", "ignored": true, "description": "The instrument the prompt belongs to. Part of the address, not of the call."},
+        {"from": "path", "as": "question_id", "description": "The prompt to supersede."},
+        {"from": "caller", "as": "actor_id"},
+        {"from": "body", "whole": true}
+      ],
+      "returns": [{"body": true}]
+    },
+
+    "add_target": {
+      "method": "POST",
+      "path": "/forms/{form_id}/targets",
+      "call": "AddTarget",
+      "action": "forms.target.create",
+      "status": 201,
+      "title": "Aim at a group",
+      "description": "Aim a draft member-audience instrument at one group, optionally reaching the groups beneath it. A public instrument carries no aims.",
+      "args": [
+        {"from": "body", "whole": true},
+        {"from": "path", "as": "form_id", "into": "FormID", "description": "The instrument being aimed."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_targets": {
+      "method": "GET",
+      "path": "/forms/{form_id}/targets",
+      "call": "ListTargets",
+      "action": "forms.target.list",
+      "title": "List aims",
+      "description": "Every group one instrument is aimed at, oldest aim first.",
+      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose aims to read."}],
+      "returns": [{"body": true}]
+    },
+    "remove_target": {
+      "method": "DELETE",
+      "path": "/forms/{form_id}/targets/{target_id}",
+      "call": "RemoveTarget",
+      "action": "forms.target.delete",
+      "status": 204,
+      "title": "Stop aiming at a group",
+      "description": "Remove one of a draft's aims.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument the aim belongs to."},
+        {"from": "path", "as": "target_id", "description": "The aim to remove."}
+      ],
+      "returns": [{"body": true}]
+    },
+
+    "list_propagation": {
+      "method": "GET",
+      "path": "/forms/{form_id}/propagation",
+      "call": "ListPropagation",
+      "action": "forms.propagation.list",
+      "title": "List what it reached",
+      "description": "Every group one instrument reached, and how far each got with it.",
+      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose spread to read."}],
+      "returns": [{"body": true}]
+    },
+    "rollup_form": {
+      "method": "GET",
+      "path": "/forms/{form_id}/propagation/rollup",
+      "call": "Rollup",
+      "action": "forms.propagation.rollup",
+      "title": "How far it got",
+      "description": "How many groups an instrument reached, how many took it up, and which of them never did.",
+      "args": [{"from": "path", "as": "form_id", "description": "The instrument to summarise."}],
+      "returns": [{"body": true}]
+    },
+    "pick_up_form": {
+      "method": "POST",
+      "path": "/forms/{form_id}/propagation/pick-up",
+      "call": "PickUp",
+      "action": "forms.propagation.pick_up",
+      "title": "Take it up",
+      "description": "Record a group taking up an instrument it was reached with. A group that was never reached is refused rather than recorded.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument being taken up."},
+        {"from": "body", "as": "chapter_id", "description": "The group taking it up."}
+      ],
+      "returns": [{"body": true}]
+    },
+
+    "submit_answers": {
+      "method": "POST",
+      "path": "/forms/{form_id}/answers",
+      "call": "SubmitAnswers",
+      "action": "forms.answer.submit",
+      "title": "Answer a form",
+      "description": "Send every answer at once. They are all checked before any is written, so one bad answer leaves nothing behind, and answering again edits what was already given rather than doubling it.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument being answered."},
+        {"from": "body", "as": "member_id", "description": "Who is answering."},
+        {"from": "body", "as": "chapter_id", "description": "The group they are answering from."},
+        {"from": "body", "as": "answers", "description": "One answer per prompt being answered."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_answers": {
+      "method": "GET",
+      "path": "/forms/{form_id}/answers/{member_id}",
+      "call": "ListAnswers",
+      "action": "forms.answer.list",
+      "title": "Read someone's answers",
+      "description": "What one person answered on one instrument, in the order the prompts were asked.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument answered."},
+        {"from": "path", "as": "member_id", "description": "Whose answers to read."}
+      ],
+      "returns": [{"body": true}]
+    },
+
+    "open_public_link": {
+      "method": "GET",
+      "path": "/public-links/{key}",
+      "call": "OpenPublicLink",
+      "action": "forms.public_link.open",
+      "title": "Open a shared link",
+      "description": "Follow a shareable link to the instrument it opens. An unknown token, a retired link and an instrument that is not open all answer the same way, so nothing can be learned by trying tokens.",
+      "args": [{"from": "path", "as": "key", "description": "The token the link carries."}],
+      "returns": [{"body": true}]
+    },
+    "register_respondent": {
+      "method": "POST",
+      "path": "/public-links/{key}/respondents",
+      "call": "RegisterRespondent",
+      "action": "forms.respondent.register",
+      "title": "Start answering anonymously",
+      "description": "Claim or reclaim the token this device answers under. A token that already exists comes back as it stands rather than being rewritten.",
+      "args": [
+        {"from": "path", "as": "key", "description": "The token the link carries."},
+        {"from": "body", "as": "public_key", "description": "The token this device holds. Absent mints a new one."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "declare_chapter": {
+      "method": "POST",
+      "path": "/public-links/{key}/declarations",
+      "call": "DeclareChapter",
+      "action": "forms.declaration.create",
+      "status": 201,
+      "title": "Say which group you are in",
+      "description": "Record which group an anonymous respondent says they belong to, for the instrument this link opens. Saying it again replaces what was said before.",
+      "args": [
+        {"from": "path", "as": "key", "description": "The token the link carries."},
+        {"from": "body", "as": "respondent_id", "description": "Who is saying it."},
+        {"from": "body", "as": "declared_chapter_id", "description": "The group they picked from the list."},
+        {"from": "body", "as": "declared_text", "description": "What they typed instead, where no group on the list fitted."}
+      ],
+      "returns": [{"body": true}]
+    }
+  }
 }

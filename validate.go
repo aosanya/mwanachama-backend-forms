@@ -8,23 +8,14 @@ import (
 	"github.com/aosanya/mwanachama-backend-shared/spec"
 )
 
-// The roles a caller may name when checking a value against a spec without a
-// database — see [Check]. They are the module's own words for the objects a
-// domain fills; the unexported constants in store.go are the same strings.
 const (
-	// RoleForm is the instrument itself.
 	RoleForm = roleForm
 
-	// RoleQuestion is one prompt on it.
 	RoleQuestion = roleQuestion
 
-	// RoleAnswer is one response to one prompt.
 	RoleAnswer = roleAnswer
 )
 
-// Check reports whether v satisfies what s declares for the object playing
-// role. It needs no database, which is what lets a bulk import validate
-// everything it has read before opening a connection.
 func Check(s *spec.Spec, role string, v any) error {
 	o, ok := s.ByRole(role)
 	if !ok {
@@ -33,14 +24,6 @@ func Check(s *spec.Spec, role string, v any) error {
 	return check(o, v)
 }
 
-// check reports whether v satisfies what o declares: a required field that is
-// present, and an enum value that is one of the declared ones.
-//
-// These are the rules the spec can state, so they are read from it rather
-// than written again in Go. What stays in Go is what a spec cannot say — that
-// a closing time falls after an opening one, that a member audience is never
-// interviewed, that an answer's value fits the shape its own question asks
-// for — and each of those lives with the type it is about.
 func check(o spec.Object, v any) error {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() == reflect.Pointer {

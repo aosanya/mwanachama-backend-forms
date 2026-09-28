@@ -37,9 +37,6 @@ func ParseSpec(raw []byte) (*spec.Spec, error) {
 	return b.Parse(raw)
 }
 
-// SpecFor is how a mount chooses its instance: the shipped domain spec names
-// one as an example, and this replaces it, so two mounts of this module in
-// one database never reach for the same physical table.
 func SpecFor(instance string) (*spec.Spec, error) {
 	var doc map[string]any
 	if err := json.Unmarshal(domainJSON, &doc); err != nil {

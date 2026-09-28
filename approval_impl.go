@@ -14,8 +14,6 @@ import (
 
 var errNoOpenApproval = errors.New("mwanachamaforms: no open approval")
 
-// openApproval reads the form's undecided round, of which there is at most
-// one — an empty decided_at is what makes a round open.
 func (m *formManager) openApproval(ctx context.Context, formID string) (models.Approval, bool, error) {
 	var a models.Approval
 	q := m.q(ctx, roleApproval).Where("form_id = ? AND decided_at = ?", formID, "")
@@ -94,10 +92,6 @@ func (m *formManager) Withdraw(ctx context.Context, id, actorID string) (models.
 	return f, nil
 }
 
-// decide is what Approve and Refuse share: it needs a form awaiting a
-// decision, moves it on or back, and stamps the open round — synthesising
-// one first in the case where none exists, which Submit does not produce but
-// a database restored from elsewhere might.
 func (m *formManager) decide(ctx context.Context, id, approverID, note string, decision models.Decision) (models.Form, error) {
 	f, err := m.Get(ctx, id)
 	if err != nil {
@@ -144,7 +138,6 @@ func (m *formManager) Approve(ctx context.Context, id, approverID, note string) 
 	return m.decide(ctx, id, approverID, note, models.DecisionApproved)
 }
 
-// Refuse needs a note where Approve does not: a refusal has to say why.
 func (m *formManager) Refuse(ctx context.Context, id, approverID, note string) (models.Form, error) {
 	if strings.TrimSpace(note) == "" {
 		return models.Form{}, ErrMissingNote
@@ -152,9 +145,6 @@ func (m *formManager) Refuse(ctx context.Context, id, approverID, note string) (
 	return m.decide(ctx, id, approverID, note, models.DecisionRefused)
 }
 
-// ListAwaitingApproval returns every form waiting on a decision, the longest
-// wait first. One with no submission stamp sorts last rather than first,
-// where an empty string would otherwise put it.
 func (m *formManager) ListAwaitingApproval(ctx context.Context, limit int) ([]models.Form, error) {
 	out, err := listOf[models.Form](m,
 		m.q(ctx, roleForm).Where("status = ?", string(models.StatusSubmitted)), roleForm)

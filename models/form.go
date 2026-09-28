@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-// Status is a Form's lifecycle stage. Mirrors
-// mwanachama-backend-api-gateway's internal/domain/survey.Status field for
-// field — this package's own naming-consistency pass renames the gateway's
-// root noun Survey to Form (this repo's own name), not this enum's values.
 type Status string
 
 const (
@@ -19,7 +15,6 @@ const (
 	StatusClosed    Status = "closed"
 )
 
-// Audience is who a Form is aimed at.
 type Audience string
 
 const (
@@ -27,7 +22,6 @@ const (
 	AudiencePublic Audience = "public"
 )
 
-// CollectionMode is how a Form's answers get captured.
 type CollectionMode string
 
 const (
@@ -35,26 +29,6 @@ const (
 	CollectionInterviewer CollectionMode = "interviewer"
 )
 
-// Form is a survey/questionnaire — the gateway's internal/domain/survey.Survey,
-// renamed here (this repo's own naming-consistency pass, mirroring
-// mwanachama-backend-actor's Member->Actor/Chapter->Group). Every SurveyID
-// field the gateway carries on Form's related types becomes FormID here.
-//
-// OpensAt/PublishedAt/PublishedBy/ClosedAt/ClosedBy/SubmittedAt/SubmittedBy/
-// ApprovedAt/ApprovedBy/ResultsPublishedAt are plain strings with "" meaning
-// unset, mirroring this package's existing convention for an optional string
-// field (see Group.ParentID in mwanachama-backend-actor) rather than a
-// pointer — a nil *time.Time in the gateway's struct becomes an empty string
-// here, and every timestamp that is set is a [TimeLayout] string, not a
-// pointer to time.Time (see time.go's doc for why).
-//
-// CreatedAt/LastUpdated do not exist on the gateway's Survey — it relies on
-// its Postgres sequential id ("survey-1", "survey-2", ...) for chronological
-// list order. This repo mints ids as UUIDs (mwanachama-backend-actor's own
-// storage convention), which carry no such order, so both fields are added
-// here purely to give ListForChapter a stable, meaningful sort — the same
-// reasoning mwanachama-backend-actor already applied to Group and
-// ActorGroupAssignment when it made the identical UUID switch.
 type Form struct {
 	ID                  string `json:"id"`
 	Title               string `json:"title"`
@@ -81,25 +55,14 @@ type Form struct {
 	LastUpdated string `json:"last_updated"`
 }
 
-// Deletable reports whether a Form in this status may be deleted outright.
 func Deletable(s Status) bool {
 	return !VisibleToMembers(s)
 }
 
-// VisibleToMembers reports whether a Form in this status may be seen by the
-// members it targets — open and closed only, matching
-// mwanachama-backend-api-gateway's survey.VisibleToMembers exactly.
 func VisibleToMembers(s Status) bool {
 	return s == StatusOpen || s == StatusClosed
 }
 
-// ValidateWindow enforces that opensAt, when set, is strictly before
-// closesAt — mirrors the gateway's survey_window_runs_forwards (DEV-314). An
-// empty opensAt means "on publish" and is always valid regardless of
-// closesAt. Returns a plain error, not a package sentinel — callers (this
-// repo's CreateForm/UpdateForm) wrap it with [ErrWindowInvalid], the same
-// division of labor as models.ValidateAttributes / [ErrInvalidActor] in
-// mwanachama-backend-actor.
 func ValidateWindow(opensAt, closesAt string) error {
 	if closesAt == "" {
 		return nil
@@ -121,10 +84,6 @@ func ValidateWindow(opensAt, closesAt string) error {
 	return nil
 }
 
-// ValidateAudienceCollection enforces that a member-audience Form never uses
-// interviewer collection — mirrors the gateway's
-// survey_member_is_never_interviewed. Returns a plain error; callers wrap it
-// with [ErrAudienceConflict].
 func ValidateAudienceCollection(a Audience, m CollectionMode) error {
 	if a == AudienceMember && m == CollectionInterviewer {
 		return fmt.Errorf("a member-audience form cannot use interviewer collection")

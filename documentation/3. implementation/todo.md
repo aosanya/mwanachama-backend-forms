@@ -5,17 +5,9 @@ Everything else (completed rows, board context) is in [todo_done.md](todo_done.m
 
 | Task | Title | Status | Notes |
 |------|-------|--------|-------|
-| F4 | 🐞 **BUG — `CreateForm` clears a caller-supplied `id` (F1's own fix) but never clears `created_at`, so a caller can backdate a Form's own audit timestamp over real HTTP.** `form_impl.go`'s `Create` does `f.ID = ""` unconditionally, then separately does `if f.CreatedAt == "" { f.CreatedAt = models.NowRFC3339() }` — a non-empty caller value is honoured verbatim. `routes/form.go`'s `CreateForm` handler `readJSON`s straight into `mwanachamaforms.Form` (the same broad struct F1's own pin already exercises for `id`), so `created_at` is reachable the identical way. Demonstrated live through the real handler: `POST /forms` with body `{"created_at":"1999-01-01T00:00:00Z","title":"Chapter Census","originator_chapter_id":"chapter-1","closes_at":"<+1h>"}` returns **201** with `"created_at":"1999-01-01T00:00:00Z"` echoed back verbatim in the response, while `id` is correctly server-minted (a real UUID, confirming F1's own fix still holds — this is a distinct gap, not a F1 regression). Same shape independently found this run in `mwanachama-backend-actor` (filed there as ACT4, for `CreateActor`/`CreateGroup`'s `id`+`created_at`+`deleted`) and previously fixed fleet-wide in `mwanachama-backend-agency` as AG21/WK17 — this repo's own `Create` only partially applied that lesson (id only, not created_at). Not separately demonstrated but sharing the identical un-guarded `if t.CreatedAt == ""` idiom with no `t.ID = ""` clear at all: `target_impl.go`'s `AddTarget` — currently NOT reachable via HTTP for this vulnerability, since `routes/target.go`'s `AddTarget` handler decodes into a narrow inline struct (`chapter_id`/`includes_descendants` only) rather than the domain `Target` type directly, so a real caller cannot inject either field today; flagged as a latent Go-API-level risk for any future caller of `FormManager.AddTarget` directly, not a currently-exploitable HTTP gap. `public_impl.go`'s `Declare` has the same `if in.CreatedAt == ""` idiom on its create branch, but is confirmed NOT reachable via HTTP either — `routes/publiclink.go`'s `DeclareChapter` handler decodes into its own narrow inline struct (`respondent_id`/`declared_chapter_id`/`declared_text`) with no `id`/`created_at` field, so a real caller cannot inject either there. Fix location: `form_impl.go`'s `Create` — mint `CreatedAt` unconditionally, dropping the `if == ""` guard, the same fix ACT4/AG21 apply for the identical shape elsewhere in the fleet. | 📋 | Found 2026-09-23 by the fleet integration-test sweep, widening from this run's `mwanachama-backend-actor` ACT4 finding (loophole catalogue #1, "a key that does not identify the row" / caller-controlled server-owned field) into this repo, which shares actor's exact `Create<Type>` code shape by explicit design ("Structured exactly like mwanachama-backend-actor," this repo's own CLAUDE.md). Pinned by `routes/f4_createdat_forgery_test.go`'s `TestPinsF4_CreateFormHonoursCallerSuppliedCreatedAt`, committed and passing — must go RED once F4's fix lands. `go test ./...`/`go test -tags=integration ./...` both clean (no product code touched). |
 | F5 | ⚠️ **Architecture gap — forms is meant to be the input designer only, but `Answer` is the terminal store, so collected data has nowhere to land.** Owner's direction, 2026-09-28: a form designs the instrument; the data it collects belongs in a domain store the way a contribution belongs in `mwanachama-backend-accounting`'s ledger rather than in whatever captured it. Today there is no such seam. `models.Answer` is a row against a `Question` and that is where a response stops: nothing on `Form` or `Question` names a target module, a record type or a field, and no write path hands a closed round to another package. Four concrete consequences, all met while authoring the `party-mobilization` agency template, whose whole sentiment goal rests on this: (1) **no target mapping** — "voting intention" is an answer to question 3 of form 7, not a field on a record anything else can read; (2) **no subject key** — `Answer` carries no reference to the person answering, so a response cannot be tied to a member without re-asking for an identifier as a question; (3) **no collection context** — `models.Target` scopes who a form goes *to*, not where an answer came *from*, so geography (the ward, in that template's case) has to be asked as a question and re-derived afterwards; (4) **no recurrence** — `Form` carries one `OpensAt`/`ClosesAt` pair, so a weekly or monthly return is a separate Form each period and comparison across periods is manual. Shape to design: a mapping declared on the Form (`question → target module, record type, field`) plus a "land a closed round" operation that writes those records into the target module and reconciles the landed count against the collected count, refusing to field an instrument whose questions are not all mapped. Precedent to copy: accounting closes `AccountType` (the theory) and leaves `AccountKind`/`DocumentKind` open for the calling domain — the mapping should likewise be forms' fixed shape with the domain's own vocabulary on top. | 📋 | Filed 2026-09-28 from the owner's own framing while building the `party-mobilization` agency template. That template's `forms.json` carries the full gap as five `unenforceable` entries with a size on each, and its `catalog.json` carries the other half — where the records would land (see `mwanachama-backend-catalog`'s CAT15, which is the same design from the store's side and should be planned with this row, not after it). Nothing built; no pinning test, since this is a missing capability rather than wrong behaviour. Open question for the design: whether the target module is always `catalog` or whether the mapping names any module (accounting for a contribution form, actor for a registration form) — the party-mobilization template assumes the latter. |
-| F6 | 🧭 **Decide the conversion's scope, and record it.** Convert forms onto the declared-domain format `mwanachama-backend-catalog` proved and `mwanachama-backend-agency` followed under AGD-007 — objects, fields and indexes as JSON, routes declared as operations and dispatched by reflection, storage through `shared/specstore`. The reference is [declared-domains.md](../../../mwanachama-backend-shared/documentation/2.%20design/declared-domains.md), which says in its own words that it is "what a third repo is converted against". Four things to settle before any code, mirroring AGD-007's own Q&A: whether the conversion is **complete** (storage + HTTP, since this repo has no MCP surface) or data-layer only; what the declared table names become, given the gateway's live Postgres tables are still called `survey*` while this package's types are called `Form`; whether **F5's form→record mapping is declared in the blueprint** rather than hand-written — the reason to convert this repo before building F5, not after; and whether the trigger, CHECK and partial unique index `tables.go`'s `syncConstraints` applies as raw SQL have any declared equivalent, or stay hand-applied. This repo has no `documentation/2. design/todo.md`, so the decision record needs one — agency keeps its equivalent as `AGD-007` with a `todo_details/` page. | 🚀 | Filed 2026-09-28 with the owner, reconciling the backlog before starting. Blocking the six rows below, which are written assuming "complete". The one contract that must not move is named in this repo's own CLAUDE.md: `mwanachama-backend-api-gateway`'s `internal/domain/survey.Repository`/`.RegisterReader` — route paths, request/response shapes and status codes all depend on it byte-for-byte, and `internal/store/formsadapter` is the live wiring behind 24+ gateway routes. |
-| F7 | **`forms.blueprint.json` — every object, field and index this module stores, declared.** Nine types in `models/` (`Form`, `Question`, `QuestionOption`, `Target`, `Approval`, `Propagation`, `PublicLink`, `Respondent`/`Declaration`, `Answer`) become declared objects with a description on every object and every field — the format refuses a blank one, and the descriptions are what MCP tool schemas and generated prose read later. Two of this repo's own conventions land naturally: the hand-formatted RFC3339 string timestamps are the format's `timestamp` type (text, so every dialect sorts the same way), and the closed vocabularies (`Status`, `Audience`, `CollectionMode`, `AnswerType`) become `enum` fields with `values`. Two need a decision: `Answer`'s multi-column CHECK (exactly one value column populated) and `Approval`'s one-open-per-form partial unique index have no declared equivalent today — the index is expressible (`unique` + `not_deleted`), the CHECK is not. | 🚀 | Depends on F6. Step 1 of the nine AGD-007 took; agency's own equivalent is AG37. |
-| F8 | **`forms.<domain>.json` and `Provision` — the declared names, and the move onto them.** The domain spec names which object fills each role, the table each lands in under `<instance>_forms_<object>`, and its own indexes. The migration question is bigger here than it was for agency, which had no legacy tables to move: the gateway's live schema still calls these `survey*` (migration 000057 and siblings), and this package renamed only its Go vocabulary. Decide whether the declared names rename live tables, whether the spec's `table` keeps the legacy `survey*` names, or whether the two live side by side through a cutover. | 🚀 | Depends on F7. Agency's AG38 had the easy version of this problem; `mwanachama-website`'s W16 ("name every physical table `<agency>_<module>_<object>`, and make a collision impossible rather than silent") is the org-wide row this one implements for forms. |
-| F9 | **The spec-driven store replaces `gormstore/` — no row structs left.** Delete `gormstore/` and `tables.go`: the row structs, the `XToRow`/`XFromRow` pairs, `Migrate` and `syncConstraints`. Every `*_impl.go` reads and writes `models.` values through `shared/specstore`, with a root `store.go` holding the role constants and the small wrappers agency's own conversion settled on (`find`, `writeUpdate`, `copyRow`, `deleteWhere`, `list[T]`). Whatever `syncConstraints` still has to do in raw SQL (the published-option-lock trigger from migration 000024, the answer-has-exactly-one-value CHECK) moves into `Provision` rather than disappearing. Fold **F4** into this row — its fix site (`form_impl.go`'s `Create` honouring a caller's `created_at`) is being rewritten here, and the declared format mints server-owned fields itself. | 🚀 | Depends on F8. The largest single step, as AG39 was. F4's pinning test (`routes/f4_createdat_forgery_test.go`) must invert here, not be deleted. |
-| F10 | **`forms.operations.json` — the route table is declared, and `routes/` becomes an adapter.** Every address across the ten route files is declared with its method, path, manager method, gating action, status, title, prose and arguments; the hand-written decode-call-encode handlers and the per-domain `StatusFor`/`writeErr` pairs collapse into one sentinel table and a `Routes(m)`/`Build(m)`/`Shape()` trio. Expect the same finding agency had: a sentinel that reaches the wire as a bare 500 becomes visible the moment the error table is one map instead of ten switches — this repo's own `ErrInvalidAnswer` is the candidate to check. Every route gains a gating action for the first time, which is a new contract with `mwanachama-backend-permissions`, not a refactor. | 🚀 | Depends on F9. Agency's AG40. The narrow inline request structs in `routes/target.go` and `routes/publiclink.go` are load-bearing today — they are what makes `AddTarget`/`Declare`'s unguarded `CreatedAt` unreachable over HTTP (see F4's own notes), so a declared operation that widens them would open a hole F4 only half closed. |
-| F11 | **The gateway builds and tests against the declared shape.** `mwanachama-backend-api-gateway` is the only consumer: `internal/store/formsadapter` satisfies its `internal/domain/survey.Repository`/`.RegisterReader` interfaces and is wired in both `cmd/server/stores.go` backends, gated on the live `forms` Module, behind 24+ registered `survey_*_handlers.go` routes. The acceptance is the same one agency used: the gateway's Postman gate reports the same uncovered count it does today, which it could not if a single address had changed. | 🚀 | Depends on F10. Agency's AG42. `routes.Route` becoming `httpwire.Route` was a knock-on for five repos in agency's conversion — check whether the gateway's forms mount takes the same hit. |
-| F12 | **The documentation says what the repo now is.** This repo's CLAUDE.md currently tells a session to follow `mwanachama-backend-actor`'s `models/` + `gormstore/` + route-builder shape "exactly", which the conversion makes the opposite of true — the same trap agency's AG43 found. Rewrite CLAUDE.md's conventions and porting notes, root `doc.go`, and add the pointer to shared's declared-domains reference. Record F6's answered questions in the decision record rather than deleting them. | 🚀 | Depends on F11. Agency's AG43. |
 
-_Nothing else open — see [todo_done.md](todo_done.md) for F1–F3 and the rest._
+_Nothing else open — see [todo_done.md](todo_done.md) for F1–F4 and F6–F12._
 
 **The one prose line this board used to carry here** ("Wire
 `mwanachama-backend-api-gateway`'s `internal/domain/survey.Repository`/
@@ -33,3 +25,80 @@ certainly accurate when written (right after this repo's own extraction,
 before the gateway-side wiring landed) and simply never updated once that
 wiring shipped — the same drift this family's boards keep surfacing
 elsewhere. No task minted; nothing left to do here.
+
+---
+
+## What the accounting pilot settled (2026-09-28)
+
+`mwanachama-backend-accounting` ran its whole conversion set (W16–W22) on
+2026-09-28 and is **done**. It was the cheapest of the three candidates and
+went first deliberately. Eight findings change how the rows above should be
+read — none of them are guesses, all of them cost time there.
+
+**1. The consumer step is aimed at the wrong repo.** The row below that says
+"the gateway builds and tests against the declared shape" was written when
+`mwanachama-backend-api-gateway` was the only consumer. The owner's
+direction on 2026-09-28 is *"we are using wakala-api on local for now, not
+gateway"*. For accounting that meant the real consumer work was wiring
+`mwanachama-wakala-api`, which had never imported it at all, and the
+gateway became a keep-it-compiling obligation rather than the acceptance.
+**Re-read that row before starting it** and decide which repo it means.
+
+**2. Keeping every consumer compiling is a gate, not a step.** §1 of the
+consolidated backlog exists because AGD-007 is recorded complete while two
+of its five consumers have not built since. Accounting's pass treated
+"every consumer still builds" as a precondition on finishing, not as the
+last item. Do the same, and note that the gateway is *currently* broken by
+the forms conversion (`mwanachamaforms.DefaultTableNames`/`Migrate` are
+gone but `cmd/server/stores.go` and `internal/api/http/backend_memory_test.go`
+still call them) — whoever owns that should close it.
+
+**3. `specstore` stores an absent string as `''`, not NULL.** So a column
+that is *optional but unique when present* cannot be declared `unique`:
+every row without a value collides on the one constraint. The workable
+shape is a plain indexed column plus a partial unique index created in
+`Provision` (`create unique index ... where col <> ''`), with the friendly
+refusal done in Go. Accounting needed this twice.
+
+**4. There is no `time.Time` arm in `specstore`.** Timestamps are carried as
+RFC 3339 strings. If anything orders on one, use a fixed-width
+nanosecond layout (`models.TimeLayout`, as agency does) — plain
+`time.RFC3339` is second-precision and will not order rows created in the
+same second, and `RFC3339Nano` trims trailing zeros, which breaks
+lexicographic ordering. There is no `[]byte` arm either; carry raw bytes as
+a hex string.
+
+**5. Pointer carriers now need `nullable` in the blueprint.** The
+uncommitted nullable/float work in `mwanachama-backend-shared` (owned by
+another session, confirmed staying) made `specstore.New`'s `disagreements`
+check strict in *both* directions: a pointer field fails unless the
+declared field says `nullable`, and a `nullable` field fails unless the
+carrier is a pointer. This refuses carrier/spec pairs that construct fine
+today, so it decides whether a store builds at all.
+
+**6. The domain spec file is `<domain>.<module>.json`.** That is what
+catalog (`agency.catalog.json`) and agency (`agency.agency.json`) actually
+ship, not the `<module>.<domain>.json` several of these row titles guess.
+Ship an embedded default plus `SpecFor(instance)` so a consumer needs no
+file path at runtime, and a second domain under `spec/examples/` that fills
+the same roles with different nouns — that second file is what actually
+proves the module learned no vocabulary.
+
+**7. Delete the hand-rolled memory fake.** Catalog has no second
+implementation: it runs the real spec store on in-memory SQLite. Accounting
+had a `memory.go` and a `postgres.go` implementing one interface, and its
+W15 double-reversal bug existed *because* there were two copies of the same
+write that could drift. One store, one write path, tested on SQLite.
+
+**8. A bug row whose fix site the conversion rewrites should be folded in,
+and its pinning test inverted rather than deleted.** Accounting closed W15
+inside its store step and turned
+`W15_PostDoesNotRefuseADoubleReversal` into
+`TestPostRefusesASecondReversalOfTheSameEntry`. A sibling copy of the same
+bug in another repo is *not* closed by that, and stays its own row.
+
+**If the mount is per instance in wakala-api**, note the two halves:
+`Shape()` should return `[]Route` (agency's signature, which the
+per-instance mount loop consumes) and the routes should be built with
+catalog's `Mount{Authorize, Caller}`, so every declared action arrives
+gated rather than merely behind `requireCaller`.

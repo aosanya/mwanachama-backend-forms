@@ -1,10 +1,5 @@
 package models
 
-// PropagationKind is a chapter's progress reaching a member-audience Form
-// materialized by Publish. Only Targeted and PickedUp are ever written by
-// any method in this package — Localized and Pushed are carried for schema
-// parity with the gateway (whose own domain never writes them either; see
-// this repo's CLAUDE.md), not live behavior.
 type PropagationKind string
 
 const (
@@ -14,10 +9,6 @@ const (
 	PropagationPushed    PropagationKind = "pushed"
 )
 
-// Propagation is one Target's row, materialized when its Form is published
-// (Publish creates one Propagation per Target, State=Targeted) and updated
-// by PickUp (State=PickedUp). LastReminderAt is carried for the same schema
-// parity as Localized/Pushed above — nothing writes it.
 type Propagation struct {
 	ID                string          `json:"id"`
 	FormID            string          `json:"form_id"`
@@ -30,9 +21,6 @@ type Propagation struct {
 	LastReminderAt    string          `json:"last_reminder_at,omitempty"`
 }
 
-// Rollup summarizes a Form's Propagation rows. Stalled is exactly "targeted
-// but PickedUpAt is still empty" — no time-based staleness threshold,
-// mirroring the gateway's survey.Rollup computation exactly.
 type Rollup struct {
 	Targeted          int      `json:"targeted"`
 	PickedUp          int      `json:"picked_up"`

@@ -9,10 +9,6 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-// AddTarget aims a draft, member-audience form at a group. Checking that the
-// group sits under the originator is deliberately not this module's job — it
-// depends on no group domain to check against, the same division the surface
-// this was extracted from already drew.
 func (m *formManager) AddTarget(ctx context.Context, t models.Target) (models.Target, error) {
 	f, err := m.Get(ctx, t.FormID)
 	if err != nil {

@@ -1,9 +1,5 @@
 package routes_test
 
-// Board row F3: Publish writes the Form's status and its PublicLink in one
-// transaction, so a colliding link key fails cleanly (409) and leaves the Form
-// unpublished and retryable.
-
 import (
 	"bytes"
 	"encoding/json"
@@ -13,20 +9,11 @@ import (
 	"time"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
-	"github.com/aosanya/mwanachama-backend-forms/routes"
 )
-
-func f3Mux(fm mwanachamaforms.FormManager) *http.ServeMux {
-	m := http.NewServeMux()
-	for _, rt := range routes.Routes(fm, routes.ResourceNames{}) {
-		m.HandleFunc(rt.Pattern(""), rt.Handler)
-	}
-	return m
-}
 
 func TestPublishForm_CollidingLinkKeyLeavesFormRetryable(t *testing.T) {
 	fm := newTestManager(t)
-	m := f3Mux(fm)
+	m := mount(t, fm)
 	closesAt := time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano)
 
 	fA, err := fm.Create(t.Context(), mwanachamaforms.Form{

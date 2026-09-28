@@ -50,9 +50,6 @@ func (m *formManager) AddQuestion(ctx context.Context, in models.QuestionDraft) 
 	return q, out, nil
 }
 
-// writeOptions numbers a question's choices from one and writes them. The
-// caller's own ordinal is never honoured — the order they arrive in is the
-// order they are shown.
 func (m *formManager) writeOptions(tx *gorm.DB, questionID string, options []models.QuestionOption) ([]models.QuestionOption, error) {
 	out := make([]models.QuestionOption, 0, len(options))
 	for i, o := range options {
@@ -67,12 +64,6 @@ func (m *formManager) writeOptions(tx *gorm.DB, questionID string, options []mod
 	return out, nil
 }
 
-// UpdateQuestion replaces a draft question's wording and options wholesale —
-// old options are deleted rather than merged, so an old option id is never
-// reused. Identity and versioning stay this package's: id, form_id, ordinal,
-// version and supersedes_question_id are not caller-settable. A form has to
-// be a draft for this to run at all, so it never reaches a published form's
-// options; the published-option-lock trigger is the belt behind that.
 func (m *formManager) UpdateQuestion(ctx context.Context, formID, questionID string, in models.QuestionDraft) (models.Question, []models.QuestionOption, error) {
 	next, options := in.Question, in.Options
 	if strings.TrimSpace(next.Prompt) == "" {
@@ -146,9 +137,6 @@ func (m *formManager) findQuestion(ctx context.Context, questionID string) (mode
 	return q, nil
 }
 
-// ListQuestions returns every version of every question on a form, in the
-// order they are asked — superseded ones included, unlike the live count the
-// register reports.
 func (m *formManager) ListQuestions(ctx context.Context, formID string) ([]models.Question, error) {
 	out, err := listOf[models.Question](m,
 		m.q(ctx, roleQuestion).Where("form_id = ?", formID).Order("ordinal"), roleQuestion)
@@ -167,9 +155,6 @@ func (m *formManager) ListOptions(ctx context.Context, questionID string) ([]mod
 	return out, nil
 }
 
-// AddOption appends one choice to an existing question whatever state its
-// form is in — the one additive content edit a published form allows, which
-// the option lock permits because it refuses only UPDATE and DELETE.
 func (m *formManager) AddOption(ctx context.Context, questionID, label, actorID string) (models.AddOptionResult, error) {
 	if strings.TrimSpace(label) == "" {
 		return models.AddOptionResult{}, ErrMissingOptionLabel
@@ -198,12 +183,6 @@ func (m *formManager) AddOption(ctx context.Context, questionID, label, actorID 
 	}, nil
 }
 
-// VersionQuestion supersedes a published question with a new row: the
-// predecessor and the answers already given against it are left alone, and a
-// new row carries the new wording and a fresh set of choices, keeping the
-// predecessor's position and answer shape. Only the version nothing has
-// superseded may be superseded again, so the history is a chain and not a
-// tree.
 func (m *formManager) VersionQuestion(ctx context.Context, questionID, actorID string, in models.QuestionDraft) (models.VersionQuestionResult, error) {
 	next, options := in.Question, in.Options
 	if strings.TrimSpace(questionID) == "" {

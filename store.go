@@ -7,10 +7,6 @@ import (
 	"github.com/aosanya/mwanachama-backend-shared/specstore"
 )
 
-// The roles this module operates on. A domain calls the objects whatever it
-// likes — a survey, a census — and fills these roles with them; every rule
-// in this package reaches its table through one of these and never through a
-// domain's own noun.
 const (
 	roleForm           = "form"
 	roleQuestion       = "question"
@@ -24,10 +20,6 @@ const (
 	roleAnswer         = "answer"
 )
 
-// store is the spec-driven store, which lives in
-// mwanachama-backend-shared/specstore: it knows which table plays which of
-// the module's roles and how a domain value becomes a row, and nothing else.
-// There are no row structs here, because the columns are declared.
 type store = specstore.Store
 
 func newStore(db *gorm.DB, s *spec.Spec, carriers map[string]any) (*store, error) {

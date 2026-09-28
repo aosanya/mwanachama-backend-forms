@@ -36,72 +36,51 @@ func newTestManager(t *testing.T) mwanachamaforms.FormManager {
 	return fm
 }
 
-func withPathValue(req *http.Request, kv ...string) *http.Request {
-	for i := 0; i+1 < len(kv); i += 2 {
-		req.SetPathValue(kv[i], kv[i+1])
-	}
-	return req
-}
-
-func patterns(rts []routes.Route, prefix string) []string {
-	out := make([]string, len(rts))
-	for i, rt := range rts {
-		out[i] = rt.Pattern(prefix)
-	}
-	return out
-}
-
-func assertPatterns(t *testing.T, got []routes.Route, want []string) {
+func mount(t *testing.T, fm mwanachamaforms.FormManager) *http.ServeMux {
 	t.Helper()
-	if len(got) != len(want) {
-		t.Fatalf("got %d routes, want %d: %v", len(got), len(want), patterns(got, ""))
+	mux := http.NewServeMux()
+	for _, rt := range routes.Routes(fm) {
+		mux.HandleFunc(rt.Pattern(""), rt.Handler)
 	}
-	for i, p := range patterns(got, "") {
-		if p != want[i] {
-			t.Fatalf("route %d: got %q, want %q", i, p, want[i])
-		}
-	}
+	return mux
 }
 
-func TestFormRoutes_DefaultResourceIsForms(t *testing.T) {
-	fm := newTestManager(t)
-	rts := routes.FormRoutes(fm, routes.ResourceNames{})
-	assertPatterns(t, rts, []string{
-		"POST /forms", "GET /forms", "GET /forms/{formID}", "PATCH /forms/{formID}", "DELETE /forms/{formID}",
-		"POST /forms/{formID}/submit", "POST /forms/{formID}/withdraw", "POST /forms/{formID}/publish", "POST /forms/{formID}/close",
+func do(t *testing.T, mux *http.ServeMux, method, path, body string) *httptest.ResponseRecorder {
+	t.Helper()
+	var r *http.Request
+	if body == "" {
+		r = httptest.NewRequest(method, path, nil)
+	} else {
+		r = httptest.NewRequest(method, path, strings.NewReader(body))
+	}
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, r)
+	return rec
+}
+
+func seedForm(t *testing.T, fm mwanachamaforms.FormManager) mwanachamaforms.Form {
+	t.Helper()
+	f, err := fm.Create(context.Background(), mwanachamaforms.Form{
+		Title:               "Seed",
+		OriginatorChapterID: "chapter-1",
+		ClosesAt:            time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano),
 	})
-}
-
-func TestRoutes_ConcatenatesEveryBuilder(t *testing.T) {
-	fm := newTestManager(t)
-	all := routes.Routes(fm, routes.ResourceNames{})
-	want := 9 + 4 + 6 + 3 + 3 + 2 + 3 // Form + Approval + Question + Target + Propagation + Answer + PublicLink
-	if len(all) != want {
-		t.Fatalf("got %d routes, want %d: %v", len(all), want, patterns(all, ""))
+	if err != nil {
+		t.Fatalf("seed Create: %v", err)
 	}
+	return f
 }
 
-func TestRoute_PatternWithPrefix(t *testing.T) {
-	fm := newTestManager(t)
-	rts := routes.FormRoutes(fm, routes.ResourceNames{})
-	if got := rts[0].Pattern("/v1"); got != "POST /v1/forms" {
-		t.Fatalf("got %q", got)
-	}
-}
-
-func TestCreateForm_Handler(t *testing.T) {
-	fm := newTestManager(t)
-	handler := routes.CreateForm(fm)
+func TestCreateForm(t *testing.T) {
+	mux := mount(t, newTestManager(t))
 
 	closesAt := time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano)
 	body := `{"title":"Chapter Census","originator_chapter_id":"chapter-1","closes_at":"` + closesAt + `"}`
-	req := httptest.NewRequest(http.MethodPost, "/forms", strings.NewReader(body))
-	rec := httptest.NewRecorder()
-	handler(rec, req)
-
+	rec := do(t, mux, http.MethodPost, "/forms", body)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
 	}
+
 	var out mwanachamaforms.Form
 	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
 		t.Fatalf("unmarshal: %v", err)
@@ -112,85 +91,131 @@ func TestCreateForm_Handler(t *testing.T) {
 }
 
 func TestCreateForm_MissingTitle(t *testing.T) {
-	fm := newTestManager(t)
-	handler := routes.CreateForm(fm)
-
-	req := httptest.NewRequest(http.MethodPost, "/forms", strings.NewReader(`{"closes_at":"2099-01-01T00:00:00Z"}`))
-	rec := httptest.NewRecorder()
-	handler(rec, req)
-
+	mux := mount(t, newTestManager(t))
+	rec := do(t, mux, http.MethodPost, "/forms", `{"closes_at":"2099-01-01T00:00:00Z"}`)
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
 	}
 }
 
-func newFormViaHandler(t *testing.T, fm mwanachamaforms.FormManager) mwanachamaforms.Form {
-	t.Helper()
-	f, err := fm.Create(context.Background(), mwanachamaforms.Form{
-		Title: "Seed", OriginatorChapterID: "chapter-1", ClosesAt: time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano),
-	})
-	if err != nil {
-		t.Fatalf("seed Create: %v", err)
-	}
-	return f
-}
-
 func TestGetForm_NotFound(t *testing.T) {
-	fm := newTestManager(t)
-	handler := routes.GetForm(fm)
-
-	req := withPathValue(httptest.NewRequest(http.MethodGet, "/forms/nope", nil), "formID", "nope")
-	rec := httptest.NewRecorder()
-	handler(rec, req)
-
+	mux := mount(t, newTestManager(t))
+	rec := do(t, mux, http.MethodGet, "/forms/nope", "")
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
 	}
 }
 
-func TestPublishForm_Handler(t *testing.T) {
+func TestPublishForm(t *testing.T) {
 	fm := newTestManager(t)
-	f := newFormViaHandler(t, fm)
-	handler := routes.PublishForm(fm)
-
-	req := withPathValue(httptest.NewRequest(http.MethodPost, "/forms/"+f.ID+"/publish", strings.NewReader(`{"published_by":"admin"}`)), "formID", f.ID)
-	rec := httptest.NewRecorder()
-	handler(rec, req)
-
+	f := seedForm(t, fm)
+	rec := do(t, mount(t, fm), http.MethodPost, "/forms/"+f.ID+"/publish", `{"published_by":"admin"}`)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+
+	var out struct {
+		Form mwanachamaforms.Form `json:"form"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if out.Form.Status != mwanachamaforms.StatusOpen {
+		t.Fatalf("status = %q, want open", out.Form.Status)
 	}
 }
 
 func TestAddTarget_DuplicateConflict(t *testing.T) {
 	fm := newTestManager(t)
-	f := newFormViaHandler(t, fm)
-	handler := routes.AddTarget(fm)
+	f := seedForm(t, fm)
+	mux := mount(t, fm)
 
-	req1 := withPathValue(httptest.NewRequest(http.MethodPost, "/forms/"+f.ID+"/targets", strings.NewReader(`{"chapter_id":"chapter-2"}`)), "formID", f.ID)
-	rec1 := httptest.NewRecorder()
-	handler(rec1, req1)
-	if rec1.Code != http.StatusCreated {
-		t.Fatalf("status = %d, body = %s", rec1.Code, rec1.Body.String())
+	if rec := do(t, mux, http.MethodPost, "/forms/"+f.ID+"/targets", `{"chapter_id":"chapter-2"}`); rec.Code != http.StatusCreated {
+		t.Fatalf("first add: status = %d, body = %s", rec.Code, rec.Body.String())
 	}
-
-	req2 := withPathValue(httptest.NewRequest(http.MethodPost, "/forms/"+f.ID+"/targets", strings.NewReader(`{"chapter_id":"chapter-2"}`)), "formID", f.ID)
-	rec2 := httptest.NewRecorder()
-	handler(rec2, req2)
-	if rec2.Code != http.StatusConflict {
-		t.Fatalf("status = %d, body = %s", rec2.Code, rec2.Body.String())
+	if rec := do(t, mux, http.MethodPost, "/forms/"+f.ID+"/targets", `{"chapter_id":"chapter-2"}`); rec.Code != http.StatusConflict {
+		t.Fatalf("second add: status = %d, body = %s", rec.Code, rec.Body.String())
 	}
 }
 
-func TestResolveLinkKey_NotFound(t *testing.T) {
+func TestAddTargetIgnoresAFormIDInTheBody(t *testing.T) {
 	fm := newTestManager(t)
-	handler := routes.ResolveLinkKey(fm)
+	addressed, other := seedForm(t, fm), seedForm(t, fm)
+	mux := mount(t, fm)
 
-	req := withPathValue(httptest.NewRequest(http.MethodGet, "/public-links/nope", nil), "key", "nope")
-	rec := httptest.NewRecorder()
-	handler(rec, req)
+	body := `{"chapter_id":"chapter-2","form_id":"` + other.ID + `"}`
+	rec := do(t, mux, http.MethodPost, "/forms/"+addressed.ID+"/targets", body)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
 
+	var out mwanachamaforms.Target
+	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if out.FormID != addressed.ID {
+		t.Fatalf("form_id = %q, want the form in the address (%q)", out.FormID, addressed.ID)
+	}
+}
+
+func TestAddQuestionTakesItsFormFromTheAddress(t *testing.T) {
+	fm := newTestManager(t)
+	addressed, other := seedForm(t, fm), seedForm(t, fm)
+	mux := mount(t, fm)
+
+	body := `{"answer_type":"free_text","prompt":"Why?","form_id":"` + other.ID + `"}`
+	rec := do(t, mux, http.MethodPost, "/forms/"+addressed.ID+"/questions", body)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+
+	var out struct {
+		Question mwanachamaforms.Question `json:"question"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if out.Question.FormID != addressed.ID {
+		t.Fatalf("form_id = %q, want the form in the address (%q)", out.Question.FormID, addressed.ID)
+	}
+}
+
+func TestOpenPublicLink_NotFound(t *testing.T) {
+	mux := mount(t, newTestManager(t))
+	rec := do(t, mux, http.MethodGet, "/public-links/nope", "")
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	if body := strings.TrimSpace(rec.Body.String()); body != `{"error":"not found"}` {
+		t.Errorf("body = %s, want a refusal that names no reason", body)
+	}
+}
+
+func TestDeleteFormAnswersNoContent(t *testing.T) {
+	fm := newTestManager(t)
+	f := seedForm(t, fm)
+	rec := do(t, mount(t, fm), http.MethodDelete, "/forms/"+f.ID, "")
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("body = %s, want none", rec.Body.String())
+	}
+}
+
+func TestRegisterFormsReadsItsFilterFromTheQuery(t *testing.T) {
+	fm := newTestManager(t)
+	seedForm(t, fm)
+	rec := do(t, mount(t, fm), http.MethodGet, "/forms?q=seed&chapter_id=chapter-1&limit=10&offset=0", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+
+	var page mwanachamaforms.RegisterPage
+	if err := json.Unmarshal(rec.Body.Bytes(), &page); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if page.Total != 1 || len(page.Rows) != 1 {
+		t.Fatalf("page = %+v, want the one seeded form", page)
 	}
 }

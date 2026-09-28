@@ -1,11 +1,3 @@
-// postgres_integration_test.go exercises FormManager against a real
-// Postgres database, rather than the in-memory sqlite-backed manager the
-// rest of this package's tests use.
-//
-// Skipped unless POSTGRES_URL is set. The unit tests elsewhere in this
-// package already exhaustively cover FormManager's business logic; this
-// file's job is narrower — prove the real Postgres wiring (GORM AutoMigrate,
-// the syncConstraints trigger/CHECK/partial-index) works end-to-end.
 package mwanachamaforms_test
 
 import (
@@ -21,11 +13,6 @@ import (
 	"github.com/aosanya/mwanachama-backend-shared/postgres"
 )
 
-// newPostgresManager opens POSTGRES_URL via
-// mwanachama-backend-shared/postgres.Open, wraps it with GORM's Postgres
-// dialector, migrates a unique-enough table prefix, and returns a
-// ready-to-use FormManager. Skips the calling test if POSTGRES_URL is unset.
-// Tables are dropped on cleanup.
 func newPostgresManager(t *testing.T) mwanachamaforms.FormManager {
 	t.Helper()
 	dsn := os.Getenv("POSTGRES_URL")
@@ -116,7 +103,7 @@ func TestPostgres_AnswerConstraint_ExactlyOneValue(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	q, _, err := mgr.AddQuestion(ctx, mwanachamaforms.Question{FormID: f.ID, AnswerType: mwanachamaforms.AnswerYesNo, Prompt: "Active?"}, nil)
+	q, _, err := mgr.AddQuestion(ctx, mwanachamaforms.QuestionDraft{Question: mwanachamaforms.Question{FormID: f.ID, AnswerType: mwanachamaforms.AnswerYesNo, Prompt: "Active?"}})
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}

@@ -6,15 +6,6 @@ import (
 	"time"
 )
 
-// Answer is one member's (or respondent's) response to one Question, unique
-// per (QuestionID, MemberID) — a resubmit edits the existing row in place
-// (see form_impl.go's SubmitAnswers doc) rather than creating a second one.
-// Exactly one of OptionIDs/ValueText/ValueNumber/ValueDate/ValueTime/
-// ValueBool carries the answer's value, per its Question's AnswerType —
-// enforced per-type by [ValidateAnswer], not by a generic
-// exactly-one-field-set check (the gateway's own memory store has the same
-// looseness; only its Postgres CHECK constraint is stricter — see this
-// repo's CLAUDE.md gap note).
 type Answer struct {
 	ID         string   `json:"id"`
 	FormID     string   `json:"form_id"`
@@ -33,15 +24,6 @@ type Answer struct {
 	EditedAt   string `json:"edited_at,omitempty"`
 }
 
-// ValidateAnswer checks one answer against the question it answers and that
-// question's own options. Mirrors
-// mwanachama-backend-api-gateway's internal/domain/survey.ValidateAnswer,
-// collapsing its three distinct sentinels (ErrAnswerShape/ErrAnswerTooLong/
-// ErrUnknownOption) into plain error text — every failure here is caller
-// input error either way (an SubmitAnswers wraps the lot with one
-// [ErrInvalidAnswer], the same one-sentinel-many-reasons shape
-// mwanachama-backend-actor's ErrInvalidActor already uses for
-// ValidateAttributes).
 func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {
 	switch q.AnswerType {
 	case AnswerYesNo:
@@ -83,8 +65,6 @@ func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {
 	return nil
 }
 
-// validateOptions refuses a pick that duplicates or names an option not
-// belonging to the question.
 func validateOptions(options []QuestionOption, picked []string) error {
 	seen := map[string]bool{}
 	for _, id := range picked {
