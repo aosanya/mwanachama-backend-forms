@@ -1,0 +1,188 @@
+{
+  "module": "forms",
+  "objects": [
+    {
+      "role": "form",
+      "description": "One instrument somebody is asked to fill in, and the lifecycle it moves through from draft to closed.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "title", "type": "string", "description": "What the instrument is called, in one line.", "required": true},
+        {"name": "originator_chapter_id", "type": "string", "description": "The group that composed it, and whose listing it appears in."},
+        {"name": "status", "type": "enum", "description": "Where it has got to: composed, sent for a decision, cleared, taking answers, or finished.", "default": "draft", "values": ["draft", "submitted", "approved", "open", "closed"]},
+        {"name": "opens_at", "type": "timestamp", "description": "When it starts taking answers. Empty means the moment it is published."},
+        {"name": "closes_at", "type": "timestamp", "description": "When it stops taking answers."},
+        {"name": "published_at", "type": "timestamp", "description": "When it was opened for answers."},
+        {"name": "published_by", "type": "string", "description": "Who opened it."},
+        {"name": "closed_at", "type": "timestamp", "description": "When it stopped taking answers."},
+        {"name": "closed_by", "type": "string", "description": "Who closed it."},
+        {"name": "submitted_at", "type": "timestamp", "description": "When it was last sent for a decision."},
+        {"name": "submitted_by", "type": "string", "description": "Who last sent it for a decision."},
+        {"name": "approved_at", "type": "timestamp", "description": "When it was last cleared."},
+        {"name": "approved_by", "type": "string", "description": "Who last cleared it."},
+        {"name": "results_published_at", "type": "timestamp", "description": "When what it collected was made readable to those who answered."},
+        {"name": "created_by", "type": "string", "description": "Who composed it."},
+        {"name": "audience", "type": "enum", "description": "Whether it is aimed at known members or at anyone holding its link.", "default": "member", "values": ["member", "public"]},
+        {"name": "collection_mode", "type": "enum", "description": "Whether the person answers it themselves or somebody records their answers for them.", "default": "self", "values": ["self", "interviewer"]},
+        {"name": "created_at", "type": "timestamp", "description": "When it was first written. Listings are ordered by it, because the storage key carries no order.", "immutable": true},
+        {"name": "last_updated", "type": "timestamp", "description": "When anything about it last changed."}
+      ],
+      "indexes": [
+        {"name": "originator", "description": "Reads one group's own instruments, which is the composing surface's listing.", "fields": ["originator_chapter_id"]},
+        {"name": "status", "description": "Reads everything awaiting a decision, across every group.", "fields": ["status"]}
+      ]
+    },
+    {
+      "role": "question",
+      "description": "One prompt on an instrument, in the shape of answer it expects back. A published prompt is superseded rather than edited, so several rows may describe the same position.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "form_id", "type": "string", "description": "The instrument this prompt belongs to.", "required": true},
+        {"name": "ordinal", "type": "int", "description": "Where it sits in the order the prompts are asked. Server-assigned."},
+        {"name": "answer_type", "type": "enum", "description": "The shape of value this prompt expects back, which decides which value column an answer fills.", "values": ["yes_no", "single_choice", "multi_select", "free_text", "date", "time", "number", "currency"]},
+        {"name": "prompt", "type": "text", "description": "The question as it is put to the person answering."},
+        {"name": "placeholder", "type": "string", "description": "The greyed-out example shown in an empty field."},
+        {"name": "max_length", "type": "int", "description": "The longest free text accepted. Absent means no limit, which is not the same as a limit of zero.", "nullable": true},
+        {"name": "unit_label", "type": "string", "description": "What a number is counted in, shown beside the field."},
+        {"name": "helper", "type": "text", "description": "The further explanation shown under the prompt."},
+        {"name": "currency_code", "type": "string", "description": "Which currency an amount is in."},
+        {"name": "quick_picks", "type": "json", "description": "The handful of amounts offered as one-tap answers."},
+        {"name": "yes_label", "type": "string", "description": "What the affirmative answer is called, where plain yes is wrong."},
+        {"name": "no_label", "type": "string", "description": "What the negative answer is called."},
+        {"name": "version", "type": "int", "description": "Which revision of this prompt it is. Server-assigned, counting from one."},
+        {"name": "supersedes_question_id", "type": "string", "description": "The prompt this one replaced. Empty for the first version, which is how a chain is walked back."}
+      ],
+      "indexes": [
+        {"name": "form", "description": "Reads one instrument's prompts, which every read of it does.", "fields": ["form_id"]},
+        {"name": "supersedes", "description": "Walks a prompt's revision chain, and finds whether one has been superseded.", "fields": ["supersedes_question_id"]}
+      ]
+    },
+    {
+      "role": "question_option",
+      "description": "One choice a prompt offers, where the answer is picked from a list rather than typed.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers, and what an answer records as its pick.", "primary": true},
+        {"name": "question_id", "type": "string", "description": "The prompt offering this choice.", "required": true},
+        {"name": "ordinal", "type": "int", "description": "Where it sits in the order the choices are shown."},
+        {"name": "label", "type": "string", "description": "The choice as it is shown to the person answering."}
+      ],
+      "indexes": [
+        {"name": "question", "description": "Reads one prompt's choices, which validating an answer does on every submission.", "fields": ["question_id"]}
+      ]
+    },
+    {
+      "role": "target",
+      "description": "One group a member-audience instrument is aimed at. A public-audience one carries none.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "form_id", "type": "string", "description": "The instrument being aimed.", "required": true},
+        {"name": "chapter_id", "type": "string", "description": "The group it is aimed at.", "required": true},
+        {"name": "includes_descendants", "type": "bool", "description": "Whether it reaches the groups beneath that one too, or that one alone."},
+        {"name": "created_at", "type": "timestamp", "description": "When the aim was set. Listings are ordered by it, because the storage key carries no order.", "immutable": true}
+      ],
+      "indexes": [
+        {"name": "form_chapter", "description": "Reads one instrument's aims, and refuses the same group twice.", "fields": ["form_id", "chapter_id"], "unique": true}
+      ]
+    },
+    {
+      "role": "approval",
+      "description": "One round of sending an instrument for a decision, and what was decided. An undecided round is the open one.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "form_id", "type": "string", "description": "The instrument awaiting or holding the decision.", "required": true},
+        {"name": "requested_by", "type": "string", "description": "Who asked for the decision."},
+        {"name": "requested_at", "type": "timestamp", "description": "When it was asked for."},
+        {"name": "decided_by", "type": "string", "description": "Who decided. Empty while the round is still open."},
+        {"name": "decided_at", "type": "timestamp", "description": "When it was decided. Empty is what makes a round the open one."},
+        {"name": "decision", "type": "enum", "description": "Which way it went. Empty while the round is still open.", "values": ["", "approved", "refused"]},
+        {"name": "note", "type": "text", "description": "Why it went that way. Required to refuse."}
+      ],
+      "indexes": [
+        {"name": "form", "description": "Reads one instrument's decision history, newest first.", "fields": ["form_id"]}
+      ]
+    },
+    {
+      "role": "propagation",
+      "description": "How far a member-audience instrument has reached one group it was aimed at: written when it is published, and updated when that group picks it up.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "form_id", "type": "string", "description": "The instrument being spread.", "required": true},
+        {"name": "chapter_id", "type": "string", "description": "The group it reached.", "required": true},
+        {"name": "state", "type": "enum", "description": "How far it has got with that group. Only targeted and picked_up are ever written; the other two are carried so a stored value from elsewhere still reads.", "default": "targeted", "values": ["targeted", "picked_up", "localized", "pushed"]},
+        {"name": "targeted_at", "type": "timestamp", "description": "When the group was first reached."},
+        {"name": "picked_up_at", "type": "timestamp", "description": "When the group took it up. Empty is exactly what stalled means."},
+        {"name": "pushed_at", "type": "timestamp", "description": "When it was pushed onward from that group."},
+        {"name": "pushed_by_chapter_id", "type": "string", "description": "Which group pushed it onward."},
+        {"name": "last_reminder_at", "type": "timestamp", "description": "When the group was last reminded. Nothing writes it yet."}
+      ],
+      "indexes": [
+        {"name": "form_chapter", "description": "Reads one instrument's spread, and keeps one row per group.", "fields": ["form_id", "chapter_id"], "unique": true}
+      ]
+    },
+    {
+      "role": "public_link",
+      "description": "The shareable, no-account way into a public-audience instrument, minted once when it is published.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "form_id", "type": "string", "description": "The instrument this opens.", "required": true},
+        {"name": "key", "type": "string", "description": "The short token the link carries. Supplied by whoever publishes; this module stores it as given.", "unique": true},
+        {"name": "label", "type": "string", "description": "What this link was handed out as, so a rotation leaves a trail."},
+        {"name": "status", "type": "enum", "description": "Whether the link still opens the instrument.", "default": "active", "values": ["active", "retired"]},
+        {"name": "created_at", "type": "timestamp", "description": "When it was minted.", "immutable": true},
+        {"name": "retired_at", "type": "timestamp", "description": "When it stopped working."},
+        {"name": "created_by", "type": "string", "description": "Who minted it."}
+      ],
+      "indexes": [
+        {"name": "form", "description": "Reads the links belonging to one instrument.", "fields": ["form_id"]}
+      ]
+    },
+    {
+      "role": "respondent",
+      "description": "Somebody answering through a public link, known only by a token their own device holds rather than by an account.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "public_key", "type": "string", "description": "The token the answering device holds, and the only handle on this person.", "unique": true},
+        {"name": "first_seen_at", "type": "timestamp", "description": "When this token was first seen."},
+        {"name": "claimed_by_member_id", "type": "string", "description": "The member this person later turned out to be. Nothing writes it yet, and no public read returns it."},
+        {"name": "claimed_at", "type": "timestamp", "description": "When they were matched to a member. Nothing writes it yet."}
+      ]
+    },
+    {
+      "role": "declaration",
+      "description": "Which group a public respondent says they belong to, for one instrument. Self-reported, never verified.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "respondent_id", "type": "string", "description": "Who is saying it.", "required": true},
+        {"name": "form_id", "type": "string", "description": "The instrument they are saying it for.", "required": true},
+        {"name": "declared_chapter_id", "type": "string", "description": "The group they picked from the list."},
+        {"name": "declared_text", "type": "string", "description": "What they typed instead, where no group on the list fitted."},
+        {"name": "created_at", "type": "timestamp", "description": "When they said it. A repeat overwrites in place.", "immutable": true}
+      ],
+      "indexes": [
+        {"name": "respondent_form", "description": "Reads a respondent's declaration for one instrument, and keeps it to one.", "fields": ["respondent_id", "form_id"], "unique": true}
+      ]
+    },
+    {
+      "role": "answer",
+      "description": "One person's response to one prompt. Exactly one of the value columns carries it, decided by the prompt's own answer type.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "form_id", "type": "string", "description": "The instrument being answered.", "required": true},
+        {"name": "question_id", "type": "string", "description": "The prompt being answered.", "required": true},
+        {"name": "member_id", "type": "string", "description": "Who answered — a member, or a public respondent's own id.", "required": true},
+        {"name": "chapter_id", "type": "string", "description": "The group they answered from, recorded once and kept across an edit."},
+        {"name": "option_ids", "type": "json", "description": "The choices picked, where the prompt offers a list."},
+        {"name": "value_text", "type": "text", "description": "What they typed, where the prompt asks for prose."},
+        {"name": "value_number", "type": "float", "description": "The amount given. Absent means unanswered, which is not the same as zero.", "nullable": true},
+        {"name": "value_date", "type": "string", "description": "The day given, as YYYY-MM-DD."},
+        {"name": "value_time", "type": "string", "description": "The time of day given, as HH:MM."},
+        {"name": "value_bool", "type": "bool", "description": "Which way they answered a yes-or-no. Absent means unanswered, which is not the same as no.", "nullable": true},
+        {"name": "answered_at", "type": "timestamp", "description": "When it was first answered. An edit leaves this alone."},
+        {"name": "edited_at", "type": "timestamp", "description": "When it was last changed. Empty means never."}
+      ],
+      "indexes": [
+        {"name": "form", "description": "Counts how many people have answered one instrument.", "fields": ["form_id"]},
+        {"name": "question_member", "description": "Reads one person's answer to one prompt, and keeps it to one so a resubmission edits rather than doubles.", "fields": ["question_id", "member_id"], "unique": true}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "module": "forms",
+  "domain": "forms",
+  "instance": "wakala",
+  "objects": [
+    {
+      "role": "form",
+      "name": "form",
+      "table": "forms",
+      "description": "A survey or questionnaire this organization puts to its people."
+    },
+    {
+      "role": "question",
+      "name": "question",
+      "table": "questions",
+      "description": "One question on a survey."
+    },
+    {
+      "role": "question_option",
+      "name": "question_option",
+      "table": "question_options",
+      "description": "One answer a multiple-choice question offers."
+    },
+    {
+      "role": "target",
+      "name": "target",
+      "table": "targets",
+      "description": "One chapter a survey is sent to."
+    },
+    {
+      "role": "approval",
+      "name": "approval",
+      "table": "approvals",
+      "description": "One round of clearing a survey before it goes out."
+    },
+    {
+      "role": "propagation",
+      "name": "propagation",
+      "table": "propagation",
+      "description": "How far a survey has travelled through one chapter."
+    },
+    {
+      "role": "public_link",
+      "name": "public_link",
+      "table": "public_links",
+      "description": "The shareable link into a survey anyone may answer."
+    },
+    {
+      "role": "respondent",
+      "name": "respondent",
+      "table": "respondents",
+      "description": "Somebody answering through a public link rather than as a member."
+    },
+    {
+      "role": "declaration",
+      "name": "declaration",
+      "table": "declarations",
+      "description": "Which chapter a public respondent says they belong to."
+    },
+    {
+      "role": "answer",
+      "name": "answer",
+      "table": "answers",
+      "description": "One person's response to one question."
+    }
+  ]
+}
