@@ -21,6 +21,20 @@ var (
 	// ErrLinkKeyTaken is returned when Publish's candidate public-link key is
 	// already held by another form's link.
 	ErrLinkKeyTaken = errors.New("mwanachamaforms: public link key is already taken")
+	// ErrLinkNotFound is every way a public link fails to open — unknown,
+	// retired, or leading to a form that is not open and public. Its text
+	// names none of them on purpose: a caller that could tell them apart
+	// could enumerate the unpublished.
+	ErrLinkNotFound = errors.New("not found")
+)
+
+// Declared-rule violations — a value that does not satisfy what the spec
+// says about the field it lands in. The rules themselves live in the
+// blueprint (see validate.go), so a domain that adds a state gets it
+// enforced with no Go change.
+var (
+	ErrInvalidForm     = errors.New("mwanachamaforms: invalid form")
+	ErrInvalidQuestion = errors.New("mwanachamaforms: invalid question")
 )
 
 // Form-frame validation errors — Create/Update.

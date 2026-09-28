@@ -5,11 +5,11 @@ package models
 // matching row; a non-nil Limit of zero returns no rows but still computes
 // Total/ByStatus/Respondents over the full filtered set.
 type RegisterQuery struct {
-	Search    string
-	ChapterID string
-	Status    Status
-	Limit     *int
-	Offset    int
+	Search    string `query:"q"`
+	ChapterID string `query:"chapter_id"`
+	Status    Status `query:"status"`
+	Limit     *int   `query:"limit"`
+	Offset    int    `query:"offset"`
 }
 
 // RegisterRow is one Form in a [RegisterPage], with its live question and

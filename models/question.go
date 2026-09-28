@@ -56,6 +56,16 @@ type QuestionOption struct {
 	Label      string `json:"label"`
 }
 
+// QuestionDraft is one prompt and the choices it offers, as a writer sends
+// them. It is one value rather than two arguments because the address a
+// write arrives at has to be able to outrank the body it carries, and only a
+// whole request can be overwritten that way — a form id taken from the body
+// would let a write addressed to one form land on another.
+type QuestionDraft struct {
+	Question
+	Options []QuestionOption `json:"options,omitempty"`
+}
+
 // AddOptionResult is AddOption's return shape: the new option plus the
 // before/after option counts read from the same locked write. Unlike the
 // gateway's survey.AddOptionResult, this carries no CustodyEventID/

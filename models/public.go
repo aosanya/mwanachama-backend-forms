@@ -24,6 +24,13 @@ type PublicLink struct {
 	CreatedBy string     `json:"created_by,omitempty"`
 }
 
+// ResolvedLink is what a live public link opens: the link itself and the
+// form it leads to.
+type ResolvedLink struct {
+	Link PublicLink `json:"link"`
+	Form Form       `json:"form"`
+}
+
 // Respondent is an anonymous public-link answerer, identified by PublicKey
 // (a client-held token, not a member id). ClaimedByMemberID/ClaimedAt exist
 // for schema parity with the gateway's survey.Respondent, but — exactly as

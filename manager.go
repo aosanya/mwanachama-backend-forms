@@ -6,6 +6,8 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/aosanya/mwanachama-backend-shared/spec"
+
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
@@ -35,6 +37,9 @@ type (
 	Respondent            = models.Respondent
 	Declaration           = models.Declaration
 	Answer                = models.Answer
+	QuestionDraft         = models.QuestionDraft
+	ResolvedLink          = models.ResolvedLink
+	RespondentPublicView  = models.RespondentPublicView
 	AnswerType            = models.AnswerType
 )
 
@@ -190,12 +195,12 @@ type FormManager interface {
 	// AddQuestion appends a new Question (and its options) to a draft Form.
 	// Ordinal and Version are always server-assigned, ignoring any caller
 	// value. Returns [ErrNotDraft] once the form has left draft.
-	AddQuestion(ctx context.Context, q models.Question, options []models.QuestionOption) (models.Question, []models.QuestionOption, error)
+	AddQuestion(ctx context.Context, in models.QuestionDraft) (models.Question, []models.QuestionOption, error)
 	// UpdateQuestion replaces a draft question's wording and options
 	// wholesale (old options are deleted, not merged). Returns
 	// [ErrNotDraft] once the form has left draft, [ErrQuestionNotFound] if
 	// questionID does not belong to formID.
-	UpdateQuestion(ctx context.Context, formID, questionID string, next models.Question, options []models.QuestionOption) (models.Question, []models.QuestionOption, error)
+	UpdateQuestion(ctx context.Context, formID, questionID string, in models.QuestionDraft) (models.Question, []models.QuestionOption, error)
 	// ListQuestions returns every version of every question on a form,
 	// Ordinal order.
 	ListQuestions(ctx context.Context, formID string) ([]models.Question, error)
@@ -209,7 +214,7 @@ type FormManager interface {
 	// leaving the predecessor and its existing answers untouched. Returns
 	// [ErrFormNotPublished] on a draft form, [ErrNotCurrentVersion] if
 	// questionID has already been superseded.
-	VersionQuestion(ctx context.Context, questionID string, next models.Question, options []models.QuestionOption, actorID string) (models.VersionQuestionResult, error)
+	VersionQuestion(ctx context.Context, questionID, actorID string, in models.QuestionDraft) (models.VersionQuestionResult, error)
 
 	// AddTarget aims a draft, member-audience Form at a chapter. Returns
 	// [ErrPublicFormNoTargets] for a public-audience form,
@@ -251,21 +256,123 @@ type FormManager interface {
 	// Declare records (overwriting any prior declaration) a respondent's
 	// self-reported chapter for a form.
 	Declare(ctx context.Context, d models.Declaration) (models.Declaration, error)
+
+	// OpenPublicLink resolves a key to the link and the form it opens,
+	// refusing with [ErrLinkNotFound] however it failed.
+	OpenPublicLink(ctx context.Context, key string) (models.ResolvedLink, error)
+	// RegisterRespondent is [FormManager.UpsertRespondent] behind a public
+	// link, answering only the public view of the respondent.
+	RegisterRespondent(ctx context.Context, key, publicKey string) (models.RespondentPublicView, error)
+	// DeclareChapter is [FormManager.Declare] behind a public link, against
+	// the form that key opens rather than one the caller names.
+	DeclareChapter(ctx context.Context, key, respondentID, declaredChapterID, declaredText string) (models.Declaration, error)
 }
 
-// formManager is the concrete implementation of [FormManager].
 type formManager struct {
-	db     *gorm.DB
-	tables TableNames
+	db *gorm.DB
+	st *store
 }
 
-// NewFormManager constructs a [FormManager] backed by db, reading and
-// writing the tables named by t (see [DefaultTableNames]). Callers must run
-// [Migrate] against the same db and t before use. Returns an error if db is
-// nil.
-func NewFormManager(db *gorm.DB, t TableNames) (FormManager, error) {
+// NewFormManager builds a [FormManager] over db, reading and writing the
+// tables s declares. [Provision] must have run for the same db and s.
+//
+// The spec is checked against the types this package carries before anything
+// is served: a declared column with no field to hold it, or a field with no
+// column to land in, fails here rather than dropping a value on every write.
+func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {
 	if db == nil {
 		return nil, fmt.Errorf("NewFormManager: db must not be nil")
 	}
-	return &formManager{db: db, tables: t}, nil
+	st, err := newStore(db, s, map[string]any{
+		roleForm:           models.Form{},
+		roleQuestion:       models.Question{},
+		roleQuestionOption: models.QuestionOption{},
+		roleTarget:         models.Target{},
+		roleApproval:       models.Approval{},
+		rolePropagation:    models.Propagation{},
+		rolePublicLink:     models.PublicLink{},
+		roleRespondent:     models.Respondent{},
+		roleDeclaration:    models.Declaration{},
+		roleAnswer:         models.Answer{},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("NewFormManager: %w", err)
+	}
+	return &formManager{db: db, st: st}, nil
+}
+
+// q starts a query against the table playing one role.
+func (m *formManager) q(ctx context.Context, role string) *gorm.DB {
+	return m.db.WithContext(ctx).Table(m.st.Table(role))
+}
+
+// table is the physical name the spec gives one role, for the handful of
+// statements that are written as SQL rather than built by GORM.
+func (m *formManager) table(role string) string { return m.st.Table(role) }
+
+// take reads at most one row into out, answering notFound when there is
+// none. Rows come back as maps rather than structs, because the columns are
+// the spec's to declare and this package no longer restates them.
+func (m *formManager) take(q *gorm.DB, role string, out any, notFound error) error {
+	var rows []map[string]any
+	if err := q.Limit(1).Find(&rows).Error; err != nil {
+		return err
+	}
+	if len(rows) == 0 {
+		return notFound
+	}
+	return decode(m.st.Object(role), rows[0], out)
+}
+
+// find reads one row by its storage key.
+func (m *formManager) find(ctx context.Context, role, id string, out any, notFound error) error {
+	return m.take(m.q(ctx, role).Where("id = ?", id), role, out, notFound)
+}
+
+// listOf reads every row q matches. A free function rather than a method
+// because Go has no generic methods, and the alternative is the same decode
+// loop written out once per listing.
+func listOf[T any](m *formManager, q *gorm.DB, role string) ([]T, error) {
+	var rows []map[string]any
+	if err := q.Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	o := m.st.Object(role)
+	out := make([]T, 0, len(rows))
+	for _, r := range rows {
+		var v T
+		if err := decode(o, r, &v); err != nil {
+			return nil, err
+		}
+		out = append(out, v)
+	}
+	return out, nil
+}
+
+// insert writes v as a new row.
+func (m *formManager) insert(ctx context.Context, role string, v any) error {
+	return m.insertTx(m.db.WithContext(ctx), role, v)
+}
+
+func (m *formManager) insertTx(tx *gorm.DB, role string, v any) error {
+	row, err := encode(m.st.Object(role), v)
+	if err != nil {
+		return err
+	}
+	return tx.Table(m.table(role)).Create(row).Error
+}
+
+// replace writes every declared column of v over the stored row. It is a
+// whole-row write rather than a patch, which is what lets a field be
+// cleared — an Approval losing the note it was refused with.
+func (m *formManager) replace(ctx context.Context, role, id string, v any) error {
+	return m.replaceTx(m.db.WithContext(ctx), role, id, v)
+}
+
+func (m *formManager) replaceTx(tx *gorm.DB, role, id string, v any) error {
+	row, err := encode(m.st.Object(role), v)
+	if err != nil {
+		return err
+	}
+	return tx.Table(m.table(role)).Where("id = ?", id).Updates(row).Error
 }

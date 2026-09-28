@@ -45,19 +45,20 @@ func newPostgresManager(t *testing.T) mwanachamaforms.FormManager {
 		t.Fatalf("gorm.Open: %v", err)
 	}
 
-	tables := mwanachamaforms.DefaultTableNames("formsi")
-	if err := mwanachamaforms.Migrate(db, tables); err != nil {
-		t.Fatalf("Migrate: %v", err)
+	s, err := mwanachamaforms.SpecFor("formsi")
+	if err != nil {
+		t.Fatalf("SpecFor: %v", err)
+	}
+	if err := mwanachamaforms.Provision(db, s); err != nil {
+		t.Fatalf("Provision: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = db.Migrator().DropTable(
-			tables.Answers, tables.Declarations, tables.Respondents, tables.PublicLinks,
-			tables.Propagation, tables.Approvals, tables.Targets, tables.QuestionOptions,
-			tables.Questions, tables.Forms,
-		)
+		for _, o := range s.Objects {
+			_ = db.Migrator().DropTable(s.TableFor(o))
+		}
 	})
 
-	mgr, err := mwanachamaforms.NewFormManager(db, tables)
+	mgr, err := mwanachamaforms.NewFormManager(db, s)
 	if err != nil {
 		t.Fatalf("NewFormManager: %v", err)
 	}

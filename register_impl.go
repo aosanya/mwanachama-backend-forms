@@ -1,6 +1,3 @@
-// register_impl.go — the search/list page. Ported from
-// mwanachama-backend-api-gateway's
-// internal/store/memory/survey_store_register.go.
 package mwanachamaforms
 
 import (
@@ -9,13 +6,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/aosanya/mwanachama-backend-forms/gormstore"
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-// lastMoved is the timestamp Register sorts by: the first of
-// ClosedAt/PublishedAt/ApprovedAt/SubmittedAt that is set, in that priority
-// order. A form with none of these (never moved past draft) sorts last.
+// lastMoved is the stamp the register sorts on: the latest stage a form has
+// reached, preferred over the earlier ones. A form that never left draft has
+// none, and sorts last rather than first.
 func lastMoved(f models.Form) (string, bool) {
 	for _, t := range []string{f.ClosedAt, f.PublishedAt, f.ApprovedAt, f.SubmittedAt} {
 		if t != "" {
@@ -27,41 +23,41 @@ func lastMoved(f models.Form) (string, bool) {
 
 func (m *formManager) respondentCount(ctx context.Context, formID string) (int, error) {
 	var count int64
-	err := m.db.WithContext(ctx).Table(m.tables.Answers).Where("form_id = ?", formID).Distinct("member_id").Count(&count).Error
+	err := m.q(ctx, roleAnswer).Where("form_id = ?", formID).Distinct("member_id").Count(&count).Error
 	return int(count), err
 }
 
-// currentQuestionCount counts a form's live (not superseded) questions.
+// currentQuestionCount counts the prompts nothing has superseded, which is
+// what a reader would be asked, rather than every revision ever written.
 func (m *formManager) currentQuestionCount(ctx context.Context, formID string) (int, error) {
 	var count int64
-	sub := m.db.Table(m.tables.Questions).Select("supersedes_question_id").Where("supersedes_question_id <> ''")
-	err := m.db.WithContext(ctx).Table(m.tables.Questions).
-		Where("form_id = ? AND id NOT IN (?)", formID, sub).
+	superseded := m.db.Table(m.table(roleQuestion)).
+		Select("supersedes_question_id").Where("supersedes_question_id <> ''")
+	err := m.q(ctx, roleQuestion).
+		Where("form_id = ? AND id NOT IN (?)", formID, superseded).
 		Count(&count).Error
 	return int(count), err
 }
 
-// Register returns a filtered, sorted, paginated page of Forms. Sort is by
-// lastMoved descending, ties (or two never-moved forms) broken by id
-// descending. Total/ByStatus/Respondents are computed over the whole
-// filtered set, before Limit/Offset apply.
+// Register returns a filtered, sorted, paginated page of forms. The totals
+// are computed over everything the filter matched, before the page is cut, so
+// a short page still reports how much there is.
 func (m *formManager) Register(ctx context.Context, q models.RegisterQuery) (models.RegisterPage, error) {
-	query := m.db.WithContext(ctx).Table(m.tables.Forms)
+	query := m.q(ctx, roleForm)
 	if q.ChapterID != "" {
 		query = query.Where("originator_chapter_id = ?", q.ChapterID)
 	}
 	if q.Status != "" {
 		query = query.Where("status = ?", string(q.Status))
 	}
-	var rows []gormstore.FormRow
-	if err := query.Find(&rows).Error; err != nil {
+	forms, err := listOf[models.Form](m, query, roleForm)
+	if err != nil {
 		return models.RegisterPage{}, fmt.Errorf("Register: %w", err)
 	}
 
 	needle := strings.ToLower(strings.TrimSpace(q.Search))
-	matched := make([]models.Form, 0, len(rows))
-	for _, r := range rows {
-		f := gormstore.FormFromRow(r)
+	matched := make([]models.Form, 0, len(forms))
+	for _, f := range forms {
 		if needle != "" && !strings.Contains(strings.ToLower(f.Title), needle) {
 			continue
 		}
@@ -85,13 +81,21 @@ func (m *formManager) Register(ctx context.Context, q models.RegisterQuery) (mod
 	for _, f := range matched {
 		page.Total++
 		page.ByStatus[f.Status]++
-		rc, err := m.respondentCount(ctx, f.ID)
+		respondents, err := m.respondentCount(ctx, f.ID)
 		if err != nil {
 			return models.RegisterPage{}, fmt.Errorf("Register: %w", err)
 		}
-		page.Respondents += rc
+		page.Respondents += respondents
 	}
 
+	page.Rows, err = m.registerRows(ctx, window(matched, q))
+	if err != nil {
+		return models.RegisterPage{}, fmt.Errorf("Register: %w", err)
+	}
+	return page, nil
+}
+
+func window(matched []models.Form, q models.RegisterQuery) []models.Form {
 	from := q.Offset
 	if from < 0 {
 		from = 0
@@ -99,28 +103,32 @@ func (m *formManager) Register(ctx context.Context, q models.RegisterQuery) (mod
 	if from > len(matched) {
 		from = len(matched)
 	}
-	window := matched[from:]
-	if q.Limit != nil {
-		n := *q.Limit
-		if n < 0 {
-			n = 0
-		}
-		if n < len(window) {
-			window = window[:n]
-		}
+	out := matched[from:]
+	if q.Limit == nil {
+		return out
 	}
+	n := *q.Limit
+	if n < 0 {
+		n = 0
+	}
+	if n < len(out) {
+		out = out[:n]
+	}
+	return out
+}
 
-	page.Rows = make([]models.RegisterRow, 0, len(window))
-	for _, f := range window {
-		qc, err := m.currentQuestionCount(ctx, f.ID)
+func (m *formManager) registerRows(ctx context.Context, forms []models.Form) ([]models.RegisterRow, error) {
+	out := make([]models.RegisterRow, 0, len(forms))
+	for _, f := range forms {
+		questions, err := m.currentQuestionCount(ctx, f.ID)
 		if err != nil {
-			return models.RegisterPage{}, fmt.Errorf("Register: %w", err)
+			return nil, err
 		}
-		rc, err := m.respondentCount(ctx, f.ID)
+		respondents, err := m.respondentCount(ctx, f.ID)
 		if err != nil {
-			return models.RegisterPage{}, fmt.Errorf("Register: %w", err)
+			return nil, err
 		}
-		page.Rows = append(page.Rows, models.RegisterRow{Form: f, Questions: qc, Respondents: rc})
+		out = append(out, models.RegisterRow{Form: f, Questions: questions, Respondents: respondents})
 	}
-	return page, nil
+	return out, nil
 }

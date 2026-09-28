@@ -22,11 +22,14 @@ func newTestManager(t *testing.T) mwanachamaforms.FormManager {
 	if err != nil {
 		t.Fatalf("gorm.Open: %v", err)
 	}
-	tables := mwanachamaforms.DefaultTableNames("routes_test")
-	if err := mwanachamaforms.Migrate(db, tables); err != nil {
-		t.Fatalf("Migrate: %v", err)
+	s, err := mwanachamaforms.SpecFor("routestest")
+	if err != nil {
+		t.Fatalf("SpecFor: %v", err)
 	}
-	fm, err := mwanachamaforms.NewFormManager(db, tables)
+	if err := mwanachamaforms.Provision(db, s); err != nil {
+		t.Fatalf("Provision: %v", err)
+	}
+	fm, err := mwanachamaforms.NewFormManager(db, s)
 	if err != nil {
 		t.Fatalf("NewFormManager: %v", err)
 	}
