@@ -18,8 +18,11 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 	return syncConstraints(db, s)
 }
 
-func legacyTable(s *spec.Spec, o spec.Object) string {
-	return s.Instance + "_" + o.Table
+func legacyTables(s *spec.Spec, o spec.Object) []string {
+	if s.MountName() != spec.DefaultMount {
+		return nil
+	}
+	return []string{s.Instance + "_" + o.Table}
 }
 
 const (
@@ -31,9 +34,11 @@ func renameLegacy(db *gorm.DB, s *spec.Spec) error {
 	m := db.Migrator()
 	for _, o := range s.Objects {
 		declared := s.TableFor(o)
-		legacy := legacyTable(s, o)
 
-		if legacy != declared && m.HasTable(legacy) {
+		for _, legacy := range legacyTables(s, o) {
+			if legacy == declared || !m.HasTable(legacy) {
+				continue
+			}
 			if m.HasTable(declared) {
 				stranded, err := rowCount(db, legacy)
 				if err != nil {
