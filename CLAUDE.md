@@ -46,13 +46,17 @@ in, fails when the manager is built rather than dropping a value on every
 write. **Adding an address means editing `forms.operations.json`** — there is
 no route builder left to name.
 
-**A table is `<instance>_forms_<object>`.** The module segment is not
-decoration: without it two modules mounted under the same instance name want
-the same physical table and neither notices, because `create table if not
-exists` is a no-op against one that exists. `Provision(db, spec)` moves a
-pre-spec table set (`<instance>_<object>`) onto the declared names, and
-carries `updated_at` across to `last_updated`, before creating what is
-missing.
+**A table is `<instance>_hashOf(<module>_<mount>_<object>)`** — only the
+instance stays readable, e.g. `agy1f2e3d4c_8766f69928a18f58`. The hash is 16
+hex characters of SHA-256 over the **raw name** `<module>_<mount>_<object>`,
+which `spec.RawNameFor` builds and `spec.Migrate` records in the
+`spec_table_names` registry alongside the physical name. Hashing is what keeps
+every identifier a constant 28 bytes (51 for an index) against Postgres's
+63-byte ceiling, which the readable form had already reached. Assert on
+`RawNameFor` in tests, never on a physical name literal, and exclude
+`spec.NameRegistryTable` from anything that counts tables. See
+[declared-domains.md](../mwanachama-backend-shared/documentation/2.%20design/declared-domains.md).
+
 
 **A column is found by field name, never by json tag** — `SubmittedBy`
 becomes `submitted_by`, `OptionIDs` becomes `option_ids`. The tag is a
