@@ -195,3 +195,31 @@ pre-existing reds (the two Postman gates, and the sweep's deliberately-red
 of the default bar — so the three raw-SQL rules `Provision` applies are
 compiled and unchanged in substance, but not re-executed against a real
 Postgres this pass.
+
+
+## F13 — an answer belongs to the caller — 2026-10-19
+
+The hole filed 2026-10-17: `submit_answers` read `member_id` from the body and
+`list_answers` from the path, so a caller allowed either action could answer
+as, or read, any member. Settled by the owner as member app decision 22.
+`submit_answers` now binds `member_id` with `{"from": "caller"}` (a body naming
+another member is overwritten, like `actor_id`), and `SubmitAnswers` with no
+caller is refused with `ErrInvalidAnswer`. `list_answers` keeps
+`forms.answer.list` but moved to `GET /forms/{form_id}/answers/mine` and reads
+only the caller's answers. The operator's read is a new operation,
+`list_all_answers` at `GET /forms/{form_id}/answers`, action
+`forms.answer.list_all`, manager method `ListAllAnswers`, with an optional
+`?member_id=` filter. Recorded in
+[answers.md](../2.%20design/answers.md) and CLAUDE.md's "Behaviours to
+preserve". On `mwanachama-wakala-api` the per-agency mount already admits only
+owners and agents, so "held by owner and agent" needed no grant code there.
+
+Landed as c958e39, adopted by wakala-api e4efe22. Verified:
+`go build`/`go vet`/`go test ./...`/`gofmt -l .` clean here;
+`routes/f13_answers_are_the_callers_test.go` goes through the real dispatch
+table with a real caller and all four tests go red with the fix reverted.
+wakala-api's `forms_answers_security_test.go` fails against the unfixed module,
+`go test ./...` there is red only on the deliberate `_OpenHole_` tests, and
+`make self-test`'s new `instance-form-answers` collection is 13/13. Still open:
+`chapter_id` is still read from the body, so an answer counts toward whichever
+group the request names; the host's group resolver (F14, WK96) is the fix.
