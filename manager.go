@@ -27,6 +27,7 @@ type (
 	RegisterQuery         = models.RegisterQuery
 	RegisterRow           = models.RegisterRow
 	RegisterPage          = models.RegisterPage
+	WaitingForm           = models.WaitingForm
 	Approval              = models.Approval
 	Decision              = models.Decision
 	PublicLink            = models.PublicLink
@@ -111,6 +112,10 @@ type FormManager interface {
 
 	Register(ctx context.Context, q models.RegisterQuery) (models.RegisterPage, error)
 
+	ListWaiting(ctx context.Context, callerID string) ([]models.WaitingForm, error)
+
+	UseGroups(g Groups)
+
 	Submit(ctx context.Context, id, submittedBy string) (models.Form, error)
 
 	Withdraw(ctx context.Context, id, actorID string) (models.Form, error)
@@ -173,8 +178,9 @@ type FormManager interface {
 }
 
 type formManager struct {
-	db *gorm.DB
-	st *store
+	db     *gorm.DB
+	st     *store
+	groups Groups
 }
 
 func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {

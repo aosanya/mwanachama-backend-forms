@@ -15,6 +15,9 @@ and
   have to live in SQL.
 - [answers.md](answers.md) — whose an answer is: why `member_id` is bound
   from the caller, and why reading everyone's answers is its own action.
+- [waiting.md](waiting.md) — the member's read, `GET /forms/waiting`:
+  the open forms that reached the caller's groups, and the resolver the
+  host supplies so those groups never come from the request.
 - [todo_details/FMD-001.md](todo_details/FMD-001.md) — the decision record
   for the conversion onto the declared-domain format, including what the
   plan assumed that turned out not to be true.

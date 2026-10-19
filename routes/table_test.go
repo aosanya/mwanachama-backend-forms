@@ -21,6 +21,7 @@ func TestTheAddressTableIsWhatTheSpecDeclares(t *testing.T) {
 		"DELETE /forms/{form_id}/targets/{target_id}",
 		"GET /approvals/awaiting",
 		"GET /forms",
+		"GET /forms/waiting",
 		"GET /forms/{form_id}",
 		"GET /forms/{form_id}/answers",
 		"GET /forms/{form_id}/answers/mine",
