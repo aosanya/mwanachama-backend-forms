@@ -34,7 +34,7 @@ and the route table's is
   each role, what it is called, and which table it lands in. It names
   `wakala` as its instance by way of example; a mount chooses its own
   through `SpecFor`.
-- **`forms.operations.json`** — the API's declaration. Thirty operations,
+- **`forms.operations.json`** — the API's declaration. Thirty-one operations,
   each with its method, path, manager method, gating action, status, prose
   and arguments. `routes/` is an adapter over
   `mwanachama-backend-shared/dispatch` and nothing else.
@@ -107,6 +107,14 @@ question asks for), and the lifecycle transitions themselves.
   is where F4 was closed.
 - **`actor_id` comes from the mount**, through `from: caller`, so no request
   and no tool can name who did something.
+- **An answer's `member_id` comes from the mount too** (F13), on
+  `submit_answers` and `list_answers` alike. A body naming another member is
+  overwritten, a submission with no caller is refused, and
+  `GET /forms/{form_id}/answers/mine` reads only the caller's own. Everyone's
+  answers are a separate address and a separate action,
+  `forms.answer.list_all`, so a grant to answer never carries a grant to
+  read others. `chapter_id` on a submission is still the body's; see
+  [answers.md](documentation/2.%20design/answers.md).
 - **A resubmitted answer edits in place** and keeps the time and group the
   first answer was given from; only `edited_at` moves.
 - **A failed publish leaves the form unpublished.** The status change, the

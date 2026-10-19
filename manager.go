@@ -161,6 +161,8 @@ type FormManager interface {
 
 	ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 
+	ListAllAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
+
 	Declare(ctx context.Context, d models.Declaration) (models.Declaration, error)
 
 	OpenPublicLink(ctx context.Context, key string) (models.ResolvedLink, error)

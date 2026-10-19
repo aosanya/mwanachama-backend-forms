@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sort"
 
+	"gorm.io/gorm"
+
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
@@ -99,6 +101,9 @@ func (m *formManager) UpsertRespondent(ctx context.Context, in models.Respondent
 }
 
 func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID, chapterID string, in []models.Answer) ([]models.Answer, error) {
+	if memberID == "" {
+		return nil, fmt.Errorf("%w: nobody is answering", ErrInvalidAnswer)
+	}
 	f, err := m.Get(ctx, formID)
 	if err != nil {
 		return nil, err
@@ -182,10 +187,30 @@ func (m *formManager) writeAnswer(ctx context.Context, formID, memberID, chapter
 }
 
 func (m *formManager) ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {
-	out, err := listOf[models.Answer](m,
-		m.q(ctx, roleAnswer).Where("form_id = ? AND member_id = ?", formID, memberID), roleAnswer)
+	out, err := m.answersInPromptOrder(ctx,
+		m.q(ctx, roleAnswer).Where("form_id = ? AND member_id = ?", formID, memberID))
 	if err != nil {
 		return nil, fmt.Errorf("ListAnswers: %w", err)
+	}
+	return out, nil
+}
+
+func (m *formManager) ListAllAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {
+	q := m.q(ctx, roleAnswer).Where("form_id = ?", formID)
+	if memberID != "" {
+		q = q.Where("member_id = ?", memberID)
+	}
+	out, err := m.answersInPromptOrder(ctx, q)
+	if err != nil {
+		return nil, fmt.Errorf("ListAllAnswers: %w", err)
+	}
+	return out, nil
+}
+
+func (m *formManager) answersInPromptOrder(ctx context.Context, q *gorm.DB) ([]models.Answer, error) {
+	out, err := listOf[models.Answer](m, q, roleAnswer)
+	if err != nil {
+		return nil, err
 	}
 
 	ordinals := map[string]int{}
@@ -197,7 +222,12 @@ func (m *formManager) ListAnswers(ctx context.Context, formID, memberID string) 
 			ordinals[a.QuestionID] = q.Ordinal
 		}
 	}
-	sort.Slice(out, func(i, j int) bool { return ordinals[out[i].QuestionID] < ordinals[out[j].QuestionID] })
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].MemberID != out[j].MemberID {
+			return out[i].MemberID < out[j].MemberID
+		}
+		return ordinals[out[i].QuestionID] < ordinals[out[j].QuestionID]
+	})
 	return out, nil
 }
 

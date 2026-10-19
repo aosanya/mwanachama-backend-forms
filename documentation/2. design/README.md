@@ -13,6 +13,8 @@ and
   reader cannot recover from the code: why timestamps are fixed-width
   strings, why nothing here holds a foreign key, and the three rules that
   have to live in SQL.
+- [answers.md](answers.md) — whose an answer is: why `member_id` is bound
+  from the caller, and why reading everyone's answers is its own action.
 - [todo_details/FMD-001.md](todo_details/FMD-001.md) — the decision record
   for the conversion onto the declared-domain format, including what the
   plan assumed that turned out not to be true.

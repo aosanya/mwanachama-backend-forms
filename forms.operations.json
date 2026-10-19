@@ -366,7 +366,7 @@
       "description": "Send every answer at once. They are all checked before any is written, so one bad answer leaves nothing behind, and answering again edits what was already given rather than doubling it.",
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument being answered."},
-        {"from": "body", "as": "member_id", "description": "Who is answering."},
+        {"from": "caller", "as": "member_id"},
         {"from": "body", "as": "chapter_id", "description": "The group they are answering from."},
         {"from": "body", "as": "answers", "description": "One answer per prompt being answered."}
       ],
@@ -374,14 +374,27 @@
     },
     "list_answers": {
       "method": "GET",
-      "path": "/forms/{form_id}/answers/{member_id}",
+      "path": "/forms/{form_id}/answers/mine",
       "call": "ListAnswers",
       "action": "forms.answer.list",
-      "title": "Read someone's answers",
-      "description": "What one person answered on one instrument, in the order the prompts were asked.",
+      "title": "Read my answers",
+      "description": "What the caller answered on one instrument, in the order the prompts were asked. Nobody else's answers are reachable here.",
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument answered."},
-        {"from": "path", "as": "member_id", "description": "Whose answers to read."}
+        {"from": "caller", "as": "member_id"}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_all_answers": {
+      "method": "GET",
+      "path": "/forms/{form_id}/answers",
+      "call": "ListAllAnswers",
+      "action": "forms.answer.list_all",
+      "title": "Read everyone's answers",
+      "description": "Every answer given on one instrument, grouped by who gave it and in the order the prompts were asked, optionally narrowed to one person. An operator's read, gated apart from a member's read of their own.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument answered."},
+        {"from": "query", "as": "member_id", "description": "Only this person's answers. Absent reads everyone's."}
       ],
       "returns": [{"body": true}]
     },
