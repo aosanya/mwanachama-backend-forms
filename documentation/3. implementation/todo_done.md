@@ -223,3 +223,32 @@ wakala-api's `forms_answers_security_test.go` fails against the unfixed module,
 `make self-test`'s new `instance-form-answers` collection is 13/13. Still open:
 `chapter_id` is still read from the body, so an answer counts toward whichever
 group the request names; the host's group resolver (F14, WK96) is the fix.
+
+## F14 — a member's list of the forms waiting for them — 2026-10-19
+
+Filed 2026-10-17 for the member app's Forms tab (MF4): the only list was the
+operator's register, with response counts. Settled by the owner as member app
+decision 19: the host supplies a resolver, asked only when a read needs it,
+and groups never come from the request. New operation `list_waiting_forms` at
+`GET /forms/waiting`, action `forms.form.list_waiting`, caller-bound, over
+`ListWaiting(ctx, callerID)`. It returns the forms with status `open` whose
+targets or propagation rows name one of the caller's groups, soonest closing
+first, each as a `models.WaitingForm`: id, title, the sending group, who
+published it and when, opens and closes, the current question count, which of
+the caller's groups it reached, and whether the caller has answered. No
+respondent counts and nothing about other members. The seam is
+`type Groups func(ctx, callerID) ([]string, error)` set with `UseGroups`,
+mirroring comm's `UseBelonging`; no resolver or no caller answers `[]` without
+asking it, and a resolver error is the dispatcher's redacted 500. Recorded in
+[waiting.md](../2.%20design/waiting.md).
+
+Landed as 44b1f23, with wakala-api's `instance-forms` self-test extended in 3080bc4
+(no wakala-api code change; WK96 supplies the resolver). Verified:
+`go build`/`go vet`/`go test ./...`/`gofmt -l .` clean here, with
+`routes/waiting_test.go` through the real dispatch table (status filter and
+"anyone's answer" mutations both go red); wakala-api `go test ./...` red only
+on the deliberate `_OpenHole_`/`_OpenBug_` tests and `make self-test`'s
+`instance-forms` 16/16. Open for WK96 or the owner: whether a caller's groups
+include ancestor groups, so a target with `includes_descendants` reaches child
+groups' members; and whether a form past `closes_at` but never closed, or not
+yet at `opens_at`, should be listed (today status alone decides).
