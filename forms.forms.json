@@ -62,6 +62,12 @@
       "name": "answer",
       "table": "answers",
       "description": "One person's response to one question."
+    },
+    {
+      "role": "submission",
+      "name": "submission",
+      "table": "submissions",
+      "description": "That one person sent their answers to a survey, with answers or without."
     }
   ]
 }

@@ -25,7 +25,7 @@ is
 and the route table's is
 [dispatcher.md](../mwanachama-backend-shared/documentation/2.%20design/dispatcher.md).
 
-- **`forms.blueprint.json`** — the module's ten objects, declared once, with
+- **`forms.blueprint.json`** — the module's eleven objects, declared once, with
   a description on every object and every field. Reached through
   `Blueprint()`, `LoadSpec(path)`, `ParseSpec(raw)` and `SpecFor(instance)`.
   Load a domain spec through those, never through `spec.Load`, or its roled
@@ -34,7 +34,7 @@ and the route table's is
   each role, what it is called, and which table it lands in. It names
   `wakala` as its instance by way of example; a mount chooses its own
   through `SpecFor`.
-- **`forms.operations.json`** — the API's declaration. Thirty-five operations,
+- **`forms.operations.json`** — the API's declaration. Thirty-seven operations,
   each with its method, path, manager method, gating action, status, prose
   and arguments. `routes/` is an adapter over
   `mwanachama-backend-shared/dispatch` and nothing else.
@@ -121,8 +121,15 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   [answers.md](documentation/2.%20design/answers.md).
 - **A member's list of the forms they answered is theirs alone** (F19).
   `GET /forms/answered` binds the caller with `from: caller` and lists every
-  form they have an answer on, open or closed, newest sent first; see
+  form they have sent to, open or closed, newest sent first; see
   [answered.md](documentation/2.%20design/answered.md).
+- **A send is what makes a form answered, even an empty one** (F30).
+  `SubmitAnswers` records a `submission` row per form and member in the same
+  transaction as the answers, so a send with no answers is still a send; the
+  waiting list, the answered list and the register's respondent count all
+  read it, and a resend edits it rather than adding one. `Provision` records
+  a send for every answer stored before the row existed. See
+  [answers.md](documentation/2.%20design/answers.md#an-empty-send-is-a-send).
 - **A form is aimed at exactly one group** (F20). A second target is
   `ErrFormHasTarget`, and an answer's `chapter_id` is that one target, never
   the body's.

@@ -4,6 +4,7 @@
     "ErrQuestionNotFound": 404,
     "ErrTargetNotFound": 404,
     "ErrLinkNotFound": 404,
+    "ErrSubmissionNotFound": 404,
 
     "ErrNotDraft": 409,
     "ErrNotWithdrawable": 409,
@@ -421,6 +422,32 @@
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument answered."},
         {"from": "query", "as": "member_id", "description": "Only this person's answers. Absent reads everyone's."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "get_my_submission": {
+      "method": "GET",
+      "path": "/forms/{form_id}/submissions/mine",
+      "call": "GetSubmission",
+      "action": "forms.submission.read_mine",
+      "title": "Have I sent this form",
+      "description": "Whether the caller has sent their answers to one instrument, when they first sent and last sent again, and how many answers the send carried. A send with no answers still counts as sent. Never sent answers not found. Nobody else's send is reachable here.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument sent to."},
+        {"from": "caller", "as": "member_id"}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_submissions": {
+      "method": "GET",
+      "path": "/forms/{form_id}/submissions",
+      "call": "ListSubmissions",
+      "action": "forms.submission.list",
+      "title": "Who has sent this form",
+      "description": "Everyone who has sent their answers to one instrument, first sender first, each with when they sent and how many answers the send carried, so somebody who sent nothing still shows as having responded. Optionally narrowed to one person. An operator's read, gated like everyone's answers.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument sent to."},
+        {"from": "query", "as": "member_id", "description": "Only this person's send. Absent reads everyone's."}
       ],
       "returns": [{"body": true}]
     },

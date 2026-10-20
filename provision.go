@@ -18,7 +18,23 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 	if err := addMissingColumns(db, s); err != nil {
 		return err
 	}
+	if err := recordEarlierSends(db, s); err != nil {
+		return err
+	}
 	return syncConstraints(db, s)
+}
+
+func recordEarlierSends(db *gorm.DB, s *spec.Spec) error {
+	answers, submissions := tableFor(s, roleAnswer), tableFor(s, roleSubmission)
+	stmt := fmt.Sprintf(`insert into %[2]s (id, form_id, member_id, chapter_id, submitted_at, edited_at)
+select a.form_id || ':' || a.member_id, a.form_id, a.member_id, min(a.chapter_id), min(a.answered_at), max(a.edited_at)
+from %[1]s a
+where not exists (select 1 from %[2]s s where s.form_id = a.form_id and s.member_id = a.member_id)
+group by a.form_id, a.member_id`, answers, submissions)
+	if err := db.Exec(stmt).Error; err != nil {
+		return fmt.Errorf("forms: record earlier sends: %w", err)
+	}
+	return nil
 }
 
 func addMissingColumns(db *gorm.DB, s *spec.Spec) error {

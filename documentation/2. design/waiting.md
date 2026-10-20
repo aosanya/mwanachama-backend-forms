@@ -21,7 +21,7 @@ soonest closing first:
 | `published_at`, `opens_at`, `closes_at` | the form's window |
 | `questions` | the current prompts, superseded versions not counted, the same count the register uses |
 | `reached_via` | which of the caller's own groups it reached, sorted; the member app needs one of these to answer from |
-| `answered` | whether the caller has an answer on record for it |
+| `answered` | whether the caller has sent it, even with no answers (F30, see [answers.md](answers.md#an-empty-send-is-a-send)) |
 
 It carries **nobody else's figures**: no respondent count, no status
 tally, no other member's id. The operator's register stays the only read

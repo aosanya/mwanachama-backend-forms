@@ -13,13 +13,16 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 	if callerID == "" {
 		return []models.AnsweredForm{}, nil
 	}
-	answers, err := listOf[models.Answer](m, m.q(ctx, roleAnswer).Where("member_id = ?", callerID), roleAnswer)
+	sent, err := m.submissionsBy(ctx, callerID)
 	if err != nil {
 		return nil, fmt.Errorf("ListAnswered: %w", err)
 	}
-	given := answeredTimesByForm(answers)
-	if len(given) == 0 {
+	if len(sent) == 0 {
 		return []models.AnsweredForm{}, nil
+	}
+	given := make(map[string]models.Submission, len(sent))
+	for _, sub := range sent {
+		given[sub.FormID] = sub
 	}
 
 	ids := make([]string, 0, len(given))
@@ -34,7 +37,7 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 	now := time.Now()
 	out := make([]models.AnsweredForm, 0, len(forms))
 	for _, f := range forms {
-		times := given[f.ID]
+		sub := given[f.ID]
 		out = append(out, models.AnsweredForm{
 			FormID:              f.ID,
 			Title:               f.Title,
@@ -48,8 +51,8 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 			ClosedAt:            f.ClosedAt,
 			Status:              f.Status,
 			Open:                f.Status == models.StatusOpen && !f.OutsideWindow(now),
-			AnsweredAt:          times.first,
-			EditedAt:            times.lastEdit,
+			AnsweredAt:          sub.SubmittedAt,
+			EditedAt:            sub.EditedAt,
 		})
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -59,24 +62,4 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 		return out[i].FormID < out[j].FormID
 	})
 	return out, nil
-}
-
-type answeredTimes struct {
-	first    string
-	lastEdit string
-}
-
-func answeredTimesByForm(answers []models.Answer) map[string]answeredTimes {
-	out := map[string]answeredTimes{}
-	for _, a := range answers {
-		t, seen := out[a.FormID]
-		if !seen || (a.AnsweredAt != "" && a.AnsweredAt < t.first) {
-			t.first = a.AnsweredAt
-		}
-		if a.EditedAt > t.lastEdit {
-			t.lastEdit = a.EditedAt
-		}
-		out[a.FormID] = t
-	}
-	return out
 }

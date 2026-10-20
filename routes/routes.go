@@ -22,6 +22,7 @@ var sentinels = map[string]error{
 	"ErrQuestionNotFound":    forms.ErrQuestionNotFound,
 	"ErrTargetNotFound":      forms.ErrTargetNotFound,
 	"ErrLinkNotFound":        forms.ErrLinkNotFound,
+	"ErrSubmissionNotFound":  forms.ErrSubmissionNotFound,
 	"ErrNotDraft":            forms.ErrNotDraft,
 	"ErrNotWithdrawable":     forms.ErrNotWithdrawable,
 	"ErrNotSubmitted":        forms.ErrNotSubmitted,

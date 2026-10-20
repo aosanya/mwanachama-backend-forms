@@ -193,6 +193,22 @@
         {"name": "form", "description": "Counts how many people have answered one instrument.", "fields": ["form_id"]},
         {"name": "question_member", "description": "Reads one person's answer to one prompt, and keeps it to one so a resubmission edits rather than doubles.", "fields": ["question_id", "member_id"], "unique": true}
       ]
+    },
+    {
+      "role": "submission",
+      "description": "That one person sent their answers to one instrument, whether the send carried answers or none. It is what makes an instrument answered.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "form_id", "type": "string", "description": "The instrument they sent to.", "required": true},
+        {"name": "member_id", "type": "string", "description": "Who sent — a member, or a public respondent's own id.", "required": true},
+        {"name": "chapter_id", "type": "string", "description": "The group the send counts toward, recorded once and kept across a resend."},
+        {"name": "submitted_at", "type": "timestamp", "description": "When they first sent. A resend leaves this alone."},
+        {"name": "edited_at", "type": "timestamp", "description": "When they last sent again. Empty means never."}
+      ],
+      "indexes": [
+        {"name": "form_member", "description": "Reads one person's send to one instrument, and keeps it to one so a resend edits rather than doubles.", "fields": ["form_id", "member_id"], "unique": true},
+        {"name": "member", "description": "Lists every instrument one person has sent to.", "fields": ["member_id"]}
+      ]
     }
   ]
 }

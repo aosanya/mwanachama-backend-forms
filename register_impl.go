@@ -20,7 +20,7 @@ func lastMoved(f models.Form) (string, bool) {
 
 func (m *formManager) respondentCount(ctx context.Context, formID string) (int, error) {
 	var count int64
-	err := m.q(ctx, roleAnswer).Where("form_id = ?", formID).Distinct("member_id").Count(&count).Error
+	err := m.q(ctx, roleSubmission).Where("form_id = ?", formID).Count(&count).Error
 	return int(count), err
 }
 

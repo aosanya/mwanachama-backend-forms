@@ -18,6 +18,7 @@ const (
 	roleRespondent     = "respondent"
 	roleDeclaration    = "declaration"
 	roleAnswer         = "answer"
+	roleSubmission     = "submission"
 )
 
 type store = specstore.Store

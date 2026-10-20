@@ -14,7 +14,8 @@ and
   strings, why nothing here holds a foreign key, and the three rules that
   have to live in SQL.
 - [answers.md](answers.md) — whose an answer is: why `member_id` is bound
-  from the caller, and why reading everyone's answers is its own action.
+  from the caller, why reading everyone's answers is its own action, and
+  why an empty send still counts as answered.
 - [waiting.md](waiting.md) — the member's read, `GET /forms/waiting`:
   the open forms that reached the caller's groups, and the resolver the
   host supplies so those groups never come from the request.
@@ -49,7 +50,7 @@ and
 
 `<instance>_forms_<object>`: `forms`, `questions`, `question_options`,
 `targets`, `approvals`, `propagation`, `public_links`, `respondents`,
-`declarations`, `answers`. A mount chooses only the instance, through
+`declarations`, `answers`, `submissions`. A mount chooses only the instance, through
 `SpecFor`; `Provision` moves a pre-spec table set onto these names before
 creating what is missing.
 
@@ -63,6 +64,7 @@ Form ──has──────────► Propagation   (one per Target, a
 Form ──has──────────► PublicLink    (public-audience forms only, one, after Publish)
 Respondent ──answers──► Answer ──answers──► Question
 Respondent ──declares─► Declaration ──about──► Form
+Respondent ──sends────► Submission  ──to─────► Form   (one per member, even with no answers)
 ```
 
 A Question is superseded rather than edited once its form is published, so

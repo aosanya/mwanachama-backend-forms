@@ -104,7 +104,7 @@ func (m *formManager) waitingRow(ctx context.Context, f models.Form, callerID st
 		return models.WaitingForm{}, err
 	}
 	var mine int64
-	if err := m.q(ctx, roleAnswer).Where("form_id = ? AND member_id = ?", f.ID, callerID).
+	if err := m.q(ctx, roleSubmission).Where("form_id = ? AND member_id = ?", f.ID, callerID).
 		Count(&mine).Error; err != nil {
 		return models.WaitingForm{}, err
 	}

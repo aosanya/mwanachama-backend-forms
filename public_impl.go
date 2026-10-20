@@ -151,12 +151,19 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
 	}
 	out := make([]models.Answer, 0, len(in))
-	for _, a := range in {
-		written, err := m.writeAnswer(ctx, formID, memberID, chapterID, a)
-		if err != nil {
-			return nil, fmt.Errorf("SubmitAnswers: %w", err)
+	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		now := models.NowRFC3339()
+		for _, a := range in {
+			written, err := m.writeAnswer(tx, formID, memberID, chapterID, now, a)
+			if err != nil {
+				return err
+			}
+			out = append(out, written)
 		}
-		out = append(out, written)
+		return m.writeSubmission(tx, formID, memberID, chapterID, now)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("SubmitAnswers: %w", err)
 	}
 	sort.Slice(out, func(i, j int) bool {
 		return questions[out[i].QuestionID].Ordinal < questions[out[j].QuestionID].Ordinal
@@ -206,21 +213,21 @@ func (m *formManager) questionsAnswered(ctx context.Context, formID string, in [
 	return questions, options, nil
 }
 
-func (m *formManager) writeAnswer(ctx context.Context, formID, memberID, chapterID string, a models.Answer) (models.Answer, error) {
+func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now string, a models.Answer) (models.Answer, error) {
 	a.FormID, a.MemberID = formID, memberID
 
 	var held models.Answer
-	q := m.q(ctx, roleAnswer).Where("question_id = ? AND member_id = ?", a.QuestionID, memberID)
+	q := tx.Table(m.table(roleAnswer)).Where("question_id = ? AND member_id = ?", a.QuestionID, memberID)
 	err := m.take(q, roleAnswer, &held, errNoAnswer)
 	switch {
 	case err == nil:
 		a.ID = held.ID
-		a.AnsweredAt, a.ChapterID, a.EditedAt = held.AnsweredAt, held.ChapterID, models.NowRFC3339()
-		return a, m.replace(ctx, roleAnswer, a.ID, a)
+		a.AnsweredAt, a.ChapterID, a.EditedAt = held.AnsweredAt, held.ChapterID, now
+		return a, m.replaceTx(tx, roleAnswer, a.ID, a)
 	case errors.Is(err, errNoAnswer):
 		a.ID = newID()
-		a.AnsweredAt, a.ChapterID, a.EditedAt = models.NowRFC3339(), chapterID, ""
-		return a, m.insert(ctx, roleAnswer, a)
+		a.AnsweredAt, a.ChapterID, a.EditedAt = now, chapterID, ""
+		return a, m.insertTx(tx, roleAnswer, a)
 	default:
 		return models.Answer{}, err
 	}

@@ -36,6 +36,7 @@ type (
 	Respondent            = models.Respondent
 	Declaration           = models.Declaration
 	Answer                = models.Answer
+	Submission            = models.Submission
 	QuestionDraft         = models.QuestionDraft
 	ResolvedLink          = models.ResolvedLink
 	LinkedQuestion        = models.LinkedQuestion
@@ -178,6 +179,10 @@ type FormManager interface {
 
 	ListAllAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 
+	GetSubmission(ctx context.Context, formID, memberID string) (models.Submission, error)
+
+	ListSubmissions(ctx context.Context, formID, memberID string) ([]models.Submission, error)
+
 	Declare(ctx context.Context, d models.Declaration) (models.Declaration, error)
 
 	OpenPublicLink(ctx context.Context, key string) (models.ResolvedLink, error)
@@ -213,6 +218,7 @@ func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {
 		roleRespondent:     models.Respondent{},
 		roleDeclaration:    models.Declaration{},
 		roleAnswer:         models.Answer{},
+		roleSubmission:     models.Submission{},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("NewFormManager: %w", err)

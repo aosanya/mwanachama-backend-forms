@@ -9,7 +9,8 @@ forms; nothing listed the forms a member had answered once they closed.
 
 ## What it answers
 
-One row for each form the caller has at least one answer on, open or
+One row for each form the caller has sent to — with answers or, since F30,
+with none (see [answers.md](answers.md#an-empty-send-is-a-send)) — open or
 closed, **newest sent first** — ordered by `published_at`, descending, ties
 broken by form id:
 
@@ -22,8 +23,8 @@ broken by form id:
 | `opens_at`, `closes_at`, `closed_at` | its window, and when it was closed if it was |
 | `status` | where it has got to: `open` or `closed` |
 | `open` | whether it can still be answered: status `open` and, for a form that keeps its window, now inside it — the same test `SubmitAnswers` and `list_waiting` apply; see [window.md](window.md) |
-| `answered_at` | when the caller first answered it, the earliest of their answers |
-| `edited_at` | the caller's last edit, empty if they never resubmitted |
+| `answered_at` | when the caller first sent it |
+| `edited_at` | when the caller last sent it again, empty if they never did |
 
 It carries **nobody else's figures**: no respondent count and no other
 member's id. Opening a row reads the answers themselves through
@@ -35,7 +36,7 @@ member's id. Opening a row reads the answers themselves through
   `list_answers`' `member_id` is (see [answers.md](answers.md)). No query,
   body or MCP argument can name whose answers are listed, and the argument
   is absent from the MCP tool's schema.
-- **A request with no caller answers an empty list.** No answer can be filed
+- **A request with no caller answers an empty list.** No send can be filed
   under the empty id, since `SubmitAnswers` refuses one.
 - The read needs no group resolver. A form is listed because the caller
   answered it, not because it reaches them now, so a `ReachedOnly` mount

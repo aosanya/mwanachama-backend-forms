@@ -66,3 +66,57 @@ and built as F20, which also settles F16.
 The rule is checked by reading the form's targets before writing, not by a
 unique index, so two aims racing on one draft could both land; the same is
 already true of `ErrDuplicateTarget`.
+
+## An empty send is a send
+
+Decided 2026-10-20 by the owner (`mwanachama-frontend-member`'s decisions
+122 and 123) and built as F30.
+
+Before this, `SubmitAnswers` with no answers returned 200 `[]` and wrote
+nothing, so a member who opened a form, chose to answer nothing and sent it
+saw the form stay under Waiting, and the operator could not tell them from
+somebody who never opened it.
+
+- **Every accepted send records a `submission`**: one row per form and
+  member (`form_id`, `member_id`, `chapter_id`, `submitted_at`,
+  `edited_at`), unique on the pair. It is written in the same transaction
+  as the send's answers, so a send either lands whole, marker included, or
+  not at all. A send that is refused — a required question unanswered, a
+  form not open, outside its window — records nothing.
+- **Sending again edits, never doubles.** A resend while the form is open
+  keeps the row, its `submitted_at` and its `chapter_id`, and moves
+  `edited_at`; each answer it carries edits that member's answer to the
+  same question in place, as before. Empty-then-answers and
+  answers-then-empty both leave one row. An empty resend leaves the answers
+  already given standing: a send writes what it carries and removes
+  nothing.
+- **"Answered" now means "sent".** The waiting list's `answered`, the
+  answered list (`GET /forms/answered`) and the register's `respondents`
+  read the submission, not the answers. The answered list's `answered_at` is
+  the first send and its `edited_at` the last resend.
+- **The member's read of their own answers is unchanged.**
+  `GET /forms/{form_id}/answers/mine` still answers `[]` both for a member
+  who sent nothing and for one who never sent, because changing either would
+  break a client that reads it to prefill the form. Whether the caller has
+  sent is a new address beside it:
+
+| Operation | Address | Action | Answers |
+| --- | --- | --- | --- |
+| `get_my_submission` | `GET /forms/{form_id}/submissions/mine` | `forms.submission.read_mine` | the caller's send, or 404 `ErrSubmissionNotFound` if they never sent |
+| `list_submissions` | `GET /forms/{form_id}/submissions` | `forms.submission.list` | everyone's sends, first sender first, optionally `?member_id=` |
+
+- Each send carries `answers`, how many answers the member has on record
+  for that form, so the operator's read shows a member who responded with
+  nothing as a send with `answers: 0`. `list_all_answers` is unchanged and
+  still lists only answers given.
+- The member is bound from the caller exactly as on the answer addresses;
+  a request with no caller reads no send. The two reads are new actions
+  because the dispatcher holds one operation to one action; they mirror
+  `forms.answer.list` and `forms.answer.list_all`, and a mount grants them
+  to the same people.
+- **Answers stored before the marker** count as sends once provisioned:
+  `Provision` inserts a submission for every form and member that holds an
+  answer and no submission, taking the earliest `answered_at`, the latest
+  `edited_at` and the answer's `chapter_id`. It is one statement, idempotent,
+  on SQLite and Postgres alike; the id it gives such a row is
+  `<form_id>:<member_id>`, which is as opaque to callers as any other.
