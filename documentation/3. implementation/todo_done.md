@@ -352,3 +352,19 @@ For the owner: `required` counts only the submission, not answers already on
 record, so a resubmit carrying only changed answers is refused; only the first
 failing question is named; `min_selections` above the number of choices is not
 refused.
+
+## F19 — a member lists every form they answered — 2026-10-20
+
+Owner, member app decision 40. 5f72661 adds `list_answered_forms`,
+`GET /forms/answered`, action `forms.form.list_answered`, over
+`FormManager.ListAnswered(ctx, callerID)`; the caller is bound by
+`from: caller`, so no request names whose list it is. One `AnsweredForm` per
+form the caller has an answer on, open or closed, newest sent first, with the
+publisher, window, `open` (the same check `SubmitAnswers` makes), the
+earliest `answered_at` and the last `edited_at`. A resident (`ReachedOnly`)
+mount still lists closed forms. `answered.md`; six route tests through a real
+mux, the `member_id` filter mutation-checked. wakala-api 931f0f7 adds the
+action to the resident set and covers it in `instance-form-answers` and
+`instance-form-resident`. `go test ./...` green here; wakala-api `make
+self-test` 645/676 with exactly master's 26 red collections. Not built:
+paging and month grouping. Unblocks the member app's MF28.
