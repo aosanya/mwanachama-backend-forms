@@ -287,3 +287,24 @@ narrowing off. Commits 0740817 (forms) and 7f956c0 (wakala-api's
 only on the deliberate `_OpenHole_` tests. Open: WK96's resolver counts direct
 registrations only, so `includes_descendants` reaches no child group
 (decision 31 says so for now).
+
+## F18 — a form names who published it and on whose behalf — 2026-10-20
+
+`Form` gains `publisher_name` and `publishing_authority`, both returned on the
+form and on each `GET /forms/waiting` row. `publish_form`'s `published_by` is
+now bound `{"from": "caller"}`, and the name beside it comes from the host's
+`Names` resolver (`UseNames`, shaped like `UseGroups`); the authority is
+publish-body text, trimmed, refused over 120 characters or with a control
+character (`ErrInvalidForm`, the form stays a draft). `Create` clears both and
+`Update` copies neither. `Publish` gains a fifth argument; `Provision` now adds
+a missing optional text column to an existing table. `publisher.md`;
+`routes/f18_publisher_and_authority_test.go` and `f18_provision_test.go`,
+mutation-checked. Commits 2f4ad10 and a9e2341 (forms), 881a285 and f80b4fc
+(wakala-api: `namesIn` reads the caller's `DisplayName` from the agency's
+actor directory; self-test `instance-form-publisher` 11/11). `go test ./...`
+green here; wakala-api red only on the deliberate `_OpenHole_` tests;
+`make self-test` 519/560 across 76 collections, master's seven red
+collections plus the known `:memory:` pool flake. Open: until actors carry a
+display name (WK100 leaves it empty), `publisher_name` is mostly empty in
+practice; `closed_by`, `submitted_by`, `approver_id` and `withdraw`'s
+`actor_id` are still body-bound.
