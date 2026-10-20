@@ -308,3 +308,24 @@ collections plus the known `:memory:` pool flake. Open: until actors carry a
 display name (WK100 leaves it empty), `publisher_name` is mostly empty in
 practice; `closed_by`, `submitted_by`, `approver_id` and `withdraw`'s
 `actor_id` are still body-bound.
+
+## F17 — each form chooses whether its open/close window is enforced — 2026-10-20
+
+`Form` gains `window_advisory`, a plain bool set only by `Create` (`Update`
+copies only the title and the window): false, the default, means enforced, so
+an omitted field needs no default filled in. `Form.OutsideWindow(now)` is the
+one check: `ListWaiting` drops an open, enforced form before `opens_at` or
+after `closes_at`, and `SubmitAnswers` refuses such a submit with the new
+`ErrOutsideWindow`, 409 in `forms.operations.json`; status is checked first,
+so a form that is not open still answers `ErrFormNotOpen`. An advisory form is
+decided by status alone, as before. `Provision` now adds a missing optional
+bool column too (`addMissingColumns`), so a form created before F17 reads back
+enforced. `window.md` (new), `waiting.md`, `publisher.md`, design `README.md`
+and a CLAUDE.md behaviour bullet; `f17_window_test.go` and
+`routes/f17_window_test.go`. Commit ebf2d62. `go test ./...` green in the main
+checkout, gofmt clean; wakala-api builds against it, red only on its
+deliberate `_OpenHole_` tests. Open for the owner: an existing open form past
+its `closes_at` now leaves the waiting list and refuses answers until someone
+closes it, which decision 32 (new forms start enforced) did not say; a one-off
+backfill marking old forms advisory was not built. The public link still
+checks status and audience only.
