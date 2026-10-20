@@ -59,5 +59,6 @@ set neither field: `Create` clears both and `Update` copies neither.
 `spec.Migrate` creates a table that is missing but never adds a column to
 one that exists. `Provision` therefore adds any declared optional text
 column a form table lacks, as `text default ''`, which is what a fresh
-migration would have created. A missing column of any other type is an
-error naming it rather than a silent gap.
+migration would have created — and, since F17, an optional `bool` as
+`boolean default false` ([window.md](window.md)). A missing column of any
+other type is an error naming it rather than a silent gap.

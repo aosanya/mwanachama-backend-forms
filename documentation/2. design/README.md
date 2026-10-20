@@ -18,6 +18,9 @@ and
 - [waiting.md](waiting.md) — the member's read, `GET /forms/waiting`:
   the open forms that reached the caller's groups, and the resolver the
   host supplies so those groups never come from the request.
+- [window.md](window.md) — whether a form keeps its `opens_at`/`closes_at`
+  window: `window_advisory`, why it is named for the exception, and what
+  forms written before it get.
 - [reached.md](reached.md) — a resident reads and answers only the forms
   sent to their groups: `Mount.ReachedOnly`, and why a form that did not
   reach them answers exactly as a missing one.
@@ -62,6 +65,7 @@ again.
 - **In Go, beside the type they are about**, because no spec can state
   them: `ValidateWindow` (a closing time falls after an opening one),
   `ValidateAudienceCollection` (a member audience is never interviewed),
+  `Form.OutsideWindow` (an answer arrives inside a window the form keeps),
   `ValidateAnswer` (a value fits the shape its own question asks for), and
   the lifecycle transitions themselves.
 - **In SQL** — the three in [storage.md](storage.md), Postgres only, with a

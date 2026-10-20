@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
@@ -42,8 +43,12 @@ func (m *formManager) ListWaiting(ctx context.Context, callerID string) ([]model
 		return nil, fmt.Errorf("ListWaiting: %w", err)
 	}
 
+	now := time.Now()
 	out := make([]models.WaitingForm, 0, len(forms))
 	for _, f := range forms {
+		if f.OutsideWindow(now) {
+			continue
+		}
 		row, err := m.waitingRow(ctx, f, callerID, reached[f.ID])
 		if err != nil {
 			return nil, fmt.Errorf("ListWaiting: %w", err)

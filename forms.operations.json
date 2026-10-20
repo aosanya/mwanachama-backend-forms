@@ -14,6 +14,7 @@
     "ErrPublicFormNoTargets": 409,
     "ErrFormNotPublished": 409,
     "ErrFormNotOpen": 409,
+    "ErrOutsideWindow": 409,
     "ErrNotCurrentVersion": 409,
     "ErrDuplicateTarget": 409,
     "ErrFormHasTarget": 409,

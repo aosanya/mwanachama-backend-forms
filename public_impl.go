@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -110,6 +111,9 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 	}
 	if f.Status != models.StatusOpen {
 		return nil, ErrFormNotOpen
+	}
+	if f.OutsideWindow(time.Now()) {
+		return nil, ErrOutsideWindow
 	}
 
 	questions, options, err := m.questionsAnswered(ctx, formID, in)

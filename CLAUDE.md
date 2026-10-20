@@ -128,6 +128,12 @@ question asks for), and the lifecycle transitions themselves.
   display name beside it from the host's `Names` resolver, never from the
   body. The publishing authority is body text, one line, at most 120
   characters; see [publisher.md](documentation/2.%20design/publisher.md).
+- **A form keeps its window unless it was composed advisory** (F17).
+  `window_advisory` is false by default, so a new form, an omitted field
+  and a row older than the column are all enforced: the waiting list drops
+  it outside `opens_at`..`closes_at` and `SubmitAnswers` refuses with
+  `ErrOutsideWindow` (409). Only `Create` sets it. See
+  [window.md](documentation/2.%20design/window.md).
 - **A resubmitted answer edits in place** and keeps the time and group the
   first answer was given from; only `edited_at` moves.
 - **A failed publish leaves the form unpublished.** The status change, the

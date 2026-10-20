@@ -15,13 +15,19 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 	if err := spec.Migrate(db, s); err != nil {
 		return err
 	}
-	if err := addMissingTextColumns(db, s); err != nil {
+	if err := addMissingColumns(db, s); err != nil {
 		return err
 	}
 	return syncConstraints(db, s)
 }
 
-func addMissingTextColumns(db *gorm.DB, s *spec.Spec) error {
+var addableColumns = map[spec.FieldType]string{
+	spec.TypeString: "text default ''",
+	spec.TypeText:   "text default ''",
+	spec.TypeBool:   "boolean default false",
+}
+
+func addMissingColumns(db *gorm.DB, s *spec.Spec) error {
 	for _, o := range s.Objects {
 		table := s.TableFor(o)
 		for _, f := range o.Fields {
@@ -32,10 +38,11 @@ func addMissingTextColumns(db *gorm.DB, s *spec.Spec) error {
 			if present {
 				continue
 			}
-			if f.Type != spec.TypeString && f.Type != spec.TypeText || f.Required || f.Primary {
-				return fmt.Errorf("forms: %s has no column %s, and only an optional text column can be added to a table that already holds rows", table, f.Name)
+			definition, addable := addableColumns[f.Type]
+			if !addable || f.Required || f.Primary {
+				return fmt.Errorf("forms: %s has no column %s, and only an optional text or bool column can be added to a table that already holds rows", table, f.Name)
 			}
-			stmt := fmt.Sprintf("alter table %s add column %s text default ''", table, f.Name)
+			stmt := fmt.Sprintf("alter table %s add column %s %s", table, f.Name, definition)
 			if err := db.Exec(stmt).Error; err != nil {
 				return fmt.Errorf("forms: add %s.%s: %w", table, f.Name, err)
 			}

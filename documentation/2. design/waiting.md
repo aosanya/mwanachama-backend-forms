@@ -31,7 +31,8 @@ that counts people.
 reaches its targets' groups when it is published, so both read the same
 set today; reading both keeps a group a form was pushed to.
 
-"Open" is status `open`, the same test `SubmitAnswers` applies. A draft,
+"Open" is status `open` and, for a form that keeps its window, now
+inside that window — the same test `SubmitAnswers` applies. A draft,
 a form awaiting a decision, an approved but unpublished one and a closed
 one are all left out.
 
@@ -71,6 +72,8 @@ WK96.
   cannot tell that a ward sits under a council. Whether "the groups the
   caller is in" should include the ancestors of the caller's own groups is
   the host's answer, not this module's.
-- `opens_at` and `closes_at` are returned, not filtered on. A form whose
-  window has passed but has not been closed is still listed, because it
-  can still be answered.
+- `opens_at` and `closes_at` are returned, and since F17 also filtered
+  on unless the form is advisory: an open form whose kept window has not
+  opened, or has passed, is left out, because it cannot be answered. An
+  advisory form is listed for as long as it is open. See
+  [window.md](window.md).

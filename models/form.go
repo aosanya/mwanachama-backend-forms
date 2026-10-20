@@ -40,6 +40,7 @@ type Form struct {
 
 	OpensAt            string `json:"opens_at,omitempty"`
 	ClosesAt           string `json:"closes_at"`
+	WindowAdvisory     bool   `json:"window_advisory"`
 	PublishedAt        string `json:"published_at,omitempty"`
 	PublishedBy        string `json:"published_by,omitempty"`
 	ClosedAt           string `json:"closed_at,omitempty"`
@@ -88,6 +89,19 @@ func ValidateWindow(opensAt, closesAt string) error {
 		return fmt.Errorf("closes_at must be after opens_at")
 	}
 	return nil
+}
+
+func (f Form) OutsideWindow(now time.Time) bool {
+	if f.WindowAdvisory {
+		return false
+	}
+	if opens, err := time.Parse(time.RFC3339Nano, f.OpensAt); err == nil && now.Before(opens) {
+		return true
+	}
+	if closes, err := time.Parse(time.RFC3339Nano, f.ClosesAt); err == nil && now.After(closes) {
+		return true
+	}
+	return false
 }
 
 func ValidateAudienceCollection(a Audience, m CollectionMode) error {
