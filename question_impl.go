@@ -32,7 +32,7 @@ func (m *formManager) AddQuestion(ctx context.Context, in models.QuestionDraft) 
 	q.Ordinal = int(count) + 1
 	q.Version = 1
 	q.SupersedesQuestionID = ""
-	if err := m.checks(roleQuestion, q); err != nil {
+	if err := m.checksQuestion(q); err != nil {
 		return models.Question{}, nil, err
 	}
 
@@ -101,7 +101,11 @@ func (m *formManager) UpdateQuestion(ctx context.Context, formID, questionID str
 	cur.QuickPicks = next.QuickPicks
 	cur.YesLabel = next.YesLabel
 	cur.NoLabel = next.NoLabel
-	if err := m.checks(roleQuestion, cur); err != nil {
+	cur.Required = next.Required
+	cur.MinValue, cur.MaxValue = next.MinValue, next.MaxValue
+	cur.MinDate, cur.MaxDate = next.MinDate, next.MaxDate
+	cur.MinSelections, cur.MaxSelections = next.MinSelections, next.MaxSelections
+	if err := m.checksQuestion(cur); err != nil {
 		return models.Question{}, nil, err
 	}
 
@@ -124,6 +128,16 @@ func (m *formManager) UpdateQuestion(ctx context.Context, formID, questionID str
 		return models.Question{}, nil, fmt.Errorf("UpdateQuestion: %w", err)
 	}
 	return cur, out, nil
+}
+
+func (m *formManager) checksQuestion(q models.Question) error {
+	if err := m.checks(roleQuestion, q); err != nil {
+		return err
+	}
+	if err := models.ValidateValidators(q); err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidQuestion, err)
+	}
+	return nil
 }
 
 func (m *formManager) findQuestion(ctx context.Context, questionID string) (models.Question, error) {
@@ -245,8 +259,18 @@ func (m *formManager) VersionQuestion(ctx context.Context, questionID, actorID s
 		QuickPicks:           next.QuickPicks,
 		YesLabel:             next.YesLabel,
 		NoLabel:              next.NoLabel,
+		Required:             next.Required,
+		MinValue:             next.MinValue,
+		MaxValue:             next.MaxValue,
+		MinDate:              next.MinDate,
+		MaxDate:              next.MaxDate,
+		MinSelections:        next.MinSelections,
+		MaxSelections:        next.MaxSelections,
 		Version:              pred.Version + 1,
 		SupersedesQuestionID: questionID,
+	}
+	if err := m.checksQuestion(successor); err != nil {
+		return models.VersionQuestionResult{}, err
 	}
 
 	var out []models.QuestionOption

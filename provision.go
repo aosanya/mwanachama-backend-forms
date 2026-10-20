@@ -21,12 +21,6 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 	return syncConstraints(db, s)
 }
 
-var addableColumns = map[spec.FieldType]string{
-	spec.TypeString: "text default ''",
-	spec.TypeText:   "text default ''",
-	spec.TypeBool:   "boolean default false",
-}
-
 func addMissingColumns(db *gorm.DB, s *spec.Spec) error {
 	for _, o := range s.Objects {
 		table := s.TableFor(o)
@@ -38,9 +32,9 @@ func addMissingColumns(db *gorm.DB, s *spec.Spec) error {
 			if present {
 				continue
 			}
-			definition, addable := addableColumns[f.Type]
-			if !addable || f.Required || f.Primary {
-				return fmt.Errorf("forms: %s has no column %s, and only an optional text or bool column can be added to a table that already holds rows", table, f.Name)
+			definition, ok := addableColumn(f)
+			if !ok {
+				return fmt.Errorf("forms: %s has no column %s, and only an optional text, bool or nullable number column can be added to a table that already holds rows", table, f.Name)
 			}
 			stmt := fmt.Sprintf("alter table %s add column %s %s", table, f.Name, definition)
 			if err := db.Exec(stmt).Error; err != nil {
@@ -49,6 +43,24 @@ func addMissingColumns(db *gorm.DB, s *spec.Spec) error {
 		}
 	}
 	return nil
+}
+
+func addableColumn(f spec.Field) (string, bool) {
+	if f.Required || f.Primary {
+		return "", false
+	}
+	switch {
+	case f.Type == spec.TypeString, f.Type == spec.TypeText:
+		return "text default ''", true
+	case f.Type == spec.TypeBool && !f.Nullable:
+		return "boolean default false", true
+	case f.Type == spec.TypeInt && f.Nullable:
+		return "bigint", true
+	case f.Type == spec.TypeFloat && f.Nullable:
+		return "double precision", true
+	default:
+		return "", false
+	}
 }
 
 func legacyTables(s *spec.Spec, o spec.Object) []string {

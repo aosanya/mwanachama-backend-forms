@@ -27,6 +27,9 @@ and
 - [publisher.md](publisher.md) — who published a form and on whose
   behalf: the caller's directory name through the `Names` resolver, and the
   authority from the publish body.
+- [validators.md](validators.md) — what a question declares about the
+  answers it accepts (required, number, date and selection bounds), why a
+  bound is nullable, and how a submit is refused naming the question.
 - [todo_details/FMD-001.md](todo_details/FMD-001.md) — the decision record
   for the conversion onto the declared-domain format, including what the
   plan assumed that turned out not to be true.
@@ -66,7 +69,9 @@ again.
   them: `ValidateWindow` (a closing time falls after an opening one),
   `ValidateAudienceCollection` (a member audience is never interviewed),
   `Form.OutsideWindow` (an answer arrives inside a window the form keeps),
-  `ValidateAnswer` (a value fits the shape its own question asks for), and
+  `ValidateAnswer` (a value fits the shape its own question asks for and
+  the bounds it declares), `ValidateValidators` (those bounds can be met at
+  all, see [validators.md](validators.md)), and
   the lifecycle transitions themselves.
 - **In SQL** — the three in [storage.md](storage.md), Postgres only, with a
   Go rule beside each that the SQLite unit tests exercise.

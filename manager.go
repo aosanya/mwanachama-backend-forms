@@ -87,6 +87,10 @@ func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {
 	return models.ValidateAnswer(q, options, a)
 }
 
+func ValidateValidators(q Question) error {
+	return models.ValidateValidators(q)
+}
+
 func ValidateWindow(opensAt, closesAt string) error {
 	return models.ValidateWindow(opensAt, closesAt)
 }

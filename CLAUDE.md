@@ -67,10 +67,12 @@ field a response hides.
 means "leave it alone" to an update, so omitting empty values would make
 clearing a field impossible.
 
-**Five fields are nullable or collection-shaped**, which is why this repo is
+**Nine fields are nullable or collection-shaped**, which is why this repo is
 the reason `spec` has a `float` type and a `nullable` flag at all:
-`Question.MaxLength`, `Question.QuickPicks`, `Answer.OptionIDs`,
-`Answer.ValueNumber`, `Answer.ValueBool`. A nullable column must be carried
+`Question.MaxLength`, `Question.QuickPicks`, the four number and selection
+bounds `Question.MinValue`/`MaxValue`/`MinSelections`/`MaxSelections` (F21,
+see [validators.md](documentation/2.%20design/validators.md)),
+`Answer.OptionIDs`, `Answer.ValueNumber`, `Answer.ValueBool`. A nullable column must be carried
 by a pointer and a pointer must be declared nullable — `specstore` refuses
 the mismatch when the manager is built, because otherwise "nobody answered"
 and "answered zero" become the same stored row.
@@ -86,7 +88,8 @@ validation without a database.
 the type it is about: `models.ValidateWindow` (a closing time falls after an
 opening one), `models.ValidateAudienceCollection` (a member audience is
 never interviewed), `models.ValidateAnswer` (a value fits the shape its own
-question asks for), and the lifecycle transitions themselves.
+question asks for and the bounds it declares), `models.ValidateValidators`
+(those bounds can be met at all), and the lifecycle transitions themselves.
 
 ## Behaviours to preserve
 

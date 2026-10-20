@@ -39,7 +39,10 @@ func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {
 		if len(a.OptionIDs) == 0 {
 			return fmt.Errorf("multi_select answer requires at least one option_id")
 		}
-		return validateOptions(options, a.OptionIDs)
+		if err := validateOptions(options, a.OptionIDs); err != nil {
+			return err
+		}
+		return checkSelectionBounds(q, len(a.OptionIDs))
 	case AnswerFreeText:
 		if strings.TrimSpace(a.ValueText) == "" {
 			return fmt.Errorf("free_text answer requires value_text")
@@ -48,9 +51,10 @@ func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {
 			return fmt.Errorf("value_text exceeds max_length %d", *q.MaxLength)
 		}
 	case AnswerDate:
-		if _, err := time.Parse("2006-01-02", a.ValueDate); err != nil {
+		if _, err := time.Parse(DateLayout, a.ValueDate); err != nil {
 			return fmt.Errorf("date answer requires value_date as YYYY-MM-DD: %w", err)
 		}
+		return checkDateBounds(q, a.ValueDate)
 	case AnswerTime:
 		if _, err := time.Parse("15:04", a.ValueTime); err != nil {
 			return fmt.Errorf("time answer requires value_time as HH:MM: %w", err)
@@ -59,6 +63,7 @@ func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {
 		if a.ValueNumber == nil {
 			return fmt.Errorf("%s answer requires value_number", q.AnswerType)
 		}
+		return checkValueBounds(q, *a.ValueNumber)
 	default:
 		return fmt.Errorf("unknown answer_type %q", q.AnswerType)
 	}

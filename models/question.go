@@ -33,6 +33,14 @@ type Question struct {
 	YesLabel     string    `json:"yes_label,omitempty"`
 	NoLabel      string    `json:"no_label,omitempty"`
 
+	Required      bool     `json:"required"`
+	MinValue      *float64 `json:"min_value,omitempty"`
+	MaxValue      *float64 `json:"max_value,omitempty"`
+	MinDate       string   `json:"min_date,omitempty"`
+	MaxDate       string   `json:"max_date,omitempty"`
+	MinSelections *int     `json:"min_selections,omitempty"`
+	MaxSelections *int     `json:"max_selections,omitempty"`
+
 	Version              int    `json:"version"`
 	SupersedesQuestionID string `json:"supersedes_question_id,omitempty"`
 }

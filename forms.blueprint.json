@@ -51,6 +51,13 @@
         {"name": "quick_picks", "type": "json", "description": "The handful of amounts offered as one-tap answers."},
         {"name": "yes_label", "type": "string", "description": "What the affirmative answer is called, where plain yes is wrong."},
         {"name": "no_label", "type": "string", "description": "What the negative answer is called."},
+        {"name": "required", "type": "bool", "description": "Whether a submission must carry an answer to this prompt. Only the version nothing has superseded is held to it."},
+        {"name": "min_value", "type": "float", "description": "The smallest number or amount accepted, inclusive. Absent means no lower bound, which is not the same as a bound of zero.", "nullable": true},
+        {"name": "max_value", "type": "float", "description": "The largest number or amount accepted, inclusive. Absent means no upper bound, which is not the same as a bound of zero.", "nullable": true},
+        {"name": "min_date", "type": "string", "description": "The earliest date accepted, inclusive, as YYYY-MM-DD like the answer it bounds. Empty means no lower bound."},
+        {"name": "max_date", "type": "string", "description": "The latest date accepted, inclusive, as YYYY-MM-DD. Empty means no upper bound."},
+        {"name": "min_selections", "type": "int", "description": "The fewest choices a multi-select answer may pick. Absent means no lower bound beyond the one pick every such answer needs.", "nullable": true},
+        {"name": "max_selections", "type": "int", "description": "The most choices a multi-select answer may pick. Absent means no upper bound.", "nullable": true},
         {"name": "version", "type": "int", "description": "Which revision of this prompt it is. Server-assigned, counting from one."},
         {"name": "supersedes_question_id", "type": "string", "description": "The prompt this one replaced. Empty for the first version, which is how a chain is walked back."}
       ],

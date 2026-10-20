@@ -122,8 +122,11 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 	}
 	for _, a := range in {
 		if err := models.ValidateAnswer(questions[a.QuestionID], options[a.QuestionID], a); err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrInvalidAnswer, err)
+			return nil, fmt.Errorf("%w: question %s: %v", ErrInvalidAnswer, a.QuestionID, err)
 		}
+	}
+	if err := m.requiredAnswered(ctx, formID, in); err != nil {
+		return nil, err
 	}
 
 	chapterID, err := m.aimedAt(ctx, formID)
@@ -142,6 +145,18 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 		return questions[out[i].QuestionID].Ordinal < questions[out[j].QuestionID].Ordinal
 	})
 	return out, nil
+}
+
+func (m *formManager) requiredAnswered(ctx context.Context, formID string, in []models.Answer) error {
+	all, err := listOf[models.Question](m,
+		m.q(ctx, roleQuestion).Where("form_id = ?", formID).Order("ordinal"), roleQuestion)
+	if err != nil {
+		return fmt.Errorf("SubmitAnswers: %w", err)
+	}
+	if missing := models.UnansweredRequired(all, in); len(missing) > 0 {
+		return fmt.Errorf("%w: question %s: an answer is required", ErrInvalidAnswer, missing[0].ID)
+	}
+	return nil
 }
 
 func (m *formManager) questionsAnswered(ctx context.Context, formID string, in []models.Answer) (map[string]models.Question, map[string][]models.QuestionOption, error) {
