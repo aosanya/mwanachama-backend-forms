@@ -252,3 +252,21 @@ on the deliberate `_OpenHole_`/`_OpenBug_` tests and `make self-test`'s
 include ancestor groups, so a target with `includes_descendants` reaches child
 groups' members; and whether a form past `closes_at` but never closed, or not
 yet at `opens_at`, should be listed (today status alone decides).
+
+## F20 — a form targets exactly one group (and F16, settled by it) — 2026-10-20
+
+`AddTarget` refuses a second group on a form that already has one with
+`ErrFormHasTarget` (409, declared in `forms.operations.json`); the same group
+twice is still `ErrDuplicateTarget`, and removing the target of a draft lets it
+be aimed again. `SubmitAnswers` no longer takes a `chapterID`: an answer's
+group is the form's one target (`aimedAt`, the oldest if an older form holds
+several), a body's `chapter_id` is ignored as F13 ignores `member_id`, and an
+untargeted form files answers under no group. **F16 closes with it**: the
+member never names a group, so there is nothing to check against their groups.
+Commits 8829791 (forms) and 825c190 (wakala-api's `instance-form-one-target`
+self-test, 9/9). `go test ./...` green here; wakala-api `go test ./...` red only
+on the deliberate `_OpenHole_` tests; `make self-test` 887/898 across 75
+collections, the same eight failing collections as master. Left open: the
+one-target rule is read-before-write, not a unique index, so two concurrent
+`add_target` calls on one draft can both land (the same race
+`ErrDuplicateTarget` already had); see `answers.md`.
