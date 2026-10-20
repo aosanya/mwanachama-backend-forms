@@ -51,7 +51,7 @@ func composeChoiceForm(t *testing.T, fm mwanachamaforms.FormManager, target stri
 		t.Fatalf("AddTarget: %v", err)
 	}
 	if publish {
-		if _, _, err := fm.Publish(ctx, f.ID, "", "sender-1"); err != nil {
+		if _, _, err := fm.Publish(ctx, f.ID, "", "sender-1", ""); err != nil {
 			t.Fatalf("Publish: %v", err)
 		}
 	}

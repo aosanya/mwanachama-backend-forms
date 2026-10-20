@@ -36,7 +36,7 @@ func aimedOpenForm(t *testing.T, fm mwanachamaforms.FormManager, group string) (
 			t.Fatalf("AddTarget: %v", err)
 		}
 	}
-	if _, _, err := fm.Publish(ctx, f.ID, "", "author-1"); err != nil {
+	if _, _, err := fm.Publish(ctx, f.ID, "", "author-1", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 	return f, q
