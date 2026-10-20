@@ -386,3 +386,19 @@ unedited; its `instance-form-publisher` self-test composes with an impostor
 board-pinned reds, `make self-test` 1166/1179 with only the known failures
 (the seven master reds plus security-35, security-41).
 
+
+## F24 — a public link lets its respondent read and answer that one form — 2026-10-20
+
+51760b6. `forms.respondent.claim` (`POST /public-links/{key}/respondents/claim`)
+binds the caller as `member_id` and writes `claimed_by_member_id` and
+`claimed_at` once (`ErrRespondentClaimed`, 409, for another member). Under
+`ReachedOnly`, a form is also reached when a respondent the caller claimed has
+a declaration on it, so `get_form`, `list_questions`, `list_options` and
+`submit_answers` open for that one form; every other form still answers as a
+missing one, and the answer's `chapter_id` stays the form's own target. See
+`claimed-link.md`. Pinned by
+`routes/f24_link_respondent_reads_that_form_test.go`. Verified: `go build`,
+`go vet`, `go test ./...` ok; wakala-api `go build ./...` ok; the member app's
+client regenerated (frontend-member 34a78c7), its checks red only on the
+pinned OpenBug tests. Left: wakala-api has not admitted residents to
+`forms.respondent.claim` yet.
