@@ -12,6 +12,16 @@ decision 53). Signed in, they are a resident narrowed by `ReachedOnly`
 (`reached.md`), and a public form carries no target, so without this row the
 form they just answered would answer them as missing.
 
+## Registering the token
+
+`register_respondent` takes the `public_key` the device already holds and
+answers with the respondent it names, unchanged, if one exists. A body with
+no `public_key` is a first visit: the store mints one, 32 bytes from
+`crypto/rand` as 64 hex characters, and returns it in the response, and the
+device keeps it from then on. Before F25 an absent key was stored as `""`,
+and since `public_key` is unique the second key-less visitor on any link was
+refused; `respondent_key_test.go` pins both halves.
+
 ## Claiming the token
 
 | Operation | Address | Action | Anonymous |

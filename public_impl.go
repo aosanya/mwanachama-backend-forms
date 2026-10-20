@@ -2,6 +2,8 @@ package mwanachamaforms
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sort"
@@ -92,6 +94,13 @@ func (m *formManager) UpsertRespondent(ctx context.Context, in models.Respondent
 			return models.Respondent{}, fmt.Errorf("UpsertRespondent: %w", err)
 		}
 	}
+	if in.PublicKey == "" {
+		key, err := mintRespondentKey()
+		if err != nil {
+			return models.Respondent{}, fmt.Errorf("UpsertRespondent: %w", err)
+		}
+		in.PublicKey = key
+	}
 	in.ID = newID()
 	in.FirstSeenAt = models.NowRFC3339()
 	in.ClaimedByMemberID, in.ClaimedAt = "", ""
@@ -99,6 +108,14 @@ func (m *formManager) UpsertRespondent(ctx context.Context, in models.Respondent
 		return models.Respondent{}, fmt.Errorf("UpsertRespondent: %w", err)
 	}
 	return in, nil
+}
+
+func mintRespondentKey() (string, error) {
+	raw := make([]byte, 32)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(raw), nil
 }
 
 func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string, in []models.Answer) ([]models.Answer, error) {
