@@ -72,12 +72,15 @@ func TestSubmitAnswers(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}
+	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
+		t.Fatalf("AddTarget: %v", err)
+	}
 	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 
 	yes := true
-	out, err := um.SubmitAnswers(context.Background(), f.ID, "member-1", "chapter-2", []mwanachamaforms.Answer{
+	out, err := um.SubmitAnswers(context.Background(), f.ID, "member-1", []mwanachamaforms.Answer{
 		{QuestionID: yn.ID, ValueBool: &yes},
 	})
 	if err != nil {
@@ -89,7 +92,7 @@ func TestSubmitAnswers(t *testing.T) {
 	firstAnsweredAt := out[0].AnsweredAt
 
 	no := false
-	out2, err := um.SubmitAnswers(context.Background(), f.ID, "member-1", "chapter-3", []mwanachamaforms.Answer{
+	out2, err := um.SubmitAnswers(context.Background(), f.ID, "member-1", []mwanachamaforms.Answer{
 		{QuestionID: yn.ID, ValueBool: &no},
 	})
 	if err != nil {
@@ -110,7 +113,7 @@ func TestSubmitAnswers_FormNotOpen(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}
-	_, err = um.SubmitAnswers(context.Background(), f.ID, "member-1", "chapter-2", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "hi"}})
+	_, err = um.SubmitAnswers(context.Background(), f.ID, "member-1", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "hi"}})
 	if !errors.Is(err, mwanachamaforms.ErrFormNotOpen) {
 		t.Fatalf("err = %v, want ErrFormNotOpen", err)
 	}
@@ -126,7 +129,7 @@ func TestSubmitAnswers_InvalidShape(t *testing.T) {
 	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
-	_, err = um.SubmitAnswers(context.Background(), f.ID, "member-1", "chapter-2", []mwanachamaforms.Answer{{QuestionID: q.ID}})
+	_, err = um.SubmitAnswers(context.Background(), f.ID, "member-1", []mwanachamaforms.Answer{{QuestionID: q.ID}})
 	if !errors.Is(err, mwanachamaforms.ErrInvalidAnswer) {
 		t.Fatalf("err = %v, want ErrInvalidAnswer", err)
 	}

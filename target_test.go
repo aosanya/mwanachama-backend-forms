@@ -32,6 +32,39 @@ func TestAddTarget_Duplicate(t *testing.T) {
 	}
 }
 
+func TestAFormIsAimedAtOneGroupSoASecondTargetIsRefused(t *testing.T) {
+	um := newTestManager(t)
+	f := newDraftForm(t, um)
+	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
+		t.Fatalf("AddTarget: %v", err)
+	}
+	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-3"}); !errors.Is(err, mwanachamaforms.ErrFormHasTarget) {
+		t.Fatalf("err = %v, want ErrFormHasTarget", err)
+	}
+	held, err := um.ListTargets(context.Background(), f.ID)
+	if err != nil {
+		t.Fatalf("ListTargets: %v", err)
+	}
+	if len(held) != 1 || held[0].ChapterID != "chapter-2" {
+		t.Fatalf("targets = %+v, want only chapter-2", held)
+	}
+}
+
+func TestRemovingTheOneTargetLetsTheFormBeAimedElsewhere(t *testing.T) {
+	um := newTestManager(t)
+	f := newDraftForm(t, um)
+	first, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"})
+	if err != nil {
+		t.Fatalf("AddTarget: %v", err)
+	}
+	if err := um.RemoveTarget(context.Background(), f.ID, first.ID); err != nil {
+		t.Fatalf("RemoveTarget: %v", err)
+	}
+	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-3"}); err != nil {
+		t.Fatalf("AddTarget after removing the first: %v", err)
+	}
+}
+
 func TestAddTarget_PublicFormRefused(t *testing.T) {
 	um := newTestManager(t)
 	f, err := um.Create(context.Background(), mwanachamaforms.Form{

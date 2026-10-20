@@ -112,7 +112,7 @@ func TestPostgres_AnswerConstraint_ExactlyOneValue(t *testing.T) {
 	}
 
 	yes := true
-	if _, err := mgr.SubmitAnswers(ctx, f.ID, "member-1", "chapter-2", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueBool: &yes}}); err != nil {
+	if _, err := mgr.SubmitAnswers(ctx, f.ID, "member-1", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueBool: &yes}}); err != nil {
 		t.Fatalf("SubmitAnswers: %v", err)
 	}
 }

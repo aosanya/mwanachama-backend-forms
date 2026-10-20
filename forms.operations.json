@@ -16,6 +16,7 @@
     "ErrFormNotOpen": 409,
     "ErrNotCurrentVersion": 409,
     "ErrDuplicateTarget": 409,
+    "ErrFormHasTarget": 409,
     "ErrLinkKeyTaken": 409,
 
     "ErrInvalidReference": 400,
@@ -301,7 +302,7 @@
       "action": "forms.target.create",
       "status": 201,
       "title": "Aim at a group",
-      "description": "Aim a draft member-audience instrument at one group, optionally reaching the groups beneath it. A public instrument carries no aims.",
+      "description": "Aim a draft member-audience instrument at its one group, optionally reaching the groups beneath it. An instrument is aimed at one group only, so a second aim is refused; a public instrument carries no aims.",
       "args": [
         {"from": "body", "whole": true},
         {"from": "path", "as": "form_id", "into": "FormID", "description": "The instrument being aimed."}
@@ -373,11 +374,10 @@
       "call": "SubmitAnswers",
       "action": "forms.answer.submit",
       "title": "Answer a form",
-      "description": "Send every answer at once. They are all checked before any is written, so one bad answer leaves nothing behind, and answering again edits what was already given rather than doubling it.",
+      "description": "Send every answer at once. They are all checked before any is written, so one bad answer leaves nothing behind, and answering again edits what was already given rather than doubling it. An answer counts toward the one group the instrument is aimed at; the request does not choose it.",
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument being answered."},
         {"from": "caller", "as": "member_id"},
-        {"from": "body", "as": "chapter_id", "description": "The group they are answering from."},
         {"from": "body", "as": "answers", "description": "One answer per prompt being answered."}
       ],
       "returns": [{"body": true}]

@@ -113,8 +113,11 @@ question asks for), and the lifecycle transitions themselves.
   `GET /forms/{form_id}/answers/mine` reads only the caller's own. Everyone's
   answers are a separate address and a separate action,
   `forms.answer.list_all`, so a grant to answer never carries a grant to
-  read others. `chapter_id` on a submission is still the body's; see
+  read others. See
   [answers.md](documentation/2.%20design/answers.md).
+- **A form is aimed at exactly one group** (F20). A second target is
+  `ErrFormHasTarget`, and an answer's `chapter_id` is that one target, never
+  the body's.
 - **A resubmitted answer edits in place** and keeps the time and group the
   first answer was given from; only `edited_at` moves.
 - **A failed publish leaves the form unpublished.** The status change, the

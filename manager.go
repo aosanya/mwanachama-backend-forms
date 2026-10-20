@@ -162,7 +162,7 @@ type FormManager interface {
 
 	UpsertRespondent(ctx context.Context, r models.Respondent) (models.Respondent, error)
 
-	SubmitAnswers(ctx context.Context, formID, memberID, chapterID string, answers []models.Answer) ([]models.Answer, error)
+	SubmitAnswers(ctx context.Context, formID, memberID string, answers []models.Answer) ([]models.Answer, error)
 
 	ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 

@@ -110,7 +110,7 @@ func TestReadingAnswersReturnsOnlyTheCallersOwn(t *testing.T) {
 	f, q := openFormWithOneQuestion(t, fm)
 
 	for _, member := range []string{"member-caller", "member-other"} {
-		if _, err := fm.SubmitAnswers(context.Background(), f.ID, member, "chapter-1", []mwanachamaforms.Answer{
+		if _, err := fm.SubmitAnswers(context.Background(), f.ID, member, []mwanachamaforms.Answer{
 			{QuestionID: q.ID, ValueText: "from " + member},
 		}); err != nil {
 			t.Fatalf("SubmitAnswers %s: %v", member, err)
@@ -138,7 +138,7 @@ func TestEveryonesAnswersAreReadUnderTheirOwnAction(t *testing.T) {
 	f, q := openFormWithOneQuestion(t, fm)
 
 	for _, member := range []string{"member-a", "member-b"} {
-		if _, err := fm.SubmitAnswers(context.Background(), f.ID, member, "chapter-1", []mwanachamaforms.Answer{
+		if _, err := fm.SubmitAnswers(context.Background(), f.ID, member, []mwanachamaforms.Answer{
 			{QuestionID: q.ID, ValueText: "from " + member},
 		}); err != nil {
 			t.Fatalf("SubmitAnswers %s: %v", member, err)

@@ -24,13 +24,17 @@ func (m *formManager) AddTarget(ctx context.Context, t models.Target) (models.Ta
 		return models.Target{}, ErrPublicFormNoTargets
 	}
 
-	var count int64
-	if err := m.q(ctx, roleTarget).Where("form_id = ? AND chapter_id = ?", t.FormID, t.ChapterID).
-		Count(&count).Error; err != nil {
+	held, err := m.ListTargets(ctx, t.FormID)
+	if err != nil {
 		return models.Target{}, fmt.Errorf("AddTarget: %w", err)
 	}
-	if count > 0 {
-		return models.Target{}, ErrDuplicateTarget
+	for _, h := range held {
+		if h.ChapterID == t.ChapterID {
+			return models.Target{}, ErrDuplicateTarget
+		}
+	}
+	if len(held) > 0 {
+		return models.Target{}, ErrFormHasTarget
 	}
 
 	t.ID = newID()
@@ -78,4 +82,12 @@ func (m *formManager) ListTargets(ctx context.Context, formID string) ([]models.
 		return out[i].ID < out[j].ID
 	})
 	return out, nil
+}
+
+func (m *formManager) aimedAt(ctx context.Context, formID string) (string, error) {
+	held, err := m.ListTargets(ctx, formID)
+	if err != nil || len(held) == 0 {
+		return "", err
+	}
+	return held[0].ChapterID, nil
 }

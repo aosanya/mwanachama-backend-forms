@@ -90,7 +90,7 @@ func publish(t *testing.T, fm mwanachamaforms.FormManager, f mwanachamaforms.For
 	return out
 }
 
-func answerAll(t *testing.T, fm mwanachamaforms.FormManager, formID, memberID, chapterID string) {
+func answerAll(t *testing.T, fm mwanachamaforms.FormManager, formID, memberID string) {
 	t.Helper()
 	qs, err := fm.ListQuestions(context.Background(), formID)
 	if err != nil {
@@ -100,7 +100,7 @@ func answerAll(t *testing.T, fm mwanachamaforms.FormManager, formID, memberID, c
 	for _, q := range qs {
 		answers = append(answers, mwanachamaforms.Answer{QuestionID: q.ID, ValueText: "yes"})
 	}
-	if _, err := fm.SubmitAnswers(context.Background(), formID, memberID, chapterID, answers); err != nil {
+	if _, err := fm.SubmitAnswers(context.Background(), formID, memberID, answers); err != nil {
 		t.Fatalf("SubmitAnswers: %v", err)
 	}
 }
@@ -121,7 +121,7 @@ func TestWaitingListsOnlyOpenFormsThatReachedTheCallersGroups(t *testing.T) {
 	}))
 
 	mine := publish(t, fm, composeForm(t, fm, "Mine", "council", []string{"ward-1"}, 3))
-	both := publish(t, fm, composeForm(t, fm, "Both", "council", []string{"ward-1", "ward-2", "ward-9"}, 1))
+	both := publish(t, fm, composeForm(t, fm, "Both", "council", []string{"ward-2"}, 1))
 	publish(t, fm, composeForm(t, fm, "Elsewhere", "council", []string{"ward-9"}, 1))
 	composeForm(t, fm, "Unpublished", "council", []string{"ward-1"}, 1)
 	closed := publish(t, fm, composeForm(t, fm, "Closed", "council", []string{"ward-2"}, 1))
@@ -140,7 +140,7 @@ func TestWaitingListsOnlyOpenFormsThatReachedTheCallersGroups(t *testing.T) {
 		m.ClosesAt != mine.ClosesAt || m.Answered {
 		t.Fatalf("Mine row = %+v", m)
 	}
-	if strings.Join(got["Both"].ReachedVia, ",") != "ward-1,ward-2" {
+	if strings.Join(got["Both"].ReachedVia, ",") != "ward-2" {
 		t.Fatalf("Both reached via %v, want only alice's own groups", got["Both"].ReachedVia)
 	}
 }
@@ -152,10 +152,10 @@ func TestWaitingTellsTheCallerWhetherTheyAnsweredAndNothingAboutAnyoneElse(t *te
 	answered := publish(t, fm, composeForm(t, fm, "Answered", "council", []string{"ward-1"}, 2))
 	publish(t, fm, composeForm(t, fm, "Pending", "council", []string{"ward-1"}, 2))
 	othersOnly := publish(t, fm, composeForm(t, fm, "OthersOnly", "council", []string{"ward-1"}, 1))
-	answerAll(t, fm, answered.ID, "alice", "ward-1")
-	answerAll(t, fm, othersOnly.ID, "bob", "ward-1")
+	answerAll(t, fm, answered.ID, "alice")
+	answerAll(t, fm, othersOnly.ID, "bob")
 	for _, other := range []string{"bob", "carol", "dave"} {
-		answerAll(t, fm, answered.ID, other, "ward-1")
+		answerAll(t, fm, answered.ID, other)
 	}
 
 	h := mountAsCaller(t, fm)

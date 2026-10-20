@@ -100,7 +100,7 @@ func (m *formManager) UpsertRespondent(ctx context.Context, in models.Respondent
 	return in, nil
 }
 
-func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID, chapterID string, in []models.Answer) ([]models.Answer, error) {
+func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string, in []models.Answer) ([]models.Answer, error) {
 	if memberID == "" {
 		return nil, fmt.Errorf("%w: nobody is answering", ErrInvalidAnswer)
 	}
@@ -122,6 +122,10 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID, chapt
 		}
 	}
 
+	chapterID, err := m.aimedAt(ctx, formID)
+	if err != nil {
+		return nil, fmt.Errorf("SubmitAnswers: %w", err)
+	}
 	out := make([]models.Answer, 0, len(in))
 	for _, a := range in {
 		written, err := m.writeAnswer(ctx, formID, memberID, chapterID, a)

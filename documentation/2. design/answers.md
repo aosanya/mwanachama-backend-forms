@@ -37,9 +37,32 @@ arrived with the declared table rather than with the domain.
   order the prompts were asked. The `member_id` filter is the operator's
   former read of one person's answers, kept as a narrowing of the new one.
 
-## Not changed
+## Which group an answer counts toward
 
-`chapter_id` on a submission is still read from the body, so an answer
-counts toward whichever group the request names. Which groups a caller
-belongs to is a fact only the host holds; closing this needs a host-supplied
-resolver of the kind F14 introduces, and is left for that.
+Decided 2026-10-20 by the owner (`mwanachama-frontend-member`'s decision 46)
+and built as F20, which also settles F16.
+
+- **A form is aimed at exactly one group.** `add_target` refuses a second
+  target on a form with `ErrFormHasTarget` (409); the same group twice is
+  still `ErrDuplicateTarget`. Removing the one target, while the form is a
+  draft, frees it to be aimed elsewhere. `includes_descendants` still decides
+  whether the groups beneath that one are reached.
+- **An answer's `chapter_id` is the form's target, never the request's.**
+  `submit_answers` no longer reads `chapter_id` at all: the manager looks up
+  the form's target and files every answer under it. A body that still names
+  a `chapter_id`, at the top level or on an answer, is not refused; the key
+  is ignored, the same treatment `member_id` gets. Being no longer an
+  argument, it is also gone from the MCP tool's schema. The member never
+  chooses which group their answer counts toward, so nothing needs checking
+  against the caller's groups.
+- **A form aimed nowhere files answers under no group.** A public form
+  cannot carry a target, and a member form may be published without one;
+  either way `chapter_id` is empty.
+- **A resubmission keeps the group the first answer was filed under**, as it
+  keeps its `answered_at`.
+- A form stored before this rule may still hold several targets. Its
+  answers count toward the oldest one, the first `list_targets` returns.
+
+The rule is checked by reading the form's targets before writing, not by a
+unique index, so two aims racing on one draft could both land; the same is
+already true of `ErrDuplicateTarget`.
