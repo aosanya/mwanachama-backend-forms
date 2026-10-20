@@ -5,6 +5,8 @@ type WaitingForm struct {
 	Title               string   `json:"title"`
 	OriginatorChapterID string   `json:"originator_chapter_id"`
 	PublishedBy         string   `json:"published_by,omitempty"`
+	PublisherName       string   `json:"publisher_name,omitempty"`
+	PublishingAuthority string   `json:"publishing_authority,omitempty"`
 	PublishedAt         string   `json:"published_at,omitempty"`
 	OpensAt             string   `json:"opens_at,omitempty"`
 	ClosesAt            string   `json:"closes_at"`

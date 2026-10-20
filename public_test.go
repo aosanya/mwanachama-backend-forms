@@ -17,7 +17,7 @@ func newOpenPublicForm(t *testing.T, um mwanachamaforms.FormManager, key string)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	if _, _, err := um.Publish(context.Background(), f.ID, key, "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, key, "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 	return f
@@ -75,7 +75,7 @@ func TestSubmitAnswers(t *testing.T) {
 	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
 		t.Fatalf("AddTarget: %v", err)
 	}
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 
@@ -126,7 +126,7 @@ func TestSubmitAnswers_InvalidShape(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 	_, err = um.SubmitAnswers(context.Background(), f.ID, "member-1", []mwanachamaforms.Answer{{QuestionID: q.ID}})

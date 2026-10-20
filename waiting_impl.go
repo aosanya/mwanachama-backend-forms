@@ -108,6 +108,8 @@ func (m *formManager) waitingRow(ctx context.Context, f models.Form, callerID st
 		Title:               f.Title,
 		OriginatorChapterID: f.OriginatorChapterID,
 		PublishedBy:         f.PublishedBy,
+		PublisherName:       f.PublisherName,
+		PublishingAuthority: f.PublishingAuthority,
 		PublishedAt:         f.PublishedAt,
 		OpensAt:             f.OpensAt,
 		ClosesAt:            f.ClosesAt,

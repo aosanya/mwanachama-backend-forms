@@ -83,7 +83,7 @@ func composeForm(t *testing.T, fm mwanachamaforms.FormManager, title, from strin
 
 func publish(t *testing.T, fm mwanachamaforms.FormManager, f mwanachamaforms.Form) mwanachamaforms.Form {
 	t.Helper()
-	out, _, err := fm.Publish(context.Background(), f.ID, "", "sender-1")
+	out, _, err := fm.Publish(context.Background(), f.ID, "", "sender-1", "")
 	if err != nil {
 		t.Fatalf("Publish: %v", err)
 	}

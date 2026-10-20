@@ -21,6 +21,9 @@ and
 - [reached.md](reached.md) — a resident reads and answers only the forms
   sent to their groups: `Mount.ReachedOnly`, and why a form that did not
   reach them answers exactly as a missing one.
+- [publisher.md](publisher.md) — who published a form and on whose
+  behalf: the caller's directory name through the `Names` resolver, and the
+  authority from the publish body.
 - [todo_details/FMD-001.md](todo_details/FMD-001.md) — the decision record
   for the conversion onto the declared-domain format, including what the
   plan assumed that turned out not to be true.

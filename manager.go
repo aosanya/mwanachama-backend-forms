@@ -116,6 +116,8 @@ type FormManager interface {
 
 	UseGroups(g Groups)
 
+	UseNames(n Names)
+
 	Submit(ctx context.Context, id, submittedBy string) (models.Form, error)
 
 	Withdraw(ctx context.Context, id, actorID string) (models.Form, error)
@@ -128,7 +130,7 @@ type FormManager interface {
 
 	ListApprovals(ctx context.Context, formID string) ([]models.Approval, error)
 
-	Publish(ctx context.Context, id, candidateLinkKey, publishedBy string) (models.Form, models.PublicLink, error)
+	Publish(ctx context.Context, id, candidateLinkKey, publishedBy, publishingAuthority string) (models.Form, models.PublicLink, error)
 
 	Close(ctx context.Context, id, closedBy string) (models.Form, error)
 
@@ -181,6 +183,7 @@ type formManager struct {
 	db     *gorm.DB
 	st     *store
 	groups Groups
+	names  Names
 }
 
 func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {

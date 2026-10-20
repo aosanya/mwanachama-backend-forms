@@ -24,7 +24,7 @@ func TestDeclareChapter_RejectsPhantomRespondentID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create form: %v", err)
 	}
-	_, link, err := fm.Publish(t.Context(), f.ID, "probe-link-key", "author-1")
+	_, link, err := fm.Publish(t.Context(), f.ID, "probe-link-key", "author-1", "")
 	if err != nil {
 		t.Fatalf("Publish form: %v", err)
 	}

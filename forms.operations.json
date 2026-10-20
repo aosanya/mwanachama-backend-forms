@@ -135,7 +135,8 @@
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument to open."},
         {"from": "body", "as": "candidate_link_key", "description": "The token the shareable link should carry, for a public instrument. Refused if another link already holds it."},
-        {"from": "body", "as": "published_by", "description": "Who is opening it."}
+        {"from": "caller", "as": "published_by"},
+        {"from": "body", "as": "publishing_authority", "description": "The office or group it is sent on behalf of, shown to whoever it reaches. Optional, one line, at most 120 characters."}
       ],
       "returns": [
         {"as": "form", "description": "The instrument, now open."},

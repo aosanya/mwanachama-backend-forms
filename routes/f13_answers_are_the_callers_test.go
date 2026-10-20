@@ -52,7 +52,7 @@ func openFormWithOneQuestion(t *testing.T, fm mwanachamaforms.FormManager) (mwan
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}
-	if _, _, err := fm.Publish(context.Background(), f.ID, "", "author-1"); err != nil {
+	if _, _, err := fm.Publish(context.Background(), f.ID, "", "author-1", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 	return f, q

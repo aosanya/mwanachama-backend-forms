@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -46,6 +47,7 @@ func (m *formManager) Create(ctx context.Context, f models.Form) (models.Form, e
 
 	f.Status = models.StatusDraft
 	f.PublishedAt, f.PublishedBy = "", ""
+	f.PublisherName, f.PublishingAuthority = "", ""
 	f.ClosedAt, f.ClosedBy = "", ""
 	f.SubmittedAt, f.SubmittedBy = "", ""
 	f.ApprovedAt, f.ApprovedBy = "", ""
@@ -166,7 +168,7 @@ func (m *formManager) ListReachable(ctx context.Context, ancestry []string) ([]m
 	return out, nil
 }
 
-func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publishedBy string) (models.Form, models.PublicLink, error) {
+func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publishedBy, publishingAuthority string) (models.Form, models.PublicLink, error) {
 	f, err := m.Get(ctx, id)
 	if err != nil {
 		return models.Form{}, models.PublicLink{}, err
@@ -188,11 +190,21 @@ func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publish
 		return models.Form{}, models.PublicLink{}, ErrClosesInPast
 	}
 
+	authority := strings.TrimSpace(publishingAuthority)
+	if err := models.ValidatePublishingAuthority(authority); err != nil {
+		return models.Form{}, models.PublicLink{}, fmt.Errorf("%w: %v", ErrInvalidForm, err)
+	}
+	publisherName, err := m.nameOf(ctx, publishedBy)
+	if err != nil {
+		return models.Form{}, models.PublicLink{}, fmt.Errorf("Publish: %w", err)
+	}
+
 	now := models.NowRFC3339()
 	if f.OpensAt == "" {
 		f.OpensAt = now
 	}
 	f.Status, f.PublishedAt, f.PublishedBy, f.LastUpdated = models.StatusOpen, now, publishedBy, now
+	f.PublisherName, f.PublishingAuthority = publisherName, authority
 
 	var link models.PublicLink
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {

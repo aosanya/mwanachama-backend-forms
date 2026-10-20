@@ -124,6 +124,10 @@ question asks for), and the lifecycle transitions themselves.
   of the caller's groups, and a form that did not answers exactly as a
   missing one; see
   [reached.md](documentation/2.%20design/reached.md).
+- **`published_by` comes from the mount too** (F18), and the publisher's
+  display name beside it from the host's `Names` resolver, never from the
+  body. The publishing authority is body text, one line, at most 120
+  characters; see [publisher.md](documentation/2.%20design/publisher.md).
 - **A resubmitted answer edits in place** and keeps the time and group the
   first answer was given from; only `edited_at` moves.
 - **A failed publish leaves the form unpublished.** The status change, the

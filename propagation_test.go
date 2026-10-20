@@ -14,7 +14,7 @@ func TestPickUp(t *testing.T) {
 	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
 		t.Fatalf("AddTarget: %v", err)
 	}
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 
@@ -46,7 +46,7 @@ func TestPickUp(t *testing.T) {
 func TestPickUp_NotTargeted(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 	if _, err := um.PickUp(context.Background(), f.ID, "chapter-2"); !errors.Is(err, mwanachamaforms.ErrTargetNotFound) {

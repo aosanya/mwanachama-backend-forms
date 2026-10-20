@@ -23,7 +23,7 @@ func TestPublishForm_CollidingLinkKeyLeavesFormRetryable(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create A: %v", err)
 	}
-	if _, _, err := fm.Publish(t.Context(), fA.ID, "shared-key", "author-1"); err != nil {
+	if _, _, err := fm.Publish(t.Context(), fA.ID, "shared-key", "author-1", ""); err != nil {
 		t.Fatalf("publish A: %v", err)
 	}
 
@@ -51,7 +51,7 @@ func TestPublishForm_CollidingLinkKeyLeavesFormRetryable(t *testing.T) {
 		t.Fatalf("Form B was left %q after a failed publish", fB2.Status)
 	}
 
-	_, retryLink, err := fm.Publish(t.Context(), fB.ID, "a-perfectly-fine-fresh-key", "author-2")
+	_, retryLink, err := fm.Publish(t.Context(), fB.ID, "a-perfectly-fine-fresh-key", "author-2", "")
 	if err != nil {
 		t.Fatalf("retry with a fresh key: %v", err)
 	}

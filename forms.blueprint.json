@@ -13,6 +13,8 @@
         {"name": "closes_at", "type": "timestamp", "description": "When it stops taking answers."},
         {"name": "published_at", "type": "timestamp", "description": "When it was opened for answers."},
         {"name": "published_by", "type": "string", "description": "Who opened it."},
+        {"name": "publisher_name", "type": "string", "description": "What the person who opened it is called, copied from the host's directory when it was opened, so a reader needs no directory to name them. Empty when the host knows no name."},
+        {"name": "publishing_authority", "type": "string", "description": "The office or group it was sent on behalf of, as the person opening it wrote it. Empty when they named none."},
         {"name": "closed_at", "type": "timestamp", "description": "When it stopped taking answers."},
         {"name": "closed_by", "type": "string", "description": "Who closed it."},
         {"name": "submitted_at", "type": "timestamp", "description": "When it was last sent for a decision."},

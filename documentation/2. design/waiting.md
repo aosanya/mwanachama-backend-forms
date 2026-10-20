@@ -17,6 +17,7 @@ soonest closing first:
 | `form_id`, `title` | the form |
 | `originator_chapter_id` | the group that sent it |
 | `published_by` | who opened it |
+| `publisher_name`, `publishing_authority` | who opened it by name, and on whose behalf; see [publisher.md](publisher.md) |
 | `published_at`, `opens_at`, `closes_at` | the form's window |
 | `questions` | the current prompts, superseded versions not counted, the same count the register uses |
 | `reached_via` | which of the caller's own groups it reached, sorted; the member app needs one of these to answer from |

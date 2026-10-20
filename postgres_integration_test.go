@@ -75,7 +75,7 @@ func TestPostgres_FormLifecycle_RoundTrip(t *testing.T) {
 	if _, err := mgr.AddTarget(ctx, mwanachamaforms.Target{FormID: created.ID, ChapterID: "chapter-2"}); err != nil {
 		t.Fatalf("AddTarget: %v", err)
 	}
-	out, _, err := mgr.Publish(ctx, created.ID, "", "admin")
+	out, _, err := mgr.Publish(ctx, created.ID, "", "admin", "")
 	if err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestPostgres_AnswerConstraint_ExactlyOneValue(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}
-	if _, _, err := mgr.Publish(ctx, f.ID, "", "admin"); err != nil {
+	if _, _, err := mgr.Publish(ctx, f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 

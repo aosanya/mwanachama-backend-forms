@@ -102,7 +102,7 @@ func TestUpdate(t *testing.T) {
 func TestUpdate_NotDraft(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 	f.Title = "Renamed"
@@ -131,7 +131,7 @@ func TestPublish_MemberAudienceCreatesPropagation(t *testing.T) {
 		t.Fatalf("AddTarget: %v", err)
 	}
 
-	out, link, err := um.Publish(context.Background(), f.ID, "", "admin")
+	out, link, err := um.Publish(context.Background(), f.ID, "", "admin", "")
 	if err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
@@ -156,7 +156,7 @@ func TestPublish_PublicAudienceCreatesLink(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	out, link, err := um.Publish(context.Background(), f.ID, "abc123", "admin")
+	out, link, err := um.Publish(context.Background(), f.ID, "abc123", "admin", "")
 	if err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
@@ -171,7 +171,7 @@ func TestPublish_AwaitingApproval(t *testing.T) {
 	if _, err := um.Submit(context.Background(), f.ID, "author"); err != nil {
 		t.Fatalf("Submit: %v", err)
 	}
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); !errors.Is(err, mwanachamaforms.ErrAwaitingApproval) {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); !errors.Is(err, mwanachamaforms.ErrAwaitingApproval) {
 		t.Fatalf("err = %v, want ErrAwaitingApproval", err)
 	}
 }
@@ -179,7 +179,7 @@ func TestPublish_AwaitingApproval(t *testing.T) {
 func TestClose(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 	out, err := um.Close(context.Background(), f.ID, "admin")
@@ -213,7 +213,7 @@ func TestDelete(t *testing.T) {
 func TestDelete_Published(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 	if err := um.Delete(context.Background(), f.ID); !errors.Is(err, mwanachamaforms.ErrPublished) {

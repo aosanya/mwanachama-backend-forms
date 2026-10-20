@@ -2,7 +2,10 @@ package models
 
 import (
 	"fmt"
+	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 type Status string
@@ -47,6 +50,9 @@ type Form struct {
 	ApprovedBy         string `json:"approved_by,omitempty"`
 	ResultsPublishedAt string `json:"results_published_at,omitempty"`
 
+	PublisherName       string `json:"publisher_name,omitempty"`
+	PublishingAuthority string `json:"publishing_authority,omitempty"`
+
 	CreatedBy      string         `json:"created_by"`
 	Audience       Audience       `json:"audience"`
 	CollectionMode CollectionMode `json:"collection_mode"`
@@ -89,4 +95,34 @@ func ValidateAudienceCollection(a Audience, m CollectionMode) error {
 		return fmt.Errorf("a member-audience form cannot use interviewer collection")
 	}
 	return nil
+}
+
+const MaxPublishingAuthority = 120
+
+const MaxPublisherName = 120
+
+func ValidatePublishingAuthority(a string) error {
+	if utf8.RuneCountInString(a) > MaxPublishingAuthority {
+		return fmt.Errorf("publishing_authority is longer than %d characters", MaxPublishingAuthority)
+	}
+	for _, r := range a {
+		if unicode.IsControl(r) {
+			return fmt.Errorf("publishing_authority must be one line of text")
+		}
+	}
+	return nil
+}
+
+func ShortenPublisherName(name string) string {
+	name = strings.TrimSpace(strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return ' '
+		}
+		return r
+	}, name))
+	runes := []rune(name)
+	if len(runes) > MaxPublisherName {
+		return strings.TrimSpace(string(runes[:MaxPublisherName]))
+	}
+	return name
 }

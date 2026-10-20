@@ -15,7 +15,33 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 	if err := spec.Migrate(db, s); err != nil {
 		return err
 	}
+	if err := addMissingTextColumns(db, s); err != nil {
+		return err
+	}
 	return syncConstraints(db, s)
+}
+
+func addMissingTextColumns(db *gorm.DB, s *spec.Spec) error {
+	for _, o := range s.Objects {
+		table := s.TableFor(o)
+		for _, f := range o.Fields {
+			present, err := hasColumn(db, table, f.Name)
+			if err != nil {
+				return err
+			}
+			if present {
+				continue
+			}
+			if f.Type != spec.TypeString && f.Type != spec.TypeText || f.Required || f.Primary {
+				return fmt.Errorf("forms: %s has no column %s, and only an optional text column can be added to a table that already holds rows", table, f.Name)
+			}
+			stmt := fmt.Sprintf("alter table %s add column %s text default ''", table, f.Name)
+			if err := db.Exec(stmt).Error; err != nil {
+				return fmt.Errorf("forms: add %s.%s: %w", table, f.Name, err)
+			}
+		}
+	}
+	return nil
 }
 
 func legacyTables(s *spec.Spec, o spec.Object) []string {

@@ -35,7 +35,7 @@ func TestAddQuestion(t *testing.T) {
 func TestAddQuestion_NotDraft(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 	_, _, err := um.AddQuestion(context.Background(), mwanachamaforms.QuestionDraft{Question: mwanachamaforms.Question{FormID: f.ID, AnswerType: mwanachamaforms.AnswerFreeText, Prompt: "x"}})
@@ -87,7 +87,7 @@ func TestAddOption_AllowedAfterPublish(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 
@@ -109,7 +109,7 @@ func TestVersionQuestion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AddQuestion: %v", err)
 	}
-	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin"); err != nil {
+	if _, _, err := um.Publish(context.Background(), f.ID, "", "admin", ""); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 
