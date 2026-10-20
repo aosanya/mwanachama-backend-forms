@@ -448,3 +448,17 @@ Verified: `go build`, `go vet`, `gofmt`, `go test ./...` ok; wakala-api adds
 no failing test or collection. Left: the member app's generated forms client
 needs regenerating; open for the owner whether an empty resend after real
 answers should clear them (it leaves them standing).
+
+## F29 — the public link alone grants its form — 2026-10-20
+
+ffdee30, with wakala-api 3016812. Owner, member app decision 119. A new
+declared object, `claim` (`respondent_id`, `form_id`, `claimed_at`; unique on
+respondent and form): `ClaimRespondent` records the form of the link it was
+claimed through, and `ReachedOnly`'s `cameByLink` grants a form that has a
+claim or a declaration for the caller's claimed respondent. A declaration is
+still recorded and still grants; other forms stay narrowed to the caller's
+groups. Pinned by `routes/f29_link_alone_grants_its_form_test.go`
+(mutation-checked); wakala-api `TestAResidentWhoDeclaredNothingReadsAndAnswersTheFormTheyClaimedThroughItsLink`
+and self-test `instance-form-claim` 25/25. See `claimed-link.md`. Verified:
+`go build`, `go vet`, `gofmt`, `go test ./...` ok. Open (owner): a link
+answer still files under no group, since public forms carry no target.
