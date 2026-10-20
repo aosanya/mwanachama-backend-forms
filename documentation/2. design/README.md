@@ -29,7 +29,8 @@ and
   reach them answers exactly as a missing one.
 - [publisher.md](publisher.md) — who published a form and on whose
   behalf: the caller's directory name through the `Names` resolver, and the
-  authority from the publish body.
+  authority from the publish body; and who composed it, `created_by` bound
+  from the caller.
 - [validators.md](validators.md) — what a question declares about the
   answers it accepts (required, number, date and selection bounds), why a
   bound is nullable, and how a submit is refused naming the question.

@@ -43,7 +43,10 @@
       "status": 201,
       "title": "Compose a form",
       "description": "Write a new instrument. It starts as a draft whatever the request says, and every lifecycle stamp on it is the store's to set.",
-      "args": [{"from": "body", "whole": true}],
+      "args": [
+        {"from": "body", "whole": true},
+        {"from": "caller", "as": "created_by", "into": "CreatedBy"}
+      ],
       "returns": [{"body": true}]
     },
     "register_forms": {

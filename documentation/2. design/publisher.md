@@ -1,4 +1,4 @@
-# Who published a form, and on whose behalf
+# Who made and published a form, and on whose behalf
 
 F18, the member app's decision 39 (owner, 2026-10-20). A resident reading a
 form wants to know who is asking. The actor directory is the host's, not
@@ -44,6 +44,16 @@ fm.UseNames(resolver)
   and cut to 120 characters (`models.MaxPublisherName`). It is the
   directory's text, not the caller's, so it is shortened rather than
   refused.
+
+## Who composed it
+
+`created_by` is bound the same way since F22: `create_form` takes the whole
+body and then overwrites `CreatedBy` with `{"from": "caller", "into":
+"CreatedBy"}`, so a body naming another creator is overwritten rather than
+refused, and the compose tool's schema offers no `created_by` at all. Before
+F22 it was whatever the body said, which from the studio and the member app
+was nothing. A public link minted at publish carries the same `created_by`
+as its form.
 
 ## Why the authority comes from the body
 

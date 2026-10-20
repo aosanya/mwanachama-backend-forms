@@ -135,6 +135,9 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   display name beside it from the host's `Names` resolver, never from the
   body. The publishing authority is body text, one line, at most 120
   characters; see [publisher.md](documentation/2.%20design/publisher.md).
+- **`created_by` comes from the mount too** (F22), overwriting a body that
+  names another creator, so a form always says who composed it; see
+  [publisher.md](documentation/2.%20design/publisher.md#who-composed-it).
 - **A form keeps its window unless it was composed advisory** (F17).
   `window_advisory` is false by default, so a new form, an omitted field
   and a row older than the column are all enforced: the waiting list drops
