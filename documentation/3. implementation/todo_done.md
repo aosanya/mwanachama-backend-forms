@@ -427,3 +427,24 @@ See `link-questions.md`. Verified: `go build`, `go vet`, `gofmt`,
 `go test ./...` ok; wakala-api `go build ./...` ok, its reds unchanged. Left:
 wakala-api's `noLinkIssued` (unknown instance) does not answer the new address
 (WK128).
+
+## F30 — an empty send counts as answered — 2026-10-20
+
+a75d219, with wakala-api 9b6c52b. Owner, member app decision 123. A new
+declared object, `submission` (`form_id`, `member_id`, `chapter_id`,
+`submitted_at`, `edited_at`; unique on form and member), written in the same
+transaction as `SubmitAnswers`' answers, so an empty send still answers
+200 `[]` but is recorded. A resend keeps `submitted_at` and `chapter_id` and
+moves `edited_at`; a refused send records nothing. The waiting list's
+`answered`, `ListAnswered` and the register's `respondents` read the
+submission. `Provision`'s `recordEarlierSends` backfills one submission per
+form and member that already had answers. Two additive reads:
+`GET /forms/{form_id}/submissions/mine` (`forms.submission.read_mine`, 404
+`ErrSubmissionNotFound` before a send) and `GET /forms/{form_id}/submissions`
+(`forms.submission.list`, each with its `answers` count). wakala-api admits
+residents to `read_mine` (nine actions) with self-test
+`instance-form-empty-send` 14/14. See `answers.md` "An empty send is a send".
+Verified: `go build`, `go vet`, `gofmt`, `go test ./...` ok; wakala-api adds
+no failing test or collection. Left: the member app's generated forms client
+needs regenerating; open for the owner whether an empty resend after real
+answers should clear them (it leaves them standing).
