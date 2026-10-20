@@ -368,3 +368,21 @@ action to the resident set and covers it in `instance-form-answers` and
 `instance-form-resident`. `go test ./...` green here; wakala-api `make
 self-test` 645/676 with exactly master's 26 red collections. Not built:
 paging and month grouping. Unblocks the member app's MF28.
+
+## F22 — a form says who made it — 2026-10-20
+
+🐞 from journey 08.5 (report `F22-form-created-by-empty.md` in the
+developer repo). Landed as f6eed63 (rebased onto master as part of 1f17a77's
+history): `create_form` in `forms.operations.json` binds
+`{"from": "caller", "as": "created_by", "into": "CreatedBy"}`, as
+`publish_form` binds `published_by`, so a body naming another creator is
+overwritten and the MCP tool no longer offers `created_by`. No Go change.
+Pinned by `routes/f22_created_by_is_the_caller_test.go`; `publisher.md` gains
+"Who composed it". wakala-api d7c6c23 renamed
+`TestJourney08_5_TheFormSaysWhoMadeIt` back from `OpenBug` and passes it
+unedited; its `instance-form-publisher` self-test composes with an impostor
+`created_by` and checks the session wins. Verified: `go build`, `go vet`,
+`go test ./...` ok here, `gofmt` clean; wakala-api `go test ./...` fails only
+board-pinned reds, `make self-test` 1166/1179 with only the known failures
+(the seven master reds plus security-35, security-41).
+
