@@ -27,6 +27,9 @@ and
 - [reached.md](reached.md) — a resident reads and answers only the forms
   sent to their groups: `Mount.ReachedOnly`, and why a form that did not
   reach them answers exactly as a missing one.
+- [claimed-link.md](claimed-link.md) — a signed-in person who answered
+  through a public link claims the token they answered under, and may then
+  read and answer that one form though it reached none of their groups.
 - [publisher.md](publisher.md) — who published a form and on whose
   behalf: the caller's directory name through the `Names` resolver, and the
   authority from the publish body; and who composed it, `created_by` bound

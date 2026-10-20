@@ -34,7 +34,7 @@ and the route table's is
   each role, what it is called, and which table it lands in. It names
   `wakala` as its instance by way of example; a mount chooses its own
   through `SpecFor`.
-- **`forms.operations.json`** — the API's declaration. Thirty-three operations,
+- **`forms.operations.json`** — the API's declaration. Thirty-four operations,
   each with its method, path, manager method, gating action, status, prose
   and arguments. `routes/` is an adapter over
   `mwanachama-backend-shared/dispatch` and nothing else.
@@ -131,6 +131,12 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   of the caller's groups, and a form that did not answers exactly as a
   missing one; see
   [reached.md](documentation/2.%20design/reached.md).
+- **A public link grants its respondent that one form** (F24). A signed-in
+  caller claims the token they answered under
+  (`POST /public-links/{key}/respondents/claim`, the member `from: caller`,
+  once per token), and `ReachedOnly` then lets them reach every form that
+  token declared a group on, and no other; see
+  [claimed-link.md](documentation/2.%20design/claimed-link.md).
 - **`published_by` comes from the mount too** (F18), and the publisher's
   display name beside it from the host's `Names` resolver, never from the
   body. The publishing authority is body text, one line, at most 120

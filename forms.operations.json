@@ -19,6 +19,7 @@
     "ErrDuplicateTarget": 409,
     "ErrFormHasTarget": 409,
     "ErrLinkKeyTaken": 409,
+    "ErrRespondentClaimed": 409,
 
     "ErrInvalidReference": 400,
     "ErrInvalidForm": 400,
@@ -460,6 +461,20 @@
         {"from": "body", "as": "respondent_id", "description": "Who is saying it."},
         {"from": "body", "as": "declared_chapter_id", "description": "The group they picked from the list."},
         {"from": "body", "as": "declared_text", "description": "What they typed instead, where no group on the list fitted."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "claim_respondent": {
+      "method": "POST",
+      "path": "/public-links/{key}/respondents/claim",
+      "call": "ClaimRespondent",
+      "action": "forms.respondent.claim",
+      "title": "Answer as myself",
+      "description": "Tie the token this device answered under to the signed-in caller, once they sign in at the end of answering through a link. From then on the caller may read and answer every instrument that token named a group for, though they are in none of its groups. A token already tied to somebody else is refused.",
+      "args": [
+        {"from": "path", "as": "key", "description": "The token the link carries."},
+        {"from": "body", "as": "public_key", "description": "The token this device answered under."},
+        {"from": "caller", "as": "member_id"}
       ],
       "returns": [{"body": true}]
     }

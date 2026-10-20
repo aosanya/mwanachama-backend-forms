@@ -152,8 +152,8 @@
         {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
         {"name": "public_key", "type": "string", "description": "The token the answering device holds, and the only handle on this person.", "unique": true},
         {"name": "first_seen_at", "type": "timestamp", "description": "When this token was first seen."},
-        {"name": "claimed_by_member_id", "type": "string", "description": "The member this person later turned out to be. Nothing writes it yet, and no public read returns it."},
-        {"name": "claimed_at", "type": "timestamp", "description": "When they were matched to a member. Nothing writes it yet."}
+        {"name": "claimed_by_member_id", "type": "string", "description": "The member this person turned out to be, written once when they sign in after answering through a link. No public read returns it."},
+        {"name": "claimed_at", "type": "timestamp", "description": "When they were matched to a member."}
       ]
     },
     {

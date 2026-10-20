@@ -13,6 +13,10 @@ func OnlyReached(ctx context.Context, callerID string) context.Context {
 	return context.WithValue(ctx, reachedOnlyKey{}, callerID)
 }
 
+func unnarrowed(ctx context.Context) context.Context {
+	return context.WithValue(ctx, reachedOnlyKey{}, nil)
+}
+
 func narrowedTo(ctx context.Context) (string, bool) {
 	callerID, narrowed := ctx.Value(reachedOnlyKey{}).(string)
 	return callerID, narrowed
@@ -23,22 +27,31 @@ func (m *formManager) hiddenFromCaller(ctx context.Context, f models.Form) (bool
 	if !narrowed {
 		return false, nil
 	}
-	if !models.VisibleToMembers(f.Status) || m.groups == nil || callerID == "" {
+	if !models.VisibleToMembers(f.Status) || callerID == "" {
 		return true, nil
 	}
-	groups, err := m.groups(ctx, callerID)
-	if err != nil {
+	reaches, err := m.reachesThroughGroups(ctx, callerID, f.ID)
+	if err != nil || reaches {
 		return false, err
 	}
-	if len(groups) == 0 {
-		return true, nil
+	came, err := m.cameByLink(ctx, callerID, f.ID)
+	return !came, err
+}
+
+func (m *formManager) reachesThroughGroups(ctx context.Context, callerID, formID string) (bool, error) {
+	if m.groups == nil {
+		return false, nil
+	}
+	groups, err := m.groups(ctx, callerID)
+	if err != nil || len(groups) == 0 {
+		return false, err
 	}
 	reached, err := m.reachedThrough(ctx, groups)
 	if err != nil {
 		return false, err
 	}
-	_, reaches := reached[f.ID]
-	return !reaches, nil
+	_, reaches := reached[formID]
+	return reaches, nil
 }
 
 func (m *formManager) formHiddenFromCaller(ctx context.Context, formID string) (bool, error) {

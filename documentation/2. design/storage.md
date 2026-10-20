@@ -61,14 +61,17 @@ invalidate an answer already given, while editing or removing one can.
 
 ## Vocabulary that is carried but never written
 
-Three things are stored because the schema they were extracted from had
+`Respondent.ClaimedByMemberID` and `.ClaimedAt` were on this list until F24,
+which writes them when a signed-in caller claims the token they answered a
+public link under; see [claimed-link.md](claimed-link.md). No public read
+returns them.
+
+These are still stored because the schema they were extracted from had
 them, and nothing in this module writes them. They are not dead columns to
 drop — a database restored from the pre-extraction schema holds values in
 them — but nothing here will produce one:
 
 - `PropagationKind`'s `localized` and `pushed`, and `Propagation.LastReminderAt`
-- `Respondent.ClaimedByMemberID` and `.ClaimedAt` — the claim-on-signup flow
-  they describe is not implemented here, and no public read returns them
 
 Confirmed against the source module's own logic before the extraction: no
 method there transitioned a row into those states either.

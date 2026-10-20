@@ -36,6 +36,7 @@ var sentinels = map[string]error{
 	"ErrDuplicateTarget":     forms.ErrDuplicateTarget,
 	"ErrFormHasTarget":       forms.ErrFormHasTarget,
 	"ErrLinkKeyTaken":        forms.ErrLinkKeyTaken,
+	"ErrRespondentClaimed":   forms.ErrRespondentClaimed,
 	"ErrInvalidReference":    forms.ErrInvalidReference,
 	"ErrInvalidForm":         forms.ErrInvalidForm,
 	"ErrInvalidQuestion":     forms.ErrInvalidQuestion,

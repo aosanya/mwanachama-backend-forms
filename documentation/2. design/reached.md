@@ -49,8 +49,13 @@ yet, even when a target already names the caller's group. A closed form
 that reached them stays readable, so their answered forms still open; the
 waiting list alone shows only open ones.
 
-No resolver, no caller, or a caller in no group: nothing reaches them. The
-narrowing fails closed.
+No resolver, no caller, or a caller in no group: nothing reaches them
+through a group. The narrowing fails closed.
+
+A form also reaches a caller who answered it through its public link and
+then claimed the token they answered under (F24): a respondent claimed by
+the caller holds a declaration on that form. See
+[claimed-link.md](claimed-link.md).
 
 ## Not changed
 

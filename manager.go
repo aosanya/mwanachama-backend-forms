@@ -184,6 +184,8 @@ type FormManager interface {
 	RegisterRespondent(ctx context.Context, key, publicKey string) (models.RespondentPublicView, error)
 
 	DeclareChapter(ctx context.Context, key, respondentID, declaredChapterID, declaredText string) (models.Declaration, error)
+
+	ClaimRespondent(ctx context.Context, key, publicKey, memberID string) (models.RespondentPublicView, error)
 }
 
 type formManager struct {

@@ -3,14 +3,15 @@ package mwanachamaforms
 import "errors"
 
 var (
-	ErrFormNotFound     = errors.New("mwanachamaforms: form not found")
-	ErrQuestionNotFound = errors.New("mwanachamaforms: question not found")
-	ErrTargetNotFound   = errors.New("mwanachamaforms: target not found")
-	ErrInvalidReference = errors.New("mwanachamaforms: invalid reference")
-	ErrDuplicateTarget  = errors.New("mwanachamaforms: chapter is already targeted")
-	ErrFormHasTarget    = errors.New("mwanachamaforms: form is already aimed at a group")
-	ErrLinkKeyTaken     = errors.New("mwanachamaforms: public link key is already taken")
-	ErrLinkNotFound     = errors.New("not found")
+	ErrFormNotFound      = errors.New("mwanachamaforms: form not found")
+	ErrQuestionNotFound  = errors.New("mwanachamaforms: question not found")
+	ErrTargetNotFound    = errors.New("mwanachamaforms: target not found")
+	ErrInvalidReference  = errors.New("mwanachamaforms: invalid reference")
+	ErrDuplicateTarget   = errors.New("mwanachamaforms: chapter is already targeted")
+	ErrFormHasTarget     = errors.New("mwanachamaforms: form is already aimed at a group")
+	ErrLinkKeyTaken      = errors.New("mwanachamaforms: public link key is already taken")
+	ErrLinkNotFound      = errors.New("not found")
+	ErrRespondentClaimed = errors.New("mwanachamaforms: respondent is already claimed by another member")
 )
 
 var (

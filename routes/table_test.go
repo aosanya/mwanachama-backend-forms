@@ -50,6 +50,7 @@ func TestTheAddressTableIsWhatTheSpecDeclares(t *testing.T) {
 		"POST /forms/{form_id}/withdraw",
 		"POST /public-links/{key}/declarations",
 		"POST /public-links/{key}/respondents",
+		"POST /public-links/{key}/respondents/claim",
 	}
 	sort.Strings(want)
 
