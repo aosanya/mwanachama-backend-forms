@@ -402,3 +402,14 @@ missing one, and the answer's `chapter_id` stays the form's own target. See
 client regenerated (frontend-member 34a78c7), its checks red only on the
 pinned OpenBug tests. Left: wakala-api has not admitted residents to
 `forms.respondent.claim` yet.
+
+## F25 — a respondent registered without a key gets one minted — 2026-10-20
+
+118d5b7. `UpsertRespondent` minted nothing when no `public_key` was sent and
+stored `""`, so the second key-less visitor on any link hit the unique index.
+It now mints a 32-byte `crypto/rand` key (64 hex) and returns it on the
+respondent and its public view; a supplied key is kept and an existing key
+returns its respondent unchanged. Reproduced first, then pinned by
+`respondent_key_test.go`. See `claimed-link.md`, "Registering the token".
+Verified: `go build`, `go vet`, `gofmt`, `go test ./...` ok; wakala-api
+`go build ./...` ok, its reds unchanged. Owner, member app decision 98.
