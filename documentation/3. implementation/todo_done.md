@@ -413,3 +413,17 @@ returns its respondent unchanged. Reproduced first, then pinned by
 `respondent_key_test.go`. See `claimed-link.md`, "Registering the token".
 Verified: `go build`, `go vet`, `gofmt`, `go test ./...` ok; wakala-api
 `go build ./...` ok, its reds unchanged. Owner, member app decision 98.
+
+## F23 — a public link's questions, signed out — 2026-10-20
+
+5bce3d4. `forms.public_link.questions` at `GET /public-links/{key}/questions`
+(`FormManager.PublicLinkQuestions`, `models.LinkedQuestion`): the linked
+form's current questions in `ordinal` order, each with its options in order;
+no answers and nothing about any other form. The key resolves through
+`OpenPublicLink`, so every refusal is `ErrLinkNotFound`; `ReachedOnly` does not
+narrow it. The fourth anonymous action, by member app decision 114. Pinned by
+`f23_link_questions_test.go` and `routes/f23_link_questions_signed_out_test.go`.
+See `link-questions.md`. Verified: `go build`, `go vet`, `gofmt`,
+`go test ./...` ok; wakala-api `go build ./...` ok, its reds unchanged. Left:
+wakala-api's `noLinkIssued` (unknown instance) does not answer the new address
+(WK128).
