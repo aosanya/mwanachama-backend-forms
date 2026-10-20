@@ -172,6 +172,19 @@
       ]
     },
     {
+      "role": "claim",
+      "description": "One instrument a respondent's token was claimed through. The member who claimed it may read and answer that instrument, whether or not anybody declared a group on it.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "respondent_id", "type": "string", "description": "The respondent whose token was claimed.", "required": true},
+        {"name": "form_id", "type": "string", "description": "The instrument whose link the claim was made through.", "required": true},
+        {"name": "claimed_at", "type": "timestamp", "description": "When the token was first claimed through this instrument's link.", "immutable": true}
+      ],
+      "indexes": [
+        {"name": "respondent_form", "description": "Reads whether a respondent was claimed through one instrument, and keeps it to one.", "fields": ["respondent_id", "form_id"], "unique": true}
+      ]
+    },
+    {
       "role": "answer",
       "description": "One person's response to one prompt. Exactly one of the value columns carries it, decided by the prompt's own answer type.",
       "fields": [

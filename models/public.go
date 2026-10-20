@@ -49,3 +49,10 @@ type Declaration struct {
 	DeclaredText      string `json:"declared_text,omitempty"`
 	CreatedAt         string `json:"created_at"`
 }
+
+type Claim struct {
+	ID           string `json:"id"`
+	RespondentID string `json:"respondent_id"`
+	FormID       string `json:"form_id"`
+	ClaimedAt    string `json:"claimed_at"`
+}

@@ -17,6 +17,7 @@ const (
 	rolePublicLink     = "public_link"
 	roleRespondent     = "respondent"
 	roleDeclaration    = "declaration"
+	roleClaim          = "claim"
 	roleAnswer         = "answer"
 	roleSubmission     = "submission"
 )

@@ -25,7 +25,7 @@ is
 and the route table's is
 [dispatcher.md](../mwanachama-backend-shared/documentation/2.%20design/dispatcher.md).
 
-- **`forms.blueprint.json`** — the module's eleven objects, declared once, with
+- **`forms.blueprint.json`** — the module's twelve objects, declared once, with
   a description on every object and every field. Reached through
   `Blueprint()`, `LoadSpec(path)`, `ParseSpec(raw)` and `SpecFor(instance)`.
   Load a domain spec through those, never through `spec.Load`, or its roled
@@ -142,8 +142,8 @@ question asks for and the bounds it declares), `models.ValidateValidators`
 - **A public link grants its respondent that one form** (F24). A signed-in
   caller claims the token they answered under
   (`POST /public-links/{key}/respondents/claim`, the member `from: caller`,
-  once per token), and `ReachedOnly` then lets them reach every form that
-  token declared a group on, and no other; see
+  once per token), and `ReachedOnly` then lets them reach every form whose
+  link they claimed it through, declared or not (F29), and no other; see
   [claimed-link.md](documentation/2.%20design/claimed-link.md).
 - **A public link's questions are read signed out** (F23).
   `GET /public-links/{key}/questions` answers the linked form's current

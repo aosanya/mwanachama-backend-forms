@@ -217,6 +217,7 @@ func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {
 		rolePublicLink:     models.PublicLink{},
 		roleRespondent:     models.Respondent{},
 		roleDeclaration:    models.Declaration{},
+		roleClaim:          models.Claim{},
 		roleAnswer:         models.Answer{},
 		roleSubmission:     models.Submission{},
 	})

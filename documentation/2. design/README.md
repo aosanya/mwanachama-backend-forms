@@ -50,7 +50,7 @@ and
 
 `<instance>_forms_<object>`: `forms`, `questions`, `question_options`,
 `targets`, `approvals`, `propagation`, `public_links`, `respondents`,
-`declarations`, `answers`, `submissions`. A mount chooses only the instance, through
+`declarations`, `claims`, `answers`, `submissions`. A mount chooses only the instance, through
 `SpecFor`; `Provision` moves a pre-spec table set onto these names before
 creating what is missing.
 
@@ -64,6 +64,7 @@ Form ──has──────────► Propagation   (one per Target, a
 Form ──has──────────► PublicLink    (public-audience forms only, one, after Publish)
 Respondent ──answers──► Answer ──answers──► Question
 Respondent ──declares─► Declaration ──about──► Form
+Respondent ──claimed──► Claim       ──through─► Form
 Respondent ──sends────► Submission  ──to─────► Form   (one per member, even with no answers)
 ```
 

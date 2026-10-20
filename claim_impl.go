@@ -12,7 +12,8 @@ func (m *formManager) ClaimRespondent(ctx context.Context, key, publicKey, membe
 	if memberID == "" {
 		return models.RespondentPublicView{}, fmt.Errorf("%w: nobody is signed in to claim it", ErrInvalidReference)
 	}
-	if _, err := m.OpenPublicLink(unnarrowed(ctx), key); err != nil {
+	opened, err := m.OpenPublicLink(unnarrowed(ctx), key)
+	if err != nil {
 		return models.RespondentPublicView{}, err
 	}
 	if publicKey == "" {
@@ -24,7 +25,7 @@ func (m *formManager) ClaimRespondent(ctx context.Context, key, publicKey, membe
 	}
 	switch held.ClaimedByMemberID {
 	case memberID:
-		return held.PublicView(), nil
+		return m.claimedThrough(ctx, held, opened.Form.ID)
 	case "":
 	default:
 		return models.RespondentPublicView{}, ErrRespondentClaimed
@@ -42,9 +43,35 @@ func (m *formManager) ClaimRespondent(ctx context.Context, key, publicKey, membe
 		return models.RespondentPublicView{}, fmt.Errorf("ClaimRespondent: %w", res.Error)
 	}
 	if res.RowsAffected == 0 {
-		return m.claimedMeanwhile(ctx, publicKey, memberID)
+		return m.claimedMeanwhile(ctx, publicKey, memberID, opened.Form.ID)
+	}
+	return m.claimedThrough(ctx, held, opened.Form.ID)
+}
+
+func (m *formManager) claimedThrough(ctx context.Context, held models.Respondent, formID string) (models.RespondentPublicView, error) {
+	recorded, err := m.claimRecorded(ctx, held.ID, formID)
+	if err != nil {
+		return models.RespondentPublicView{}, fmt.Errorf("ClaimRespondent: %w", err)
+	}
+	if recorded {
+		return held.PublicView(), nil
+	}
+	err = m.insert(ctx, roleClaim, models.Claim{
+		ID: newID(), RespondentID: held.ID, FormID: formID, ClaimedAt: models.NowRFC3339(),
+	})
+	if err != nil {
+		if recorded, _ := m.claimRecorded(ctx, held.ID, formID); recorded {
+			return held.PublicView(), nil
+		}
+		return models.RespondentPublicView{}, fmt.Errorf("ClaimRespondent: %w", err)
 	}
 	return held.PublicView(), nil
+}
+
+func (m *formManager) claimRecorded(ctx context.Context, respondentID, formID string) (bool, error) {
+	var count int64
+	err := m.q(ctx, roleClaim).Where("respondent_id = ? AND form_id = ?", respondentID, formID).Count(&count).Error
+	return count > 0, err
 }
 
 func (m *formManager) respondentHolding(ctx context.Context, publicKey string) (models.Respondent, error) {
@@ -59,7 +86,7 @@ func (m *formManager) respondentHolding(ctx context.Context, publicKey string) (
 	return held, nil
 }
 
-func (m *formManager) claimedMeanwhile(ctx context.Context, publicKey, memberID string) (models.RespondentPublicView, error) {
+func (m *formManager) claimedMeanwhile(ctx context.Context, publicKey, memberID, formID string) (models.RespondentPublicView, error) {
 	held, err := m.respondentHolding(ctx, publicKey)
 	if err != nil {
 		return models.RespondentPublicView{}, err
@@ -67,14 +94,19 @@ func (m *formManager) claimedMeanwhile(ctx context.Context, publicKey, memberID 
 	if held.ClaimedByMemberID != memberID {
 		return models.RespondentPublicView{}, ErrRespondentClaimed
 	}
-	return held.PublicView(), nil
+	return m.claimedThrough(ctx, held, formID)
 }
 
 func (m *formManager) cameByLink(ctx context.Context, callerID, formID string) (bool, error) {
 	claimed := m.db.Table(m.table(roleRespondent)).Select("id").Where("claimed_by_member_id = ?", callerID)
-	var declared int64
-	err := m.q(ctx, roleDeclaration).
-		Where("form_id = ? AND respondent_id IN (?)", formID, claimed).
-		Count(&declared).Error
-	return declared > 0, err
+	for _, role := range []string{roleClaim, roleDeclaration} {
+		var held int64
+		err := m.q(ctx, role).
+			Where("form_id = ? AND respondent_id IN (?)", formID, claimed).
+			Count(&held).Error
+		if err != nil || held > 0 {
+			return held > 0, err
+		}
+	}
+	return false, nil
 }

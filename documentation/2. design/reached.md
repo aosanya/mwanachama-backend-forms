@@ -54,7 +54,8 @@ through a group. The narrowing fails closed.
 
 A form also reaches a caller who answered it through its public link and
 then claimed the token they answered under (F24): a respondent claimed by
-the caller holds a declaration on that form. See
+the caller was claimed through that form's link, or holds a declaration on
+it. Since F29 the claim alone is enough; no declaration is needed. See
 [claimed-link.md](claimed-link.md).
 
 ## Not changed

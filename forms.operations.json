@@ -507,7 +507,7 @@
       "call": "ClaimRespondent",
       "action": "forms.respondent.claim",
       "title": "Answer as myself",
-      "description": "Tie the token this device answered under to the signed-in caller, once they sign in at the end of answering through a link. From then on the caller may read and answer every instrument that token named a group for, though they are in none of its groups. A token already tied to somebody else is refused.",
+      "description": "Tie the token this device answered under to the signed-in caller, once they sign in at the end of answering through a link. From then on the caller may read and answer the instrument this link opens, and every other one the token was claimed through or named a group for, though they are in none of its groups and declared nothing. A token already tied to somebody else is refused.",
       "args": [
         {"from": "path", "as": "key", "description": "The token the link carries."},
         {"from": "body", "as": "public_key", "description": "The token this device answered under."},

@@ -58,6 +58,12 @@
       "description": "Which chapter a public respondent says they belong to."
     },
     {
+      "role": "claim",
+      "name": "claim",
+      "table": "claims",
+      "description": "A survey a public respondent was claimed through when they signed in."
+    },
+    {
       "role": "answer",
       "name": "answer",
       "table": "answers",

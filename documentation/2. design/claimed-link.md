@@ -1,7 +1,8 @@
 # A public link grants its respondent that one form
 
 Decided 2026-10-20 by the owner (`mwanachama-frontend-member`'s decision
-115) and built as F24.
+115) and built as F24. Widened the same day by decision 119 (F29): the claim
+alone grants the form, with no declaration needed.
 
 ## The flow it serves
 
@@ -31,7 +32,14 @@ refused; `respondent_key_test.go` pins both halves.
 The body names the `public_key` the device answered under; the member is the
 caller, bound `{"from": "caller"}`, so a body naming a `member_id` is
 ignored. The call writes `claimed_by_member_id` and `claimed_at` on that
-respondent, the two columns that were carried and never written before.
+respondent, the two columns that were carried and never written before, and
+records a `claim` row naming the respondent and the form whose link the call
+went through.
+
+- **Each link the token is claimed through is recorded.** A device keeps one
+  token across every link it opens, so the same member claiming it again
+  through another link answers as the first claim did and adds that link's
+  form beside the first. One row per respondent and form, unique.
 
 - **A token is claimed once.** Claiming it again as the same member answers
   as the first claim did. Another member is refused with
@@ -50,15 +58,20 @@ respondent, the two columns that were carried and never written before.
 
 `ReachedOnly`'s check gains a second way in. A form is reached by a caller
 when, as before, a target or propagation row names one of their groups, **or**
-a respondent claimed by the caller holds a declaration on that form. Both
-still require the form to be visible to members (open or closed).
+a respondent claimed by the caller was claimed through that form's link, **or**
+such a respondent holds a declaration on that form. All three still require
+the form to be visible to members (open or closed).
 
-So a claim grants exactly the forms that token named a group for through
-their links: `get_form`, `list_questions`, `list_options` and
-`submit_answers` answer for those, and every other form is narrowed to the
-caller's groups as before, answering as missing. The declaration is the
-proof the person came by that link, since declaring is the one write that
-needs the link's key and names the form.
+So a claim grants exactly the forms whose links it was made through:
+`get_form`, `list_questions`, `list_options` and `submit_answers` answer for
+those, and every other form is narrowed to the caller's groups as before,
+answering as missing. Holding the link's key is the proof the person came by
+that link, since the claim address carries it and names the form.
+
+**No declaration is needed** (F29, decision 119). F24 granted a form only
+once the token had declared a group on it; that is dropped. A declaration,
+when made, is still recorded as before, and one made before F29 still grants
+its form, so a claim made then keeps what it opened.
 
 ## What the answer counts toward
 
