@@ -72,4 +72,4 @@ nowhere, so its answers carry no group.
 - The waiting list (`waiting.md`) still lists only forms reached through the
   caller's groups. The answered list (`answered.md`) shows a link-answered
   form because it reads answers.
-- The three anonymous actions are unchanged; claiming is gated.
+- Claiming is gated; it is not one of the anonymous actions.

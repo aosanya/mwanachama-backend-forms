@@ -67,3 +67,8 @@ type VersionQuestionResult struct {
 	Question Question         `json:"question"`
 	Options  []QuestionOption `json:"options"`
 }
+
+type LinkedQuestion struct {
+	Question
+	Options []QuestionOption `json:"options"`
+}

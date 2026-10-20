@@ -33,6 +33,7 @@ func TestTheAddressTableIsWhatTheSpecDeclares(t *testing.T) {
 		"GET /forms/{form_id}/questions/{question_id}/options",
 		"GET /forms/{form_id}/targets",
 		"GET /public-links/{key}",
+		"GET /public-links/{key}/questions",
 		"PATCH /forms/{form_id}",
 		"PATCH /forms/{form_id}/questions/{question_id}",
 		"POST /forms",
@@ -79,7 +80,7 @@ func TestOnlyTheLinkSurfaceIsAnonymous(t *testing.T) {
 	}
 	sort.Strings(got)
 
-	want := []string{"forms.declaration.create", "forms.public_link.open", "forms.respondent.register"}
+	want := []string{"forms.declaration.create", "forms.public_link.open", "forms.public_link.questions", "forms.respondent.register"}
 	if strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Errorf("anonymous actions = %v, want %v", got, want)
 	}

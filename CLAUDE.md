@@ -34,7 +34,7 @@ and the route table's is
   each role, what it is called, and which table it lands in. It names
   `wakala` as its instance by way of example; a mount chooses its own
   through `SpecFor`.
-- **`forms.operations.json`** — the API's declaration. Thirty-four operations,
+- **`forms.operations.json`** — the API's declaration. Thirty-five operations,
   each with its method, path, manager method, gating action, status, prose
   and arguments. `routes/` is an adapter over
   `mwanachama-backend-shared/dispatch` and nothing else.
@@ -99,8 +99,9 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   them lets anyone enumerate unpublished forms by trying keys.
 - **Answering is not anonymous.** This module cannot tell a public
   respondent from a member, so `forms.answer.submit` is gated like every
-  other write. Only three actions are on `routes.AnonymousActions`, and
-  adding a fourth is a decision, not a convenience.
+  other write. Only four actions are on `routes.AnonymousActions`, and
+  adding a fifth is a decision, not a convenience. The fourth,
+  `forms.public_link.questions`, was decision 114 (F23).
 - **The address outranks the body.** A question or a target posted under one
   form lands on that form whatever the body claims. Declared as `into`, and
   pinned.
@@ -137,6 +138,11 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   once per token), and `ReachedOnly` then lets them reach every form that
   token declared a group on, and no other; see
   [claimed-link.md](documentation/2.%20design/claimed-link.md).
+- **A public link's questions are read signed out** (F23).
+  `GET /public-links/{key}/questions` answers the linked form's current
+  questions with their options, in order, to an anonymous caller, and
+  refuses every miss as `ErrLinkNotFound`; see
+  [link-questions.md](documentation/2.%20design/link-questions.md).
 - **`published_by` comes from the mount too** (F18), and the publisher's
   display name beside it from the host's `Names` resolver, never from the
   body. The publishing authority is body text, one line, at most 120

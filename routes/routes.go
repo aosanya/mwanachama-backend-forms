@@ -54,6 +54,7 @@ var sentinels = map[string]error{
 
 var AnonymousActions = []string{
 	"forms.public_link.open",
+	"forms.public_link.questions",
 	"forms.respondent.register",
 	"forms.declaration.create",
 }
