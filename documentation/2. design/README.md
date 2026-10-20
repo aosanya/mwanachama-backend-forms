@@ -18,6 +18,9 @@ and
 - [waiting.md](waiting.md) — the member's read, `GET /forms/waiting`:
   the open forms that reached the caller's groups, and the resolver the
   host supplies so those groups never come from the request.
+- [reached.md](reached.md) — a resident reads and answers only the forms
+  sent to their groups: `Mount.ReachedOnly`, and why a form that did not
+  reach them answers exactly as a missing one.
 - [todo_details/FMD-001.md](todo_details/FMD-001.md) — the decision record
   for the conversion onto the declared-domain format, including what the
   plan assumed that turned out not to be true.

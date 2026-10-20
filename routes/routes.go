@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"net/http"
 	"sync"
 
 	"github.com/aosanya/mwanachama-backend-shared/dispatch"
@@ -56,8 +57,9 @@ var AnonymousActions = []string{
 }
 
 type Mount struct {
-	Authorize dispatch.Authorizer
-	Caller    dispatch.Caller
+	Authorize   dispatch.Authorizer
+	Caller      dispatch.Caller
+	ReachedOnly bool
 }
 
 func Build(fm forms.FormManager) ([]Route, error) { return BuildFor(fm, Mount{}) }
@@ -67,9 +69,26 @@ func BuildFor(fm forms.FormManager, m Mount) ([]Route, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dispatch.Dispatch(s, dispatch.Deps{
+	out, err := dispatch.Dispatch(s, dispatch.Deps{
 		Manager: fm, Errors: sentinels, Authorize: m.Authorize, Caller: m.Caller,
 	})
+	if err != nil || !m.ReachedOnly {
+		return out, err
+	}
+	for i := range out {
+		out[i].Handler = onlyReached(out[i].Handler, m.Caller)
+	}
+	return out, nil
+}
+
+func onlyReached(next http.HandlerFunc, caller dispatch.Caller) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		callerID := ""
+		if caller != nil {
+			callerID = caller(r.Context())
+		}
+		next(w, r.WithContext(forms.OnlyReached(r.Context(), callerID)))
+	}
 }
 
 func Routes(fm forms.FormManager) []Route { return RoutesFor(fm, Mount{}) }

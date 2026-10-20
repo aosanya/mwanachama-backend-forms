@@ -71,6 +71,13 @@ func (m *formManager) Get(ctx context.Context, id string) (models.Form, error) {
 		}
 		return models.Form{}, fmt.Errorf("Get: %w", err)
 	}
+	hidden, err := m.hiddenFromCaller(ctx, f)
+	if err != nil {
+		return models.Form{}, fmt.Errorf("Get: %w", err)
+	}
+	if hidden {
+		return models.Form{}, ErrFormNotFound
+	}
 	return f, nil
 }
 

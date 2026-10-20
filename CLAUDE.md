@@ -118,6 +118,12 @@ question asks for), and the lifecycle transitions themselves.
 - **A form is aimed at exactly one group** (F20). A second target is
   `ErrFormHasTarget`, and an answer's `chapter_id` is that one target, never
   the body's.
+- **A resident sees only the forms sent to their groups** (F15). A mount
+  with `ReachedOnly` set narrows `get_form`, `list_questions`,
+  `list_options` and `submit_answers` to published forms that reached one
+  of the caller's groups, and a form that did not answers exactly as a
+  missing one; see
+  [reached.md](documentation/2.%20design/reached.md).
 - **A resubmitted answer edits in place** and keeps the time and group the
   first answer was given from; only `edited_at` moves.
 - **A failed publish leaves the form unpublished.** The status change, the

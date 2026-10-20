@@ -138,6 +138,13 @@ func (m *formManager) findQuestion(ctx context.Context, questionID string) (mode
 }
 
 func (m *formManager) ListQuestions(ctx context.Context, formID string) ([]models.Question, error) {
+	hidden, err := m.formHiddenFromCaller(ctx, formID)
+	if err != nil {
+		return nil, fmt.Errorf("ListQuestions: %w", err)
+	}
+	if hidden {
+		return []models.Question{}, nil
+	}
 	out, err := listOf[models.Question](m,
 		m.q(ctx, roleQuestion).Where("form_id = ?", formID).Order("ordinal"), roleQuestion)
 	if err != nil {
@@ -147,6 +154,13 @@ func (m *formManager) ListQuestions(ctx context.Context, formID string) ([]model
 }
 
 func (m *formManager) ListOptions(ctx context.Context, questionID string) ([]models.QuestionOption, error) {
+	hidden, err := m.questionHiddenFromCaller(ctx, questionID)
+	if err != nil {
+		return nil, fmt.Errorf("ListOptions: %w", err)
+	}
+	if hidden {
+		return []models.QuestionOption{}, nil
+	}
 	out, err := listOf[models.QuestionOption](m,
 		m.q(ctx, roleQuestionOption).Where("question_id = ?", questionID).Order("ordinal"), roleQuestionOption)
 	if err != nil {
