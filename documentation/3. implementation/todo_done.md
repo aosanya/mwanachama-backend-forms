@@ -329,3 +329,26 @@ its `closes_at` now leaves the waiting list and refuses answers until someone
 closes it, which decision 32 (new forms start enforced) did not say; a one-off
 backfill marking old forms advisory was not built. The public link still
 checks status and audience only.
+
+## F21 — a form declares validators for its questions — 2026-10-20
+
+`Question` gains `required`, `min_value`/`max_value` (number and currency,
+nullable `*float64` so no bound differs from a bound of 0),
+`min_date`/`max_date` (`YYYY-MM-DD`, empty is no bound, inclusive) and
+`min_selections`/`max_selections` (multi-select, nullable `*int`, at least 1),
+in the blueprint and `models.Question`, returned on every question read.
+`models.ValidateValidators` refuses a bound on the wrong answer type, a min
+above its max, a malformed date or a selection bound below 1, with
+`ErrInvalidQuestion`, on add, update (which replaces the validators) and
+version (which takes them from its body). `models.ValidateAnswer` checks the
+bounds, and `submit_answers` refuses with `ErrInvalidAnswer` naming the
+question and writes nothing; a required current-version question must be
+answered in the same submission. `Provision`'s `addMissingColumns` gained
+`addableColumn` for text, bool and nullable int/float columns on an existing
+question table. `validators.md` (new); `validators_test.go`. Commit 138a8b6,
+rebased on F17. `go test ./...` green in the main checkout, gofmt clean;
+wakala-api builds against it, red only on its deliberate `_OpenHole_` tests.
+For the owner: `required` counts only the submission, not answers already on
+record, so a resubmit carrying only changed answers is refused; only the first
+failing question is named; `min_selections` above the number of choices is not
+refused.
