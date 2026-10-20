@@ -372,8 +372,8 @@ paging and month grouping. Unblocks the member app's MF28.
 ## F22 — a form says who made it — 2026-10-20
 
 🐞 from journey 08.5 (report `F22-form-created-by-empty.md` in the
-developer repo). Landed as f6eed63 (rebased onto master as part of 1f17a77's
-history): `create_form` in `forms.operations.json` binds
+developer repo). Landed as 1f17a77 (f6eed63 before rebasing):
+`create_form` in `forms.operations.json` binds
 `{"from": "caller", "as": "created_by", "into": "CreatedBy"}`, as
 `publish_form` binds `published_by`, so a body naming another creator is
 overwritten and the MCP tool no longer offers `created_by`. No Go change.
