@@ -34,7 +34,7 @@ and the route table's is
   each role, what it is called, and which table it lands in. It names
   `wakala` as its instance by way of example; a mount chooses its own
   through `SpecFor`.
-- **`forms.operations.json`** — the API's declaration. Thirty-two operations,
+- **`forms.operations.json`** — the API's declaration. Thirty-three operations,
   each with its method, path, manager method, gating action, status, prose
   and arguments. `routes/` is an adapter over
   `mwanachama-backend-shared/dispatch` and nothing else.
@@ -118,6 +118,10 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   `forms.answer.list_all`, so a grant to answer never carries a grant to
   read others. See
   [answers.md](documentation/2.%20design/answers.md).
+- **A member's list of the forms they answered is theirs alone** (F19).
+  `GET /forms/answered` binds the caller with `from: caller` and lists every
+  form they have an answer on, open or closed, newest sent first; see
+  [answered.md](documentation/2.%20design/answered.md).
 - **A form is aimed at exactly one group** (F20). A second target is
   `ErrFormHasTarget`, and an answer's `chapter_id` is that one target, never
   the body's.

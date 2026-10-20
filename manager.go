@@ -28,6 +28,7 @@ type (
 	RegisterRow           = models.RegisterRow
 	RegisterPage          = models.RegisterPage
 	WaitingForm           = models.WaitingForm
+	AnsweredForm          = models.AnsweredForm
 	Approval              = models.Approval
 	Decision              = models.Decision
 	PublicLink            = models.PublicLink
@@ -117,6 +118,8 @@ type FormManager interface {
 	Register(ctx context.Context, q models.RegisterQuery) (models.RegisterPage, error)
 
 	ListWaiting(ctx context.Context, callerID string) ([]models.WaitingForm, error)
+
+	ListAnswered(ctx context.Context, callerID string) ([]models.AnsweredForm, error)
 
 	UseGroups(g Groups)
 

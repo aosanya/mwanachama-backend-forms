@@ -66,6 +66,16 @@
       "args": [{"from": "caller", "as": "caller_id", "description": "The caller, from the session."}],
       "returns": [{"body": true}]
     },
+    "list_answered_forms": {
+      "method": "GET",
+      "path": "/forms/answered",
+      "call": "ListAnswered",
+      "action": "forms.form.list_answered",
+      "title": "Forms I answered",
+      "description": "Every instrument the caller has an answer on, open or closed, newest sent first, each with the group that sent it, when it was sent, its window, where it has got to, whether it can still be answered, and when the caller first answered and last edited. It carries nobody else's figures. The caller comes from the session, never from the request.",
+      "args": [{"from": "caller", "as": "caller_id", "description": "The caller, from the session."}],
+      "returns": [{"body": true}]
+    },
     "get_form": {
       "method": "GET",
       "path": "/forms/{form_id}",
