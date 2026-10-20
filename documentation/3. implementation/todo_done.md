@@ -270,3 +270,20 @@ collections, the same eight failing collections as master. Left open: the
 one-target rule is read-before-write, not a unique index, so two concurrent
 `add_target` calls on one draft can both land (the same race
 `ErrDuplicateTarget` already had); see `answers.md`.
+
+## F15 — a resident reads and answers only the forms sent to their groups — 2026-10-20
+
+`routes.Mount` gains `ReachedOnly`; the host sets it on the resident's mount
+(wakala-api's `instanceFormsMount(role)`), so forms needs no notion of roles.
+With it set, `Get` (and so `SubmitAnswers`), `ListQuestions` and
+`ListOptions` (judged by the question's own form) hide any form that is not
+published or did not reach one of the caller's groups (`Groups`,
+`reachedThrough`), answering exactly as a missing form; no resolver, no caller
+or no groups reaches nothing. `reach_impl.go`, `reached.md`, and
+`routes/f15_resident_reads_only_reached_forms_test.go`, which fails with the
+narrowing off. Commits 0740817 (forms) and 7f956c0 (wakala-api's
+`resident_forms.go` sets the flag; `resident_forms_reached_test.go`;
+`instance-form-resident` 23/23). `go test ./...` green here; wakala-api red
+only on the deliberate `_OpenHole_` tests. Open: WK96's resolver counts direct
+registrations only, so `includes_descendants` reaches no child group
+(decision 31 says so for now).
