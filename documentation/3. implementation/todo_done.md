@@ -492,3 +492,14 @@ version to a caller the host's `Groups` puts in that group, and every miss as
 a missing form. `results.md`. Who may publish is the host's gate (WK155).
 Verified: `go build`, `go vet`, `gofmt`, `go test ./...` ok; wakala-api builds
 against it.
+
+## F33 — approval is each agency's choice — 2026-10-21
+
+a24bcc9 (merged as 1a13d23). `FormManager.UseApprovalRequired(bool)`, off by
+default and unchanged when off. On: publishing an uncleared draft is
+`ErrNotApproved` (409), and the form's author (`created_by` or submitter)
+approving is `ErrSelfApproval` (403). `approve_form` and `refuse_form`
+take `approver_id` from the caller. `approval.md`. Storing the setting per
+agency and calling it is wakala-api WK156. Open with the owner: when off, may
+an author still submit and clear their own form? Verified: `go build`,
+`go vet`, `gofmt`, `go test ./...` ok; wakala-api builds and its forms tests pass.
