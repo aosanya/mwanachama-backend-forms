@@ -153,6 +153,10 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
 	}
+	channel, err := m.sendChannel(ctx, memberID, formID)
+	if err != nil {
+		return nil, fmt.Errorf("SubmitAnswers: %w", err)
+	}
 	out := make([]models.Answer, 0, len(in))
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		now := models.NowRFC3339()
@@ -166,7 +170,7 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 		if err := m.dropAnswersNotCarried(tx, formID, memberID, in); err != nil {
 			return err
 		}
-		return m.writeSubmission(tx, formID, memberID, chapterID, now)
+		return m.writeSubmission(tx, formID, memberID, chapterID, channel, now)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)

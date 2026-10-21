@@ -13,7 +13,9 @@ who sent and when:
 
 `SubmitAnswers` is the only path that writes a submission, and its caller is
 the member answering for themselves, so every send records the sender as
-collector, the send time as `collected_at` and `app` as the channel. A resend
+collector and the send time as `collected_at`. The channel is `link` when the
+sender reached the form through a public link they claimed or declared under
+(the same `cameByLink` test `ReachedOnly` uses, F24/F29), and `app` otherwise. A resend
 moves both to the resend, as `edited_at` moves. None of the three is read from
 a request.
 
@@ -25,6 +27,5 @@ older answers, carries all three empty, which reads as "not recorded".
 - A collector answering on another person's behalf (`field`, and `paper`
   typed in later with its own `collected_at`), gated by the PM20 grant, with
   the collector bound `from: caller` and the respondent named in the body.
-- Stamping `link` on a public-link respondent's send.
 - Allowing interviewer collection on a member-audience form
   (`ErrAudienceConflict` still refuses it).

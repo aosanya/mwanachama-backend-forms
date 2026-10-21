@@ -11,19 +11,19 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, now string) error {
+func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, channel, now string) error {
 	var held models.Submission
 	q := tx.Table(m.table(roleSubmission)).Where("form_id = ? AND member_id = ?", formID, memberID)
 	err := m.take(q, roleSubmission, &held, ErrSubmissionNotFound)
 	switch {
 	case err == nil:
 		held.EditedAt = now
-		held.Collector, held.CollectedAt, held.Channel = memberID, now, models.ChannelApp
+		held.Collector, held.CollectedAt, held.Channel = memberID, now, channel
 		return m.replaceTx(tx, roleSubmission, held.ID, held)
 	case errors.Is(err, ErrSubmissionNotFound):
 		return m.insertTx(tx, roleSubmission, models.Submission{
 			ID: newID(), FormID: formID, MemberID: memberID, ChapterID: chapterID, SubmittedAt: now,
-			Collector: memberID, CollectedAt: now, Channel: models.ChannelApp,
+			Collector: memberID, CollectedAt: now, Channel: channel,
 		})
 	default:
 		return err
@@ -91,4 +91,12 @@ func (m *formManager) answerCounts(ctx context.Context, formID, memberID string)
 
 func (m *formManager) submissionsBy(ctx context.Context, memberID string) ([]models.Submission, error) {
 	return listOf[models.Submission](m, m.q(ctx, roleSubmission).Where("member_id = ?", memberID), roleSubmission)
+}
+
+func (m *formManager) sendChannel(ctx context.Context, memberID, formID string) (string, error) {
+	came, err := m.cameByLink(ctx, memberID, formID)
+	if err != nil || !came {
+		return models.ChannelApp, err
+	}
+	return models.ChannelLink, nil
 }
