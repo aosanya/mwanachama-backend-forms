@@ -42,19 +42,22 @@ arrived with the declared table rather than with the domain.
 Decided 2026-10-20 by the owner (`mwanachama-frontend-member`'s decision 46)
 and built as F20, which also settles F16.
 
-- **A form is aimed at exactly one group.** `add_target` refuses a second
-  target on a form with `ErrFormHasTarget` (409); the same group twice is
-  still `ErrDuplicateTarget`. Removing the one target, while the form is a
-  draft, frees it to be aimed elsewhere. `includes_descendants` still decides
-  whether the groups beneath that one are reached.
-- **An answer's `chapter_id` is the form's target, never the request's.**
-  `submit_answers` no longer reads `chapter_id` at all: the manager looks up
-  the form's target and files every answer under it. A body that still names
-  a `chapter_id`, at the top level or on an answer, is not refused; the key
-  is ignored, the same treatment `member_id` gets. Being no longer an
-  argument, it is also gone from the MCP tool's schema. The member never
-  chooses which group their answer counts toward, so nothing needs checking
-  against the caller's groups.
+- **A form may be aimed at several groups** (F34, member app decision 236,
+  amending this page's one-group rule). `add_target` takes a second and a
+  third target; the same group twice is still `ErrDuplicateTarget`.
+  `includes_descendants` on each target decides whether the groups beneath
+  it are reached. `ErrFormHasTarget` is no longer raised and stays declared
+  only so nothing that names it breaks.
+- **An answer's `chapter_id` is the target its member answered through,
+  never the request's.** `submit_answers` does not read `chapter_id`: a body
+  naming one, at the top level or on an answer, is not refused and the key
+  is ignored, the same treatment `member_id` gets. A form with one target
+  files every answer under it. A form with several asks the host's `Groups`
+  for the caller's groups and files the send under the first target, in the
+  order the targets were added, that is among them; when none is, or the
+  mount supplies no `Groups`, it falls back to the first target. So the
+  host's `Groups` must name the target group itself, not only the sub-group,
+  for an answer reached through a sub-group to land on its target.
 - **A form aimed nowhere files answers under no group.** A public form
   cannot carry a target, and a member form may be published without one;
   either way `chapter_id` is empty.

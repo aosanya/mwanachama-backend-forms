@@ -32,21 +32,20 @@ func TestAddTarget_Duplicate(t *testing.T) {
 	}
 }
 
-func TestAFormIsAimedAtOneGroupSoASecondTargetIsRefused(t *testing.T) {
+func TestAFormMayBeAimedAtSeveralGroups(t *testing.T) {
 	um := newTestManager(t)
 	f := newDraftForm(t, um)
-	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-2"}); err != nil {
-		t.Fatalf("AddTarget: %v", err)
-	}
-	if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: "chapter-3"}); !errors.Is(err, mwanachamaforms.ErrFormHasTarget) {
-		t.Fatalf("err = %v, want ErrFormHasTarget", err)
+	for _, g := range []string{"chapter-2", "chapter-3"} {
+		if _, err := um.AddTarget(context.Background(), mwanachamaforms.Target{FormID: f.ID, ChapterID: g}); err != nil {
+			t.Fatalf("AddTarget %s: %v", g, err)
+		}
 	}
 	held, err := um.ListTargets(context.Background(), f.ID)
 	if err != nil {
 		t.Fatalf("ListTargets: %v", err)
 	}
-	if len(held) != 1 || held[0].ChapterID != "chapter-2" {
-		t.Fatalf("targets = %+v, want only chapter-2", held)
+	if len(held) != 2 || held[0].ChapterID != "chapter-2" || held[1].ChapterID != "chapter-3" {
+		t.Fatalf("targets = %+v, want chapter-2 and chapter-3", held)
 	}
 }
 

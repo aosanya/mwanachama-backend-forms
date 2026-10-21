@@ -149,7 +149,7 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 		return nil, err
 	}
 
-	chapterID, err := m.aimedAt(ctx, formID)
+	chapterID, err := m.aimedAt(ctx, formID, memberID)
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
 	}

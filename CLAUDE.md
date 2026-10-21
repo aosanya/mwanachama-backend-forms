@@ -130,9 +130,11 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   read it, and a resend edits it rather than adding one. `Provision` records
   a send for every answer stored before the row existed. See
   [answers.md](documentation/2.%20design/answers.md#an-empty-send-is-a-send).
-- **A form is aimed at exactly one group** (F20). A second target is
-  `ErrFormHasTarget`, and an answer's `chapter_id` is that one target, never
-  the body's.
+- **A form may be aimed at several groups** (F34, amending F20). Each
+  target reaches its sub-groups when `includes_descendants` is set, and an
+  answer's `chapter_id` is the one target its member answered through,
+  never the body's; see
+  [answers.md](documentation/2.%20design/answers.md).
 - **A resident sees only the forms sent to their groups** (F15). A mount
   with `ReachedOnly` set narrows `get_form`, `list_questions`,
   `list_options` and `submit_answers` to published forms that reached one

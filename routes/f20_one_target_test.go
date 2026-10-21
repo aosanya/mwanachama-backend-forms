@@ -8,7 +8,7 @@ import (
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
 )
 
-func TestASecondTargetOnAFormIsAConflict(t *testing.T) {
+func TestASecondTargetOnAFormIsAccepted(t *testing.T) {
 	fm := newTestManager(t)
 	f := seedForm(t, fm)
 	mux := mount(t, fm)
@@ -16,8 +16,8 @@ func TestASecondTargetOnAFormIsAConflict(t *testing.T) {
 	if rec := do(t, mux, http.MethodPost, "/forms/"+f.ID+"/targets", `{"chapter_id":"ward-7"}`); rec.Code != http.StatusCreated {
 		t.Fatalf("first aim: status = %d, body = %s", rec.Code, rec.Body.String())
 	}
-	if rec := do(t, mux, http.MethodPost, "/forms/"+f.ID+"/targets", `{"chapter_id":"ward-8"}`); rec.Code != http.StatusConflict {
-		t.Fatalf("second aim: status = %d, body = %s, want 409", rec.Code, rec.Body.String())
+	if rec := do(t, mux, http.MethodPost, "/forms/"+f.ID+"/targets", `{"chapter_id":"ward-8"}`); rec.Code != http.StatusCreated {
+		t.Fatalf("second aim: status = %d, body = %s, want 201", rec.Code, rec.Body.String())
 	}
 }
 

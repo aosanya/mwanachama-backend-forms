@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 
 	"github.com/aosanya/mwanachama-backend-forms/models"
@@ -32,9 +33,6 @@ func (m *formManager) AddTarget(ctx context.Context, t models.Target) (models.Ta
 		if h.ChapterID == t.ChapterID {
 			return models.Target{}, ErrDuplicateTarget
 		}
-	}
-	if len(held) > 0 {
-		return models.Target{}, ErrFormHasTarget
 	}
 
 	t.ID = newID()
@@ -84,10 +82,22 @@ func (m *formManager) ListTargets(ctx context.Context, formID string) ([]models.
 	return out, nil
 }
 
-func (m *formManager) aimedAt(ctx context.Context, formID string) (string, error) {
+func (m *formManager) aimedAt(ctx context.Context, formID, memberID string) (string, error) {
 	held, err := m.ListTargets(ctx, formID)
 	if err != nil || len(held) == 0 {
 		return "", err
+	}
+	if len(held) == 1 || m.groups == nil {
+		return held[0].ChapterID, nil
+	}
+	groups, err := m.groups(ctx, memberID)
+	if err != nil {
+		return "", err
+	}
+	for _, t := range held {
+		if slices.Contains(groups, t.ChapterID) {
+			return t.ChapterID, nil
+		}
 	}
 	return held[0].ChapterID, nil
 }
