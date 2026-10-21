@@ -478,3 +478,17 @@ too when the send leaves it out. `f31_send_replaces_the_set_test.go`;
 resend. `answers.md` "A send replaces the whole set". Verified: `go build`,
 `go vet`, `gofmt`, `go test ./...` ok; wakala-api 8576771 extends self-test
 `instance-form-empty-send` 17/17, no new red. Unblocks member app MF70.
+
+## F32 — publishing a closed form's report — 2026-10-21
+
+558bc6d. A declared `result_report` object (form, group, version, git path and
+commit, publisher, time; unique on form and version). `POST
+/forms/{form_id}/results` (`forms.results.publish`) refuses a form that is
+not closed (409) or has no target (409), takes `published_by` from the
+caller, aims the report at the form's one target, adds the next version and
+fills `results_published_at` in one transaction. `GET
+/forms/{form_id}/results/latest` (`forms.results.read`) answers the newest
+version to a caller the host's `Groups` puts in that group, and every miss as
+a missing form. `results.md`. Who may publish is the host's gate (WK155).
+Verified: `go build`, `go vet`, `gofmt`, `go test ./...` ok; wakala-api builds
+against it.
