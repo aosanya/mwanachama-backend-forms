@@ -37,6 +37,7 @@ type (
 	Declaration           = models.Declaration
 	Answer                = models.Answer
 	Submission            = models.Submission
+	ResultReport          = models.ResultReport
 	QuestionDraft         = models.QuestionDraft
 	ResolvedLink          = models.ResolvedLink
 	LinkedQuestion        = models.LinkedQuestion
@@ -145,6 +146,10 @@ type FormManager interface {
 
 	Delete(ctx context.Context, id string) error
 
+	PublishResults(ctx context.Context, formID, gitPath, gitCommit, publishedBy string) (models.ResultReport, error)
+
+	LatestResults(ctx context.Context, formID, callerID string) (models.ResultReport, error)
+
 	AddQuestion(ctx context.Context, in models.QuestionDraft) (models.Question, []models.QuestionOption, error)
 
 	UpdateQuestion(ctx context.Context, formID, questionID string, in models.QuestionDraft) (models.Question, []models.QuestionOption, error)
@@ -220,6 +225,7 @@ func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {
 		roleClaim:          models.Claim{},
 		roleAnswer:         models.Answer{},
 		roleSubmission:     models.Submission{},
+		roleResultReport:   models.ResultReport{},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("NewFormManager: %w", err)

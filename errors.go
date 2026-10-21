@@ -13,6 +13,10 @@ var (
 	ErrLinkNotFound       = errors.New("not found")
 	ErrRespondentClaimed  = errors.New("mwanachamaforms: respondent is already claimed by another member")
 	ErrSubmissionNotFound = errors.New("mwanachamaforms: nothing has been sent to this form")
+	ErrReportNotFound     = errors.New("mwanachamaforms: no report is published for this form")
+	ErrNotClosed          = errors.New("mwanachamaforms: form is not closed")
+	ErrNoTarget           = errors.New("mwanachamaforms: form is aimed at no group")
+	ErrInvalidReport      = errors.New("mwanachamaforms: a report needs its path, its commit and who published it")
 )
 
 var (

@@ -20,6 +20,7 @@ const (
 	roleClaim          = "claim"
 	roleAnswer         = "answer"
 	roleSubmission     = "submission"
+	roleResultReport   = "result_report"
 )
 
 type store = specstore.Store

@@ -74,6 +74,12 @@
       "name": "submission",
       "table": "submissions",
       "description": "That one person sent their answers to a survey, with answers or without."
+    },
+    {
+      "role": "result_report",
+      "name": "result_report",
+      "table": "result_reports",
+      "description": "One version of the report on what a closed survey collected."
     }
   ]
 }

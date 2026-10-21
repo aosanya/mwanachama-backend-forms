@@ -222,6 +222,23 @@
         {"name": "form_member", "description": "Reads one person's send to one instrument, and keeps it to one so a resend edits rather than doubles.", "fields": ["form_id", "member_id"], "unique": true},
         {"name": "member", "description": "Lists every instrument one person has sent to.", "fields": ["member_id"]}
       ]
+    },
+    {
+      "role": "result_report",
+      "description": "One version of the report on what a closed instrument collected, made readable to the group it was aimed at. The report itself lives elsewhere; this records where, and who put it there.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "form_id", "type": "string", "description": "The closed instrument the report is about.", "required": true},
+        {"name": "chapter_id", "type": "string", "description": "The group it is readable to, which is the one group the instrument was aimed at.", "required": true},
+        {"name": "version", "type": "int", "description": "Which publishing this is, counting from one. Publishing again adds the next one and leaves the earlier ones alone."},
+        {"name": "git_path", "type": "string", "description": "Where the report sits in the repository that holds it, as the host supplied it.", "required": true},
+        {"name": "git_commit", "type": "string", "description": "The commit that holds this version of the report, as the host supplied it.", "required": true},
+        {"name": "published_by", "type": "string", "description": "Who published it.", "required": true},
+        {"name": "published_at", "type": "timestamp", "description": "When it was published."}
+      ],
+      "indexes": [
+        {"name": "form_version", "description": "Reads the newest report on one instrument, and keeps each version to one.", "fields": ["form_id", "version"], "unique": true}
+      ]
     }
   ]
 }

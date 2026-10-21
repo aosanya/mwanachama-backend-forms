@@ -25,7 +25,7 @@ is
 and the route table's is
 [dispatcher.md](../mwanachama-backend-shared/documentation/2.%20design/dispatcher.md).
 
-- **`forms.blueprint.json`** — the module's twelve objects, declared once, with
+- **`forms.blueprint.json`** — the module's thirteen objects, declared once, with
   a description on every object and every field. Reached through
   `Blueprint()`, `LoadSpec(path)`, `ParseSpec(raw)` and `SpecFor(instance)`.
   Load a domain spec through those, never through `spec.Load`, or its roled
@@ -34,7 +34,7 @@ and the route table's is
   each role, what it is called, and which table it lands in. It names
   `wakala` as its instance by way of example; a mount chooses its own
   through `SpecFor`.
-- **`forms.operations.json`** — the API's declaration. Thirty-seven operations,
+- **`forms.operations.json`** — the API's declaration. Thirty-nine operations,
   each with its method, path, manager method, gating action, status, prose
   and arguments. `routes/` is an adapter over
   `mwanachama-backend-shared/dispatch` and nothing else.
@@ -163,6 +163,12 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   it outside `opens_at`..`closes_at` and `SubmitAnswers` refuses with
   `ErrOutsideWindow` (409). Only `Create` sets it. See
   [window.md](documentation/2.%20design/window.md).
+- **A closed form's report is a reference, versioned** (F32).
+  `POST /forms/{form_id}/results` records the host's git path and commit for
+  a closed form, to its one group, publisher `from: caller`, and sets
+  `results_published_at`; publishing again adds the next version. The
+  resident read answers the latest only to that group, and 404 otherwise; see
+  [results.md](documentation/2.%20design/results.md).
 - **A resubmitted answer edits in place** and keeps the time and group the
   first answer was given from; only `edited_at` moves.
 - **A send replaces the member's whole set of answers on that form** (F31).
