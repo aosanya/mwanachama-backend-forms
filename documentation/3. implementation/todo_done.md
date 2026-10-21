@@ -462,3 +462,19 @@ groups. Pinned by `routes/f29_link_alone_grants_its_form_test.go`
 and self-test `instance-form-claim` 25/25. See `claimed-link.md`. Verified:
 `go build`, `go vet`, `gofmt`, `go test ./...` ok. Open (owner): a link
 answer still files under no group, since public forms carry no target.
+
+## F31 — a send replaces the member's whole set of answers — 2026-10-21
+
+Owner, member app decision 142. fa49c7d (merged as 55b8a7d): `SubmitAnswers`
+also deletes, in the same transaction as the answers it writes and the
+submission marker, every answer the caller holds on that form for a question
+the send leaves out, so an answer taken back to Skipped is gone and an
+all-empty send removes them all while the form stays answered (F30). Carried
+answers still edit in place (same id, `answered_at`, `chapter_id`; only
+`edited_at` moves); a refused send removes nothing; other members and other
+forms are untouched. An answer to a superseded question version is removed
+too when the send leaves it out. `f31_send_replaces_the_set_test.go`;
+`TestSendingAgainNeverDoublesTheSend` now expects 0 answers after an empty
+resend. `answers.md` "A send replaces the whole set". Verified: `go build`,
+`go vet`, `gofmt`, `go test ./...` ok; wakala-api 8576771 extends self-test
+`instance-form-empty-send` 17/17, no new red. Unblocks member app MF70.
