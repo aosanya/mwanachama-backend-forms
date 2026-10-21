@@ -18,10 +18,12 @@ func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, 
 	switch {
 	case err == nil:
 		held.EditedAt = now
+		held.Collector, held.CollectedAt, held.Channel = memberID, now, models.ChannelApp
 		return m.replaceTx(tx, roleSubmission, held.ID, held)
 	case errors.Is(err, ErrSubmissionNotFound):
 		return m.insertTx(tx, roleSubmission, models.Submission{
 			ID: newID(), FormID: formID, MemberID: memberID, ChapterID: chapterID, SubmittedAt: now,
+			Collector: memberID, CollectedAt: now, Channel: models.ChannelApp,
 		})
 	default:
 		return err

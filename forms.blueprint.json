@@ -216,7 +216,10 @@
         {"name": "member_id", "type": "string", "description": "Who sent — a member, or a public respondent's own id.", "required": true},
         {"name": "chapter_id", "type": "string", "description": "The group the send counts toward, recorded once and kept across a resend."},
         {"name": "submitted_at", "type": "timestamp", "description": "When they first sent. A resend leaves this alone."},
-        {"name": "edited_at", "type": "timestamp", "description": "When they last sent again. Empty means never."}
+        {"name": "edited_at", "type": "timestamp", "description": "When they last sent again. Empty means never."},
+        {"name": "collector", "type": "string", "description": "Who collected the answers. The sender themselves when they answered on their own."},
+        {"name": "collected_at", "type": "timestamp", "description": "When the answers were collected, which for a paper sheet is earlier than when it was typed in."},
+        {"name": "channel", "type": "enum", "values": ["app", "link", "field", "paper"], "description": "How the answers reached the instrument: answered in the app, through a public link, collected in the field, or typed in from paper."}
       ],
       "indexes": [
         {"name": "form_member", "description": "Reads one person's send to one instrument, and keeps it to one so a resend edits rather than doubles.", "fields": ["form_id", "member_id"], "unique": true},
