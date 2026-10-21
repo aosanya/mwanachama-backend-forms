@@ -56,3 +56,8 @@ type Claim struct {
 	FormID       string `json:"form_id"`
 	ClaimedAt    string `json:"claimed_at"`
 }
+
+type DeclarationCount struct {
+	ChapterID string `json:"chapter_id"`
+	Count     int    `json:"count"`
+}

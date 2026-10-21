@@ -74,6 +74,9 @@ func (m *formManager) DeclareChapter(ctx context.Context, key, respondentID, dec
 	if err != nil {
 		return models.Declaration{}, err
 	}
+	if err := m.checkDeclarable(ctx, opened.Form.ID, declaredChapterID); err != nil {
+		return models.Declaration{}, err
+	}
 	return m.Declare(ctx, models.Declaration{
 		RespondentID:      respondentID,
 		FormID:            opened.Form.ID,

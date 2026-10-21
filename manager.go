@@ -35,6 +35,7 @@ type (
 	LinkStatus            = models.LinkStatus
 	Respondent            = models.Respondent
 	Declaration           = models.Declaration
+	DeclarationCount      = models.DeclarationCount
 	Answer                = models.Answer
 	Submission            = models.Submission
 	ResultReport          = models.ResultReport
@@ -128,6 +129,8 @@ type FormManager interface {
 
 	UseNames(n Names)
 
+	UseDeclarable(d Declarable)
+
 	UseApprovalRequired(required bool)
 
 	Submit(ctx context.Context, id, submittedBy string) (models.Form, error)
@@ -201,6 +204,10 @@ type FormManager interface {
 	DeclareChapter(ctx context.Context, key, respondentID, declaredChapterID, declaredText string) (models.Declaration, error)
 
 	ClaimRespondent(ctx context.Context, key, publicKey, memberID string) (models.RespondentPublicView, error)
+
+	ListDeclarations(ctx context.Context, formID string) ([]models.Declaration, error)
+
+	CountDeclarations(ctx context.Context, formID string) ([]models.DeclarationCount, error)
 }
 
 type formManager struct {
@@ -208,6 +215,8 @@ type formManager struct {
 	st     *store
 	groups Groups
 	names  Names
+
+	declarable Declarable
 
 	approvalRequired bool
 }
