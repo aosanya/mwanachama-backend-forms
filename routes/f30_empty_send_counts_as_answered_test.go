@@ -102,19 +102,22 @@ func TestTheOperatorSeesAMemberWhoSentNothing(t *testing.T) {
 func TestSendingAgainNeverDoublesTheSend(t *testing.T) {
 	fm, f, q, h := emptySendFixture(t)
 	answer := `{"answers":[{"question_id":"` + q.ID + `","value_text":"fine"}]}`
-	orders := map[string][]string{
-		"empty-first":  {`{"answers":[]}`, answer},
-		"answer-first": {answer, `{"answers":[]}`},
+	orders := map[string]struct {
+		bodies  []string
+		answers int
+	}{
+		"empty-first":  {[]string{`{"answers":[]}`, answer}, 1},
+		"answer-first": {[]string{answer, `{"answers":[]}`}, 0},
 	}
 	for caller, order := range orders {
-		for _, body := range order {
+		for _, body := range order.bodies {
 			if rec := sendAs(t, h, caller, f.ID, body); rec.Code != http.StatusOK {
 				t.Fatalf("send %s: %d %s", body, rec.Code, rec.Body.String())
 			}
 		}
 		mine := submissionsOf(t, getAs(t, h, "operator", "/forms/"+f.ID+"/submissions?member_id="+caller))
-		if len(mine) != 1 || mine[0].EditedAt == "" || mine[0].Answers != 1 {
-			t.Fatalf("%v: submissions = %+v, want one edited send carrying the one answer", order, mine)
+		if len(mine) != 1 || mine[0].EditedAt == "" || mine[0].Answers != order.answers {
+			t.Fatalf("%v: submissions = %+v, want one edited send carrying %d answers", order.bodies, mine, order.answers)
 		}
 	}
 	page, err := fm.Register(context.Background(), mwanachamaforms.RegisterQuery{})

@@ -160,6 +160,9 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 			}
 			out = append(out, written)
 		}
+		if err := m.dropAnswersNotCarried(tx, formID, memberID, in); err != nil {
+			return err
+		}
 		return m.writeSubmission(tx, formID, memberID, chapterID, now)
 	})
 	if err != nil {
@@ -231,6 +234,17 @@ func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now 
 	default:
 		return models.Answer{}, err
 	}
+}
+
+func (m *formManager) dropAnswersNotCarried(tx *gorm.DB, formID, memberID string, carried []models.Answer) error {
+	if len(carried) == 0 {
+		return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ?", formID, memberID)
+	}
+	kept := make([]string, 0, len(carried))
+	for _, a := range carried {
+		kept = append(kept, a.QuestionID)
+	}
+	return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ? AND question_id NOT IN ?", formID, memberID, kept)
 }
 
 func (m *formManager) ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {

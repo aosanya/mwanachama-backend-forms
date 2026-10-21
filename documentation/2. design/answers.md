@@ -87,9 +87,9 @@ somebody who never opened it.
   keeps the row, its `submitted_at` and its `chapter_id`, and moves
   `edited_at`; each answer it carries edits that member's answer to the
   same question in place, as before. Empty-then-answers and
-  answers-then-empty both leave one row. An empty resend leaves the answers
-  already given standing: a send writes what it carries and removes
-  nothing.
+  answers-then-empty both leave one row. What happens to the answers a
+  resend does not carry is the next section's: since F31 a send replaces
+  the whole set.
 - **"Answered" now means "sent".** The waiting list's `answered`, the
   answered list (`GET /forms/answered`) and the register's `respondents`
   read the submission, not the answers. The answered list's `answered_at` is
@@ -120,3 +120,28 @@ somebody who never opened it.
   `edited_at` and the answer's `chapter_id`. It is one statement, idempotent,
   on SQLite and Postgres alike; the id it gives such a row is
   `<form_id>:<member_id>`, which is as opaque to callers as any other.
+
+## A send replaces the whole set
+
+Decided 2026-10-21 by the owner (`mwanachama-frontend-member`'s decision
+142) and built as F31. It settles what F30 left: before this, a send wrote
+what it carried and removed nothing, so a member who opened an answered
+form, turned an answer back to Skipped and sent it again still had the old
+answer on record.
+
+- **A send is the member's whole set of answers on that form**, as decision
+  70 already said of a submission. In the same transaction as the answers
+  it carries and the submission, `SubmitAnswers` deletes every answer the
+  caller holds on that form for a question the send does not carry.
+- **An answer that is carried still edits in place**: it keeps its id, its
+  `answered_at` and its `chapter_id`, and only `edited_at` moves.
+- **An all-empty send keeps the form answered with no answers.** The
+  submission stays (decision 123) with `answers: 0`, and the member's
+  answers are gone. A refused send — a required question unanswered, a form
+  not open, outside its window — removes nothing, because nothing is
+  written.
+- **Only the caller's answers on that one form are touched.** Another
+  member's, and the caller's on any other form, are left alone.
+- An answer to a question version that has since been superseded is not
+  carried by a send made against the current version, so it is removed with
+  the rest. The answer to the current version is what stands.

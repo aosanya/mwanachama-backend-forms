@@ -165,6 +165,10 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   [window.md](documentation/2.%20design/window.md).
 - **A resubmitted answer edits in place** and keeps the time and group the
   first answer was given from; only `edited_at` moves.
+- **A send replaces the member's whole set of answers on that form** (F31).
+  An answer the send does not carry is deleted in the same transaction, so
+  an answer taken back to Skipped is gone; see
+  [answers.md](documentation/2.%20design/answers.md#a-send-replaces-the-whole-set).
 - **A failed publish leaves the form unpublished.** The status change, the
   link and the propagation rows are one transaction, so a colliding link key
   is a clean 409 and the form is still publishable.
