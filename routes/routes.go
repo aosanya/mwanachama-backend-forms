@@ -31,6 +31,8 @@ var sentinels = map[string]error{
 	"ErrNotWithdrawable":     forms.ErrNotWithdrawable,
 	"ErrNotSubmitted":        forms.ErrNotSubmitted,
 	"ErrAwaitingApproval":    forms.ErrAwaitingApproval,
+	"ErrNotApproved":         forms.ErrNotApproved,
+	"ErrSelfApproval":        forms.ErrSelfApproval,
 	"ErrNotOpen":             forms.ErrNotOpen,
 	"ErrPublished":           forms.ErrPublished,
 	"ErrPublicFormNoTargets": forms.ErrPublicFormNoTargets,

@@ -39,6 +39,8 @@ var (
 	ErrNotSubmitted        = errors.New("mwanachamaforms: form is not awaiting approval")
 	ErrMissingNote         = errors.New("mwanachamaforms: a note is required to refuse")
 	ErrAwaitingApproval    = errors.New("mwanachamaforms: form is awaiting approval")
+	ErrNotApproved         = errors.New("mwanachamaforms: form has not been cleared to publish")
+	ErrSelfApproval        = errors.New("mwanachamaforms: a form cannot be cleared by its own author")
 	ErrNotOpen             = errors.New("mwanachamaforms: form is not open")
 	ErrPublished           = errors.New("mwanachamaforms: a published form cannot be deleted")
 	ErrPublicFormNoTargets = errors.New("mwanachamaforms: a public-audience form cannot carry targets")

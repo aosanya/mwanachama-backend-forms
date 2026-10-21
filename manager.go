@@ -128,6 +128,8 @@ type FormManager interface {
 
 	UseNames(n Names)
 
+	UseApprovalRequired(required bool)
+
 	Submit(ctx context.Context, id, submittedBy string) (models.Form, error)
 
 	Withdraw(ctx context.Context, id, actorID string) (models.Form, error)
@@ -206,6 +208,8 @@ type formManager struct {
 	st     *store
 	groups Groups
 	names  Names
+
+	approvalRequired bool
 }
 
 func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {

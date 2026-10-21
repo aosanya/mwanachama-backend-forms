@@ -178,7 +178,11 @@ func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publish
 		return f, models.PublicLink{}, nil
 	case models.StatusSubmitted:
 		return models.Form{}, models.PublicLink{}, ErrAwaitingApproval
-	case models.StatusDraft, models.StatusApproved:
+	case models.StatusDraft:
+		if m.approvalRequired {
+			return models.Form{}, models.PublicLink{}, ErrNotApproved
+		}
+	case models.StatusApproved:
 	default:
 		return models.Form{}, models.PublicLink{}, ErrNotDraft
 	}

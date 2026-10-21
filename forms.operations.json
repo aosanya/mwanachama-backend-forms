@@ -11,6 +11,8 @@
     "ErrNotWithdrawable": 409,
     "ErrNotSubmitted": 409,
     "ErrAwaitingApproval": 409,
+    "ErrNotApproved": 409,
+    "ErrSelfApproval": 403,
     "ErrNotOpen": 409,
     "ErrPublished": 409,
     "ErrPublicFormNoTargets": 409,
@@ -215,7 +217,7 @@
       "description": "Decide the open round in favour, which clears the instrument to be published.",
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument awaiting a decision."},
-        {"from": "body", "as": "approver_id", "description": "Who is deciding."},
+        {"from": "caller", "as": "approver_id"},
         {"from": "body", "as": "note", "description": "Anything they want recorded with it."}
       ],
       "returns": [{"body": true}]
@@ -229,7 +231,7 @@
       "description": "Decide the open round against, sending the instrument back to draft. A refusal has to say why.",
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument awaiting a decision."},
-        {"from": "body", "as": "approver_id", "description": "Who is deciding."},
+        {"from": "caller", "as": "approver_id"},
         {"from": "body", "as": "note", "description": "Why it was refused. Required."}
       ],
       "returns": [{"body": true}]

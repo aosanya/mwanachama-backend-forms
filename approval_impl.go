@@ -12,6 +12,12 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
+func (m *formManager) UseApprovalRequired(required bool) { m.approvalRequired = required }
+
+func (m *formManager) isAuthor(f models.Form, actorID string) bool {
+	return actorID != "" && (actorID == f.CreatedBy || actorID == f.SubmittedBy)
+}
+
 var errNoOpenApproval = errors.New("mwanachamaforms: no open approval")
 
 func (m *formManager) openApproval(ctx context.Context, formID string) (models.Approval, bool, error) {
@@ -99,6 +105,9 @@ func (m *formManager) decide(ctx context.Context, id, approverID, note string, d
 	}
 	if f.Status != models.StatusSubmitted {
 		return models.Form{}, ErrNotSubmitted
+	}
+	if m.approvalRequired && decision == models.DecisionApproved && m.isAuthor(f, approverID) {
+		return models.Form{}, ErrSelfApproval
 	}
 	submittedBy := f.SubmittedBy
 
