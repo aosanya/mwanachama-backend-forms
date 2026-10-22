@@ -486,6 +486,30 @@
       ],
       "returns": [{"body": true}]
     },
+    "list_declarations": {
+      "method": "GET",
+      "path": "/forms/{form_id}/declarations",
+      "call": "ListDeclarations",
+      "action": "forms.declaration.list",
+      "title": "Which groups respondents said they are in",
+      "description": "Every group an anonymous respondent declared on one instrument through its shareable link, oldest first, each with the group picked from the list or the text typed where none fitted. An operator's read, gated like everyone's answers.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument declared on."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "count_declarations": {
+      "method": "GET",
+      "path": "/forms/{form_id}/declarations/count",
+      "call": "CountDeclarations",
+      "action": "forms.declaration.count",
+      "title": "How many respondents declared each group",
+      "description": "How many anonymous respondents declared each group on one instrument through its shareable link, one count per group, in group order. Declarations made by typed text alone count under an empty group. An operator's read, gated like everyone's answers.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument declared on."}
+      ],
+      "returns": [{"body": true}]
+    },
 
     "open_public_link": {
       "method": "GET",

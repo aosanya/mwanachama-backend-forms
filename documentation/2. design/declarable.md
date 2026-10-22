@@ -28,6 +28,16 @@ after the link has resolved and before anything is written:
 declared group, sorted by group; declarations made by free text alone count
 under the empty `chapter_id`.
 
-Both are manager methods only. No address in `forms.operations.json` serves
-them yet; exposing them needs an action id and a grant, which is the host's
-next step (wakala-api WK167).
+Both are declared operations, each with an action of its own and neither
+anonymous:
+
+| Address | Action |
+| --- | --- |
+| `GET /forms/{form_id}/declarations` | `forms.declaration.list` |
+| `GET /forms/{form_id}/declarations/count` | `forms.declaration.count` |
+
+They are an operator's read, gated apart from `forms.declaration.create`
+the way everyone's answers (`forms.answer.list_all`) are gated apart from
+answering, so a respondent's grant to declare never carries a grant to read
+what others declared. Who holds the two grants is the host's to say
+(wakala-api WK167).
