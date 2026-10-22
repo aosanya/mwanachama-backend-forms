@@ -28,6 +28,9 @@ func (m *formManager) PutTranslation(ctx context.Context, t models.Translation) 
 	if err := m.find(ctx, roleForm, t.FormID, &f, ErrFormNotFound); err != nil {
 		return models.Translation{}, err
 	}
+	if err := m.subjectOfForm(ctx, t); err != nil {
+		return models.Translation{}, err
+	}
 	t.UpdatedAt = models.NowRFC3339()
 	var held models.Translation
 	err := m.take(m.q(ctx, roleTranslation).
@@ -51,6 +54,29 @@ func (m *formManager) PutTranslation(ctx context.Context, t models.Translation) 
 		return models.Translation{}, fmt.Errorf("PutTranslation: %w", err)
 	}
 	return t, nil
+}
+
+func (m *formManager) subjectOfForm(ctx context.Context, t models.Translation) error {
+	var count int64
+	var err error
+	switch t.SubjectRole {
+	case models.TranslationOfForm:
+		if t.SubjectID == t.FormID {
+			return nil
+		}
+	case models.TranslationOfQuestion:
+		err = m.q(ctx, roleQuestion).Where("id = ? AND form_id = ?", t.SubjectID, t.FormID).Count(&count).Error
+	case models.TranslationOfOption:
+		questions := m.q(ctx, roleQuestion).Select("id").Where("form_id = ?", t.FormID)
+		err = m.q(ctx, roleQuestionOption).Where("id = ? AND question_id IN (?)", t.SubjectID, questions).Count(&count).Error
+	}
+	if err != nil {
+		return fmt.Errorf("PutTranslation: %w", err)
+	}
+	if count == 0 {
+		return fmt.Errorf("%w: subject_id is not a %s of that instrument", ErrInvalidReference, t.SubjectRole)
+	}
+	return nil
 }
 
 func translationShape(t models.Translation) error {

@@ -39,7 +39,14 @@ The methods sit on the `Translator` interface, which `FormManager` embeds, so
 every manager a mount holds carries them and a shape built from
 `struct{ FormManager }` still dispatches the four operations below.
 
-- `PutTranslation` — write or replace one text. The form must exist.
+- `PutTranslation` — write or replace one text. The form must exist, and the
+  subject must be that form's: a `form` subject is the form itself, a
+  `question` subject is a question whose `form_id` is the form, and a
+  `question_option` subject is an option of one of the form's questions.
+  Anything else — another form's question or option, a question named as an
+  option or the other way round, an invented id — is refused as
+  `ErrInvalidReference`, so a text can never be filed under one form and
+  overlaid on another's object.
 - `ListTranslations` — every text of a form, reviewed or not, for review.
 - `ReviewedTranslations(form, language)` — the reviewed texts only; what a
   read in that language overlays on the original.
@@ -81,4 +88,3 @@ among them, which is not yet decided.
 - Reads that take a language: `get_form`, `list_questions`, `list_options`
   and the public-link questions overlaying the reviewed texts and answering
   the available languages.
-- Checking that `subject_id` names a question or option of that form.

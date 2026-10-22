@@ -62,8 +62,9 @@ func TestF41_ACorrectionReplacesAndNeedsReviewAgain(t *testing.T) {
 	ctx := context.Background()
 	mgr, tr := translator(t)
 	f := newDraftForm(t, mgr)
+	q := addTranslatableQuestion(t, mgr, f.ID)
 	tl := models.Translation{
-		FormID: f.ID, SubjectRole: models.TranslationOfQuestion, SubjectID: "q-1",
+		FormID: f.ID, SubjectRole: models.TranslationOfQuestion, SubjectID: q.ID,
 		Field: "prompt", Language: "sw", Text: "Swali", Reviewed: true,
 	}
 	if _, err := tr.PutTranslation(ctx, tl); err != nil {
@@ -110,5 +111,65 @@ func TestF41_AFormKeepsTheLanguageItWasWrittenIn(t *testing.T) {
 	got, err := mgr.Get(ctx, f.ID)
 	if err != nil || got.Language != "hu" {
 		t.Fatalf("Get = %+v %v, want the language it was written in", got, err)
+	}
+}
+
+func addTranslatableQuestion(t *testing.T, mgr mwanachamaforms.FormManager, formID string) mwanachamaforms.Question {
+	t.Helper()
+	q, _, err := mgr.AddQuestion(context.Background(), mwanachamaforms.QuestionDraft{Question: mwanachamaforms.Question{
+		FormID: formID, AnswerType: mwanachamaforms.AnswerSingleChoice, Prompt: "Which ward?",
+	}})
+	if err != nil {
+		t.Fatalf("AddQuestion: %v", err)
+	}
+	return q
+}
+
+func TestF41_ATranslationSubjectMustBelongToTheNamedForm(t *testing.T) {
+	ctx := context.Background()
+	mgr, tr := translator(t)
+	mine := newDraftForm(t, mgr)
+	other := newDraftForm(t, mgr)
+	myQuestion := addTranslatableQuestion(t, mgr, mine.ID)
+	otherQuestion := addTranslatableQuestion(t, mgr, other.ID)
+	myOption, err := mgr.AddOption(ctx, myQuestion.ID, "North", "")
+	if err != nil {
+		t.Fatalf("AddOption: %v", err)
+	}
+	otherOption, err := mgr.AddOption(ctx, otherQuestion.ID, "South", "")
+	if err != nil {
+		t.Fatalf("AddOption: %v", err)
+	}
+	put := func(role models.TranslationSubject, subject string) error {
+		_, err := tr.PutTranslation(ctx, models.Translation{
+			FormID: mine.ID, SubjectRole: role, SubjectID: subject,
+			Field: "text", Language: "sw", Text: "x",
+		})
+		return err
+	}
+	for name, err := range map[string]error{
+		"own question": put(models.TranslationOfQuestion, myQuestion.ID),
+		"own option":   put(models.TranslationOfOption, myOption.Option.ID),
+		"own form":     put(models.TranslationOfForm, mine.ID),
+	} {
+		if err != nil {
+			t.Errorf("%s refused: %v", name, err)
+		}
+	}
+	for name, err := range map[string]error{
+		"another form's question":     put(models.TranslationOfQuestion, otherQuestion.ID),
+		"another form's option":       put(models.TranslationOfOption, otherOption.Option.ID),
+		"another form as the subject": put(models.TranslationOfForm, other.ID),
+		"an option named as question": put(models.TranslationOfQuestion, myOption.Option.ID),
+		"a question named as option":  put(models.TranslationOfOption, myQuestion.ID),
+		"an invented question":        put(models.TranslationOfQuestion, "q-invented"),
+	} {
+		if !errors.Is(err, mwanachamaforms.ErrInvalidReference) {
+			t.Errorf("%s: err = %v, want ErrInvalidReference", name, err)
+		}
+	}
+	all, _ := tr.ListTranslations(ctx, mine.ID)
+	if len(all) != 3 {
+		t.Fatalf("stored %d translations, want the 3 accepted", len(all))
 	}
 }
