@@ -82,3 +82,33 @@ func TestPublishingResultsRecordsVersionsAndAResidentReadsTheLatest(t *testing.T
 		t.Fatalf("outsider %d %q, missing %d %q", outsider.Code, outsider.Body.String(), missing.Code, missing.Body.String())
 	}
 }
+
+func TestAReportOnAFormAimedAtSeveralGroupsIsReadInEveryOne(t *testing.T) {
+	fm := newTestManager(t)
+	fm.UseGroups(groupsOf(map[string][]string{"alice": {"ward-1"}, "bob": {"ward-2"}, "carol": {"ward-3"}}))
+	f := publish(t, fm, composeForm(t, fm, "Water", "council", []string{"ward-1", "ward-2"}, 1))
+	if _, err := fm.Close(context.Background(), f.ID, "clerk"); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+	h := mountAsCaller(t, fm)
+	path := "/forms/" + f.ID + "/results"
+	if rec := callAs(t, h, http.MethodPost, path, "clerk", `{"git_path":"r/water.md","git_commit":"abc"}`); rec.Code != http.StatusCreated {
+		t.Fatalf("publish: status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+
+	for _, reader := range []string{"alice", "bob"} {
+		rec := callAs(t, h, http.MethodGet, path+"/latest", reader, "")
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s reads: status = %d, body = %s", reader, rec.Code, rec.Body.String())
+		}
+		if got := reportOf(t, rec); got.GitCommit != "abc" {
+			t.Fatalf("%s reads %+v", reader, got)
+		}
+	}
+
+	outsider := callAs(t, h, http.MethodGet, path+"/latest", "carol", "")
+	missing := callAs(t, h, http.MethodGet, "/forms/no-such-form/results/latest", "carol", "")
+	if outsider.Code != http.StatusNotFound || outsider.Body.String() != missing.Body.String() {
+		t.Fatalf("outsider %d %q, missing %d %q", outsider.Code, outsider.Body.String(), missing.Code, missing.Body.String())
+	}
+}

@@ -70,8 +70,28 @@ func (m *formManager) LatestResults(ctx context.Context, formID, callerID string
 	if err != nil {
 		return models.ResultReport{}, fmt.Errorf("LatestResults: %w", err)
 	}
-	if !slices.Contains(groups, report.ChapterID) {
+	reaches, err := m.reportReaches(ctx, report, groups)
+	if err != nil {
+		return models.ResultReport{}, fmt.Errorf("LatestResults: %w", err)
+	}
+	if !reaches {
 		return models.ResultReport{}, ErrReportNotFound
 	}
 	return report, nil
+}
+
+func (m *formManager) reportReaches(ctx context.Context, report models.ResultReport, groups []string) (bool, error) {
+	if slices.Contains(groups, report.ChapterID) {
+		return true, nil
+	}
+	targets, err := m.ListTargets(unnarrowed(ctx), report.FormID)
+	if err != nil {
+		return false, err
+	}
+	for _, t := range targets {
+		if slices.Contains(groups, t.ChapterID) {
+			return true, nil
+		}
+	}
+	return false, nil
 }

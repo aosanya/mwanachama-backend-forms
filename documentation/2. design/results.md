@@ -20,8 +20,8 @@ forms' own; the records built from them live in catalog (CAT48).
   `ErrInvalidReport` (400).
 - `published_by` is bound `from: caller`, so a body naming somebody else is
   overwritten.
-- The group is the form's **one target** (F20), never the body's. A form with
-  no target is `ErrNoTarget` (409).
+- The group is never the body's. The row's `chapter_id` is the form's
+  **first target**; a form with no target is `ErrNoTarget` (409).
 - Publishing again records the **next version** (1, 2, 3 …) and leaves the
   earlier rows alone; the `(form_id, version)` index is unique. Each publish
   also sets the form's `results_published_at`, in the same transaction.
@@ -33,10 +33,15 @@ applies to `forms.results.publish` (member app Q18).
 
 - Action `forms.results.read`; the caller is bound `from: caller`.
 - Answers the newest version for a caller whose groups (the host's `Groups`
-  resolver) include the report's group.
+  resolver) include **any of the form's targets** (F34, member app decision
+  236): a report on a form aimed at several groups reaches every one of them.
+  Targets are fixed once a form leaves draft, so the set a report reaches
+  cannot move after it is published. Reach into a target's sub-groups is the
+  host's `Groups` resolver's (wakala-api WK167), not forms'.
 - A form with no report, a report published to none of the caller's groups,
   a caller with no session and a mount with no `Groups` all answer
   `ErrReportNotFound` (404) — the same answer as a form that does not exist,
   so the read cannot be used to learn which forms have reports.
 
-Pinned by `routes/f32_publishing_results_test.go`.
+Pinned by `routes/f32_publishing_results_test.go`, including
+`TestAReportOnAFormAimedAtSeveralGroupsIsReadInEveryOne`.

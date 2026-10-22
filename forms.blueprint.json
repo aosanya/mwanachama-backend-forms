@@ -232,7 +232,7 @@
       "fields": [
         {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
         {"name": "form_id", "type": "string", "description": "The closed instrument the report is about.", "required": true},
-        {"name": "chapter_id", "type": "string", "description": "The group it is readable to, which is the one group the instrument was aimed at.", "required": true},
+        {"name": "chapter_id", "type": "string", "description": "The first group the instrument was aimed at. The report is readable to every group it was aimed at, which are fixed once it leaves draft.", "required": true},
         {"name": "version", "type": "int", "description": "Which publishing this is, counting from one. Publishing again adds the next one and leaves the earlier ones alone."},
         {"name": "git_path", "type": "string", "description": "Where the report sits in the repository that holds it, as the host supplied it.", "required": true},
         {"name": "git_commit", "type": "string", "description": "The commit that holds this version of the report, as the host supplied it.", "required": true},
