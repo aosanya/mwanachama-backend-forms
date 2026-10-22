@@ -3,6 +3,7 @@ package mwanachamaforms_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
 )
@@ -62,11 +63,11 @@ func TestAnOrdinaryFormStillEditsItsOneSend(t *testing.T) {
 func TestStandingIsChosenAtComposeAndKeptThroughAnEdit(t *testing.T) {
 	mgr, _ := newTestManagerDB(t)
 	ctx := context.Background()
-	f, _ := composeAimedForm(t, mgr, mwanachamaforms.Form{Title: "Issues", Standing: true})
-	cur, _ := mgr.Get(ctx, f.ID)
-	if cur.Status != mwanachamaforms.StatusDraft {
-		t.Skip("form is not a draft after compose")
+	f, err := mgr.Create(ctx, mwanachamaforms.Form{Title: "Issues", OriginatorChapterID: "council", ClosesAt: futureRFC3339(24 * time.Hour), Standing: true})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
 	}
+	cur, _ := mgr.Get(ctx, f.ID)
 	cur.Standing = false
 	if _, err := mgr.Update(ctx, cur); err != nil {
 		t.Fatalf("Update: %v", err)
