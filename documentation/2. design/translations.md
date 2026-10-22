@@ -115,6 +115,17 @@ well, and must, or an unissued instance would reach the nil manager instead
 of refusing. A host mounting the anonymous half over a stand-in of its own
 has to override the `In` call too.
 
+## Lists in a language
+
+`list_waiting_forms` and `list_answered_forms` take the same optional
+`language` query argument, declared against `ListWaitingIn` and
+`ListAnsweredIn`. Each calls the list it replaces first and overlays only the
+form's `title`, from its reviewed text in that language; every other field,
+and any form with no reviewed title in it, is listed as composed. The reviewed
+texts are read once per form, so a form listed once per group answered as
+costs one read. The texts come through `ReviewedTranslations`, so a
+`ReachedOnly` caller is held to the same reach as the list itself.
+
 ## A hidden form has no languages
 
 `TranslationLanguages` and `ReviewedTranslations` answer under `ReachedOnly`

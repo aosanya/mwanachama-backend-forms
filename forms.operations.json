@@ -70,21 +70,27 @@
     "list_waiting_forms": {
       "method": "GET",
       "path": "/forms/waiting",
-      "call": "ListWaiting",
+      "call": "ListWaitingIn",
       "action": "forms.form.list_waiting",
       "title": "Forms waiting for me",
       "description": "The open instruments that reached any group the caller is in, soonest closing first, each with the group that sent it, how many prompts it asks, when it closes, which of the caller's groups it reached, which groups the caller has sent as, which groups it was sent to that the caller is in and has not yet sent as, and whether the caller has answered as every one of them. It carries nobody else's figures. The groups come from the mount, never from the request, and a mount that supplies none reaches nobody.",
-      "args": [{"from": "caller", "as": "caller_id", "description": "The caller, from the session."}],
+      "args": [
+        {"from": "caller", "as": "caller_id", "description": "The caller, from the session."},
+        {"from": "query", "as": "language", "description": "A language tag to read the titles in. Each instrument with a reviewed title in that language is listed under it; an unknown or unreviewed language, or none, lists the original title."}
+      ],
       "returns": [{"body": true}]
     },
     "list_answered_forms": {
       "method": "GET",
       "path": "/forms/answered",
-      "call": "ListAnswered",
+      "call": "ListAnsweredIn",
       "action": "forms.form.list_answered",
       "title": "Forms I answered",
       "description": "Every instrument the caller has an answer on, open or closed, newest sent first, each with the group that sent it, when it was sent, its window, where it has got to, whether it can still be answered, and when the caller first answered and last edited. It carries nobody else's figures. The caller comes from the session, never from the request.",
-      "args": [{"from": "caller", "as": "caller_id", "description": "The caller, from the session."}],
+      "args": [
+        {"from": "caller", "as": "caller_id", "description": "The caller, from the session."},
+        {"from": "query", "as": "language", "description": "A language tag to read the titles in. Each instrument with a reviewed title in that language is listed under it; an unknown or unreviewed language, or none, lists the original title."}
+      ],
       "returns": [{"body": true}]
     },
     "get_form": {

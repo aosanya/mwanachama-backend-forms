@@ -12,6 +12,8 @@ type TranslatedReader interface {
 	ListQuestionsIn(ctx context.Context, formID, language string) ([]models.Question, error)
 	ListOptionsIn(ctx context.Context, questionID, language string) ([]models.QuestionOption, error)
 	PublicLinkQuestionsIn(ctx context.Context, key, language string) ([]models.LinkedQuestion, error)
+	ListWaitingIn(ctx context.Context, callerID, language string) ([]models.WaitingForm, error)
+	ListAnsweredIn(ctx context.Context, callerID, language string) ([]models.AnsweredForm, error)
 }
 
 type reviewedTexts map[[2]string]string
@@ -102,4 +104,55 @@ func overOptions(texts reviewedTexts, options []models.QuestionOption) {
 	for i := range options {
 		texts.over(options[i].ID, "label", &options[i].Label)
 	}
+}
+
+func (m *formManager) ListWaitingIn(ctx context.Context, callerID, language string) ([]models.WaitingForm, error) {
+	rows, err := m.ListWaiting(ctx, callerID)
+	if err != nil || len(rows) == 0 || language == "" {
+		return rows, err
+	}
+	titles := m.titlesIn(language)
+	for i := range rows {
+		if err := titles.over(ctx, rows[i].FormID, &rows[i].Title); err != nil {
+			return nil, fmt.Errorf("ListWaitingIn: %w", err)
+		}
+	}
+	return rows, nil
+}
+
+func (m *formManager) ListAnsweredIn(ctx context.Context, callerID, language string) ([]models.AnsweredForm, error) {
+	rows, err := m.ListAnswered(ctx, callerID)
+	if err != nil || len(rows) == 0 || language == "" {
+		return rows, err
+	}
+	titles := m.titlesIn(language)
+	for i := range rows {
+		if err := titles.over(ctx, rows[i].FormID, &rows[i].Title); err != nil {
+			return nil, fmt.Errorf("ListAnsweredIn: %w", err)
+		}
+	}
+	return rows, nil
+}
+
+type formTitles struct {
+	m        *formManager
+	language string
+	byForm   map[string]reviewedTexts
+}
+
+func (m *formManager) titlesIn(language string) *formTitles {
+	return &formTitles{m: m, language: language, byForm: map[string]reviewedTexts{}}
+}
+
+func (t *formTitles) over(ctx context.Context, formID string, title *string) error {
+	texts, ok := t.byForm[formID]
+	if !ok {
+		var err error
+		if texts, err = t.m.reviewedTextsOf(ctx, formID, t.language); err != nil {
+			return err
+		}
+		t.byForm[formID] = texts
+	}
+	texts.over(formID, "title", title)
+	return nil
 }
