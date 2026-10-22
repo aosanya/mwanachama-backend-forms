@@ -228,11 +228,12 @@
     },
     {
       "role": "result_report",
-      "description": "One version of the report on what a closed instrument collected, made readable to the group it was aimed at. The report itself lives elsewhere; this records where, and who put it there.",
+      "description": "One version of the report on what a closed instrument collected, made readable to the groups its publisher chose and the groups inside them. The report itself lives elsewhere; this records where, and who put it there.",
       "fields": [
         {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
         {"name": "form_id", "type": "string", "description": "The closed instrument the report is about.", "required": true},
-        {"name": "chapter_id", "type": "string", "description": "The first group the instrument was aimed at. The report is readable to every group it was aimed at, which are fixed once it leaves draft.", "required": true},
+        {"name": "chapter_id", "type": "string", "description": "The first group the report was published to.", "required": true},
+        {"name": "chapter_ids", "type": "json", "description": "Every group the report was published to, chosen by the publisher from any group of the agency, or the groups the instrument was aimed at when none were chosen. A caller reads it when a group the host names for them is one of these, which is how a chosen group's inner groups read it too. Empty on a report older than the field, which every group the instrument was aimed at reads."},
         {"name": "version", "type": "int", "description": "Which publishing this is, counting from one. Publishing again adds the next one and leaves the earlier ones alone."},
         {"name": "git_path", "type": "string", "description": "Where the report sits in the repository that holds it, as the host supplied it.", "required": true},
         {"name": "git_commit", "type": "string", "description": "The commit that holds this version of the report, as the host supplied it.", "required": true},

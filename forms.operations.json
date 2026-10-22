@@ -186,11 +186,12 @@
       "action": "forms.results.publish",
       "status": 201,
       "title": "Publish a form's report",
-      "description": "Record the report on what a closed instrument collected: where it sits and at which commit, both supplied by the host. It is readable to the one group the instrument was aimed at, and it sets when the results were published. Publishing again records the next version. An instrument that is not closed is refused.",
+      "description": "Record the report on what a closed instrument collected: where it sits and at which commit, both supplied by the host. It is readable to the groups the publisher chooses, any group of the agency, and the groups inside them; with none chosen it goes to every group the instrument was aimed at. It sets when the results were published. Publishing again records the next version. An instrument that is not closed is refused.",
       "args": [
         {"from": "path", "as": "form_id", "description": "The closed instrument the report is about."},
         {"from": "body", "as": "git_path", "description": "Where the report sits in the repository that holds it."},
         {"from": "body", "as": "git_commit", "description": "The commit that holds this version of it."},
+        {"from": "body", "as": "chapter_ids", "description": "The groups to publish it to, any group of the agency. Optional; omitted, it goes to every group the instrument was aimed at."},
         {"from": "caller", "as": "published_by"}
       ],
       "returns": [{"body": true}]
@@ -201,7 +202,7 @@
       "call": "LatestResults",
       "action": "forms.results.read",
       "title": "Read a form's report",
-      "description": "Where the newest report on an instrument sits, for a caller in the group it was published to. A form with no report, and one whose report went to none of the caller's groups, answer exactly as a missing one.",
+      "description": "Where the newest report on an instrument sits, for a caller in a group it was published to or a group inside one, as the host names the caller's groups. A form with no report, and one whose report went to none of the caller's groups, answer exactly as a missing one.",
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument whose report to read."},
         {"from": "caller", "as": "caller_id"}

@@ -12,7 +12,7 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-func (m *formManager) PublishResults(ctx context.Context, formID, gitPath, gitCommit, publishedBy string) (models.ResultReport, error) {
+func (m *formManager) PublishResults(ctx context.Context, formID, gitPath, gitCommit string, chapterIDs []string, publishedBy string) (models.ResultReport, error) {
 	gitPath, gitCommit = strings.TrimSpace(gitPath), strings.TrimSpace(gitCommit)
 	if gitPath == "" || gitCommit == "" || publishedBy == "" {
 		return models.ResultReport{}, ErrInvalidReport
@@ -28,12 +28,13 @@ func (m *formManager) PublishResults(ctx context.Context, formID, gitPath, gitCo
 	if err != nil {
 		return models.ResultReport{}, fmt.Errorf("PublishResults: %w", err)
 	}
-	if len(targets) == 0 {
+	chosen := chosenGroups(chapterIDs, targets)
+	if len(chosen) == 0 {
 		return models.ResultReport{}, ErrNoTarget
 	}
 	now := models.NowRFC3339()
 	report := models.ResultReport{
-		ID: newID(), FormID: formID, ChapterID: targets[0].ChapterID,
+		ID: newID(), FormID: formID, ChapterID: chosen[0], ChapterIDs: chosen,
 		GitPath: gitPath, GitCommit: gitCommit, PublishedBy: publishedBy, PublishedAt: now,
 	}
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -80,9 +81,33 @@ func (m *formManager) LatestResults(ctx context.Context, formID, callerID string
 	return report, nil
 }
 
+func chosenGroups(chapterIDs []string, targets []models.Target) []string {
+	if chapterIDs == nil {
+		for _, t := range targets {
+			chapterIDs = append(chapterIDs, t.ChapterID)
+		}
+	}
+	var chosen []string
+	for _, id := range chapterIDs {
+		id = strings.TrimSpace(id)
+		if id != "" && !slices.Contains(chosen, id) {
+			chosen = append(chosen, id)
+		}
+	}
+	return chosen
+}
+
 func (m *formManager) reportReaches(ctx context.Context, report models.ResultReport, groups []string) (bool, error) {
 	if slices.Contains(groups, report.ChapterID) {
 		return true, nil
+	}
+	if len(report.ChapterIDs) > 0 {
+		for _, id := range report.ChapterIDs {
+			if slices.Contains(groups, id) {
+				return true, nil
+			}
+		}
+		return false, nil
 	}
 	targets, err := m.ListTargets(unnarrowed(ctx), report.FormID)
 	if err != nil {

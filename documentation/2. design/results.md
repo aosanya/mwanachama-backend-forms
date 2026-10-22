@@ -1,8 +1,9 @@
 # Publishing a closed form's report (F32)
 
 Member app decisions 210 and 212 (owner, 2026-10-21). Once a form is closed,
-its report — what it collected, written up — is published to the group it was
-aimed at, and a resident in that group can find it.
+its report — what it collected, written up — is published to the groups the
+publisher chooses (F39), and a resident in one of them, or in a group inside
+one, can find it.
 
 ## What forms stores, and what it does not
 
@@ -20,8 +21,15 @@ forms' own; the records built from them live in catalog (CAT48).
   `ErrInvalidReport` (400).
 - `published_by` is bound `from: caller`, so a body naming somebody else is
   overwritten.
-- The group is never the body's. The row's `chapter_id` is the form's
-  **first target**; a form with no target is `ErrNoTarget` (409).
+- **The groups are the publisher's to choose** (F39, member app decision
+  245, amending 210). The optional body `chapter_ids` names one or more
+  groups, any group of the agency rather than only the form's targets: a
+  form sent to traders may be reported to traders and the finance
+  committee. Forms does not know the agency's groups, so checking that each
+  id is one is the host's. Blanks and repeats are dropped, in the order
+  given. Omitted, the report goes to **every target** (the studio starts
+  them ticked). The row stores the list as `chapter_ids` and its first entry
+  as `chapter_id`; nothing chosen and no target is `ErrNoTarget` (409).
 - Publishing again records the **next version** (1, 2, 3 …) and leaves the
   earlier rows alone; the `(form_id, version)` index is unique. Each publish
   also sets the form's `results_published_at`, in the same transaction.
@@ -33,15 +41,19 @@ applies to `forms.results.publish` (member app Q18).
 
 - Action `forms.results.read`; the caller is bound `from: caller`.
 - Answers the newest version for a caller whose groups (the host's `Groups`
-  resolver) include **any of the form's targets** (F34, member app decision
-  236): a report on a form aimed at several groups reaches every one of them.
-  Targets are fixed once a form leaves draft, so the set a report reaches
-  cannot move after it is published. Reach into a target's sub-groups is the
-  host's `Groups` resolver's (wakala-api WK167), not forms'.
+  resolver) include **any group the report was published to** (F39).
+  A group left unchosen does not read it, even a target of the form.
+- **A chosen group's inner groups read it too** (member app decision 246):
+  the host's `Groups` names a caller's own groups and every group they sit
+  inside (wakala-api WK167), so a resident of a sub-group matches the chosen
+  group above them. Forms walks no tree.
+- A report published before F39 carries no `chapter_ids`; it keeps F34's
+  rule and reaches every target of the form.
 - A form with no report, a report published to none of the caller's groups,
   a caller with no session and a mount with no `Groups` all answer
   `ErrReportNotFound` (404) — the same answer as a form that does not exist,
   so the read cannot be used to learn which forms have reports.
 
 Pinned by `routes/f32_publishing_results_test.go`, including
-`TestAReportOnAFormAimedAtSeveralGroupsIsReadInEveryOne`.
+`TestAReportOnAFormAimedAtSeveralGroupsIsReadInEveryOne`, and
+`routes/f39_report_to_chosen_groups_test.go`.

@@ -151,7 +151,7 @@ type FormManager interface {
 
 	Delete(ctx context.Context, id string) error
 
-	PublishResults(ctx context.Context, formID, gitPath, gitCommit, publishedBy string) (models.ResultReport, error)
+	PublishResults(ctx context.Context, formID, gitPath, gitCommit string, chapterIDs []string, publishedBy string) (models.ResultReport, error)
 
 	LatestResults(ctx context.Context, formID, callerID string) (models.ResultReport, error)
 
