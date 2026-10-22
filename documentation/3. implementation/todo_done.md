@@ -503,3 +503,27 @@ take `approver_id` from the caller. `approval.md`. Storing the setting per
 agency and calling it is wakala-api WK156. Open with the owner: when off, may
 an author still submit and clear their own form? Verified: `go build`,
 `go vet`, `gofmt`, `go test ./...` ok; wakala-api builds and its forms tests pass.
+
+## F39 — a report reaches the groups chosen at Publish, and their inner groups — 2026-10-22
+
+57a972c (merged as e0c2fec). `publish_results` takes optional `chapter_ids`,
+any group of the agency; omitted means every target, an emptied list is
+`ErrNoTarget`. `ResultReport.ChapterIDs` stored; a resident reads the latest
+report when the host's `Groups` names a chosen group (inner groups through the
+host, WK167); reports from before keep the every-target rule. `results.md`.
+Left for wakala-api WK155: checking each chosen id is a group of the agency.
+Verified: `go build`, `go vet`, `gofmt`, `go test ./...` ok; wakala-api builds
+and its forms tests pass.
+
+## F40 — one answer per member per target group: answering as — 2026-10-22
+
+1fa7346 (merged as 6cf31d1). `POST /forms/{form_id}/answers?as=<group>` calls
+`SubmitAnswersAs`; the group must be a target and in the host's `Groups`
+(`ErrInvalidAnswer` otherwise); no group keeps F34's first-target rule. Unique
+indexes per (form, member, group) and (question, member, group); a resend as
+one group never touches another; waiting forms carry `answered_as`, the
+answered list is one row per form and group, `ListSubmissions` counts per
+group. `Provision` drops the retired one-per-person indexes. `answers.md`.
+Open with the owner: should `GET /forms/{id}/submissions/mine` and
+`/answers/mine` take `?as=`? Verified: `go build`, `go vet`, `gofmt`,
+`go test ./...` ok; wakala-api builds and its forms tests pass.
