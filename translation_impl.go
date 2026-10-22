@@ -101,6 +101,9 @@ func (m *formManager) ListTranslations(ctx context.Context, formID string) ([]mo
 }
 
 func (m *formManager) ReviewedTranslations(ctx context.Context, formID, language string) ([]models.Translation, error) {
+	if hidden, err := m.formHiddenFromCaller(ctx, formID); err != nil || hidden {
+		return []models.Translation{}, err
+	}
 	out, err := listOf[models.Translation](m, m.q(ctx, roleTranslation).
 		Where("form_id = ? AND language = ? AND reviewed = ?", formID, language, true).
 		Order("subject_id, field"), roleTranslation)
@@ -111,6 +114,9 @@ func (m *formManager) ReviewedTranslations(ctx context.Context, formID, language
 }
 
 func (m *formManager) TranslationLanguages(ctx context.Context, formID string) ([]string, error) {
+	if hidden, err := m.formHiddenFromCaller(ctx, formID); err != nil || hidden {
+		return []string{}, err
+	}
 	var languages []string
 	err := m.q(ctx, roleTranslation).
 		Where("form_id = ? AND reviewed = ?", formID, true).

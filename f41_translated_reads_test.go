@@ -121,3 +121,29 @@ func TestF41_ALanguageDoesNotChangeARefusal(t *testing.T) {
 		t.Fatalf("link read in sw = %v %v, want exactly ErrLinkNotFound", linked, err)
 	}
 }
+
+func TestF41_AnUnreachedFormListsNoLanguagesAndNoReviewedTexts(t *testing.T) {
+	mgr, db := newTestManagerDB(t)
+	s := composeLinkedSurvey(t, mgr, "link-a")
+	translateLinkedSurvey(t, mgr, s)
+
+	open := context.Background()
+	if langs, err := mgr.TranslationLanguages(open, s.form.ID); err != nil || !reflect.DeepEqual(langs, []string{"sw"}) {
+		t.Fatalf("unnarrowed languages = %v %v", langs, err)
+	}
+	if served, err := mgr.ReviewedTranslations(open, s.form.ID, "sw"); err != nil || len(served) == 0 {
+		t.Fatalf("unnarrowed reviewed texts = %v %v", served, err)
+	}
+
+	setColumn(t, db, "form", "id", s.form.ID, "audience", "member")
+	stranger := mwanachamaforms.OnlyReached(context.Background(), "stranger")
+	if langs, err := mgr.TranslationLanguages(stranger, s.form.ID); err != nil || len(langs) != 0 {
+		t.Fatalf("an unreached form's languages were listed: %v %v", langs, err)
+	}
+	if served, err := mgr.ReviewedTranslations(stranger, s.form.ID, "sw"); err != nil || len(served) != 0 {
+		t.Fatalf("an unreached form's reviewed texts were listed: %v %v", served, err)
+	}
+	if langs, err := mgr.TranslationLanguages(stranger, "no-such-form"); err != nil || len(langs) != 0 {
+		t.Fatalf("a missing form's languages = %v %v", langs, err)
+	}
+}

@@ -115,6 +115,19 @@ well, and must, or an unissued instance would reach the nil manager instead
 of refusing. A host mounting the anonymous half over a stand-in of its own
 has to override the `In` call too.
 
+## A hidden form has no languages
+
+`TranslationLanguages` and `ReviewedTranslations` answer under `ReachedOnly`
+exactly as `list_questions` does: a form the narrowed caller is not reached
+by, and a form that does not exist, list no languages and no reviewed texts,
+with no error. So a resident cannot learn from `list_translation_languages`
+or `list_reviewed_translations` that a form they were not sent exists, or
+what it is about. An unnarrowed caller is unaffected.
+
+`ListTranslations`, which carries unreviewed drafts, is not narrowed here: it
+is the operator's read, and who may hold `forms.translation.list` is the
+mount's grant to decide.
+
 ## Not yet built
 
 - A read answering, beside its texts, the languages the form is available
