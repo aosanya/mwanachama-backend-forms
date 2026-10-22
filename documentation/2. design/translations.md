@@ -25,6 +25,14 @@ replaces it. A correction arrives with `reviewed` as the caller sends it, so
 a changed text sent unreviewed stops being served until it is reviewed again.
 A put naming a row held by another form or another subject role is refused.
 
+## The original language
+
+`form.language` is the tag the form was written in: what its own title,
+description, prompts and choices are in, and what a reader is shown when no
+reviewed text in their language exists. It is optional and empty when the
+composer named none. Whether it should be required, and whether it should
+count among the languages a read lists as available, is not yet decided.
+
 ## The manager
 
 The methods sit on the `Translator` interface, which `FormManager` embeds, so
@@ -57,7 +65,6 @@ open (decision 256 says the operator reviews, not who may draft).
 
 ## Not yet built
 
-- The form's own original language (a field on `form`).
 - Reads that take a language: `get_form`, `list_questions`, `list_options`
   and the public-link questions overlaying the reviewed texts and answering
   the available languages.

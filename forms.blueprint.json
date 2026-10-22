@@ -11,6 +11,7 @@
         {"name": "status", "type": "enum", "description": "Where it has got to: composed, sent for a decision, cleared, taking answers, or finished.", "default": "draft", "values": ["draft", "submitted", "approved", "open", "closed"]},
         {"name": "opens_at", "type": "timestamp", "description": "When it starts taking answers. Empty means the moment it is published."},
         {"name": "closes_at", "type": "timestamp", "description": "When it stops taking answers."},
+        {"name": "language", "type": "string", "description": "The language tag it was written in: what its own title, description, prompts and choices are in, and what a reader is shown when no reviewed translation in their language exists. Empty when the composer named none."},
         {"name": "window_advisory", "type": "bool", "description": "Whether opens_at and closes_at are only shown rather than kept. False, the default, means they are kept: it is not listed as waiting and takes no answers outside them. True means its status alone decides. Chosen when it is composed and never changed after."},
         {"name": "published_at", "type": "timestamp", "description": "When it was opened for answers."},
         {"name": "published_by", "type": "string", "description": "Who opened it."},

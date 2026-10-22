@@ -40,6 +40,7 @@ type Form struct {
 
 	OpensAt            string `json:"opens_at,omitempty"`
 	ClosesAt           string `json:"closes_at"`
+	Language           string `json:"language,omitempty"`
 	WindowAdvisory     bool   `json:"window_advisory"`
 	PublishedAt        string `json:"published_at,omitempty"`
 	PublishedBy        string `json:"published_by,omitempty"`

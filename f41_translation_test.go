@@ -5,6 +5,7 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
 
 	mwanachamaforms "github.com/aosanya/mwanachama-backend-forms"
 	"github.com/aosanya/mwanachama-backend-forms/models"
@@ -96,5 +97,18 @@ func TestF41_ATranslationNeedsARealFormAndSubject(t *testing.T) {
 	})
 	if !errors.Is(err, mwanachamaforms.ErrInvalidReference) {
 		t.Fatalf("bad subject role: %v", err)
+	}
+}
+
+func TestF41_AFormKeepsTheLanguageItWasWrittenIn(t *testing.T) {
+	mgr := newTestManager(t)
+	ctx := context.Background()
+	f, err := mgr.Create(ctx, mwanachamaforms.Form{Title: "Kérdőív", ClosesAt: futureRFC3339(time.Hour), Language: "hu"})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	got, err := mgr.Get(ctx, f.ID)
+	if err != nil || got.Language != "hu" {
+		t.Fatalf("Get = %+v %v, want the language it was written in", got, err)
 	}
 }
