@@ -14,4 +14,5 @@ type WaitingForm struct {
 	ReachedVia          []string `json:"reached_via"`
 	Answered            bool     `json:"answered"`
 	AnsweredAs          []string `json:"answered_as"`
+	UnansweredAs        []string `json:"unanswered_as"`
 }

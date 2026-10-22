@@ -73,7 +73,7 @@
       "call": "ListWaiting",
       "action": "forms.form.list_waiting",
       "title": "Forms waiting for me",
-      "description": "The open instruments that reached any group the caller is in, soonest closing first, each with the group that sent it, how many prompts it asks, when it closes, which of the caller's groups it reached and whether the caller has already answered. It carries nobody else's figures. The groups come from the mount, never from the request, and a mount that supplies none reaches nobody.",
+      "description": "The open instruments that reached any group the caller is in, soonest closing first, each with the group that sent it, how many prompts it asks, when it closes, which of the caller's groups it reached, which groups the caller has sent as, which groups it was sent to that the caller is in and has not yet sent as, and whether the caller has answered as every one of them. It carries nobody else's figures. The groups come from the mount, never from the request, and a mount that supplies none reaches nobody.",
       "args": [{"from": "caller", "as": "caller_id", "description": "The caller, from the session."}],
       "returns": [{"body": true}]
     },

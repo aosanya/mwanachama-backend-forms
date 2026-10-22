@@ -97,7 +97,12 @@ teacher may answer as both.
   that group's send and answers and replaces that group's whole set (F31);
   it never touches what the member sent as another group.
 - **The reads report per group.** A waiting form carries `answered_as`, the
-  groups the caller has already sent as, beside `answered`. The answered
+  groups the caller has already sent as, and `unanswered_as`, the groups it
+  was sent to that the caller is in and has not yet sent as (decision 247).
+  `answered` is true only once `unanswered_as` is empty, so a form stays
+  Waiting while one of the member's groups is still to answer. A form that
+  reached the caller through no group they may answer as is answered by any
+  send at all, as before. The answered
   list has one row per form and group, each carrying its `chapter_id`.
   `list_submissions` and `get_my_submission` read one row per group, and a
   send's `answers` counts that group's answers alone;

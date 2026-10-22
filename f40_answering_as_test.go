@@ -106,3 +106,31 @@ func TestWaitingAndAnsweredReportEachGroupAnsweredAs(t *testing.T) {
 		t.Fatalf("answered = %+v, want one row per group, teachers then traders", answered)
 	}
 }
+
+func TestAFormStaysWaitingWhileAGroupTheMemberMayAnswerAsIsUnanswered(t *testing.T) {
+	mgr, formID, qID := publishedToTwoGroups(t)
+	ctx := context.Background()
+	waitingFor := func() (bool, []string) {
+		t.Helper()
+		waiting, err := mgr.ListWaiting(ctx, "alice")
+		if err != nil || len(waiting) != 1 {
+			t.Fatalf("ListWaiting = %+v, %v; want the one form", waiting, err)
+		}
+		return waiting[0].Answered, waiting[0].UnansweredAs
+	}
+	if answered, left := waitingFor(); answered || len(left) != 2 || left[0] != "teachers" || left[1] != "traders" {
+		t.Fatalf("before any send: answered=%v left=%v, want unanswered as teachers and traders", answered, left)
+	}
+	if _, err := mgr.SubmitAnswersAs(ctx, formID, "alice", "teachers", []mwanachamaforms.Answer{{QuestionID: qID, ValueText: "ok"}}); err != nil {
+		t.Fatalf("SubmitAnswersAs teachers: %v", err)
+	}
+	if answered, left := waitingFor(); answered || len(left) != 1 || left[0] != "traders" {
+		t.Fatalf("after teachers: answered=%v left=%v, want still waiting as traders", answered, left)
+	}
+	if _, err := mgr.SubmitAnswersAs(ctx, formID, "alice", "traders", nil); err != nil {
+		t.Fatalf("SubmitAnswersAs traders: %v", err)
+	}
+	if answered, left := waitingFor(); !answered || len(left) != 0 {
+		t.Fatalf("after both: answered=%v left=%v, want answered with nothing left", answered, left)
+	}
+}

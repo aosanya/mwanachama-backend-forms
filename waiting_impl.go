@@ -49,7 +49,7 @@ func (m *formManager) ListWaiting(ctx context.Context, callerID string) ([]model
 		if f.OutsideWindow(now) {
 			continue
 		}
-		row, err := m.waitingRow(ctx, f, callerID, reached[f.ID])
+		row, err := m.waitingRow(ctx, f, callerID, groups, reached[f.ID])
 		if err != nil {
 			return nil, fmt.Errorf("ListWaiting: %w", err)
 		}
@@ -98,7 +98,7 @@ func (m *formManager) reachedThrough(ctx context.Context, groups []string) (map[
 	return out, nil
 }
 
-func (m *formManager) waitingRow(ctx context.Context, f models.Form, callerID string, via []string) (models.WaitingForm, error) {
+func (m *formManager) waitingRow(ctx context.Context, f models.Form, callerID string, groups, via []string) (models.WaitingForm, error) {
 	questions, err := m.currentQuestionCount(ctx, f.ID)
 	if err != nil {
 		return models.WaitingForm{}, err
@@ -106,6 +106,10 @@ func (m *formManager) waitingRow(ctx context.Context, f models.Form, callerID st
 	answeredAs := []string{}
 	if err := m.q(ctx, roleSubmission).Where("form_id = ? AND member_id = ?", f.ID, callerID).
 		Order("chapter_id").Pluck("chapter_id", &answeredAs).Error; err != nil {
+		return models.WaitingForm{}, err
+	}
+	unanswered, err := m.groupsLeftToAnswerAs(ctx, f.ID, groups, answeredAs)
+	if err != nil {
 		return models.WaitingForm{}, err
 	}
 	return models.WaitingForm{
@@ -120,7 +124,28 @@ func (m *formManager) waitingRow(ctx context.Context, f models.Form, callerID st
 		ClosesAt:            f.ClosesAt,
 		Questions:           questions,
 		ReachedVia:          via,
-		Answered:            len(answeredAs) > 0,
+		Answered:            len(answeredAs) > 0 && len(unanswered) == 0,
 		AnsweredAs:          answeredAs,
+		UnansweredAs:        unanswered,
 	}, nil
+}
+
+func (m *formManager) groupsLeftToAnswerAs(ctx context.Context, formID string, groups, answeredAs []string) ([]string, error) {
+	var targets []string
+	if err := m.q(ctx, roleTarget).Where("form_id = ? AND chapter_id IN ?", formID, groups).
+		Order("chapter_id").Pluck("chapter_id", &targets).Error; err != nil {
+		return nil, err
+	}
+	sent := map[string]bool{}
+	for _, g := range answeredAs {
+		sent[g] = true
+	}
+	left := []string{}
+	for _, g := range targets {
+		if !sent[g] {
+			sent[g] = true
+			left = append(left, g)
+		}
+	}
+	return left, nil
 }
