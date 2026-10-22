@@ -486,7 +486,8 @@
       "description": "Every answer given on one instrument, grouped by who gave it and in the order the prompts were asked, optionally narrowed to one person. An operator's read, gated apart from a member's read of their own.",
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument answered."},
-        {"from": "query", "as": "member_id", "description": "Only this person's answers. Absent reads everyone's."}
+        {"from": "query", "as": "member_id", "description": "Only this person's answers. Absent reads everyone's."},
+        {"from": "query", "as": "period_key", "description": "Only the answers given in this period of a repeating instrument, keyed by the day it opened. Absent reads every period."}
       ],
       "returns": [{"body": true}]
     },

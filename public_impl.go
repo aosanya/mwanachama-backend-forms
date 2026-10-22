@@ -307,10 +307,13 @@ func (m *formManager) answersInPeriod(ctx context.Context, formID, memberID, per
 		m.q(ctx, roleAnswer).Where("form_id = ? AND member_id = ? AND period_key = ?", formID, memberID, period))
 }
 
-func (m *formManager) ListAllAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {
+func (m *formManager) ListAllAnswers(ctx context.Context, formID, memberID, periodKey string) ([]models.Answer, error) {
 	q := m.q(ctx, roleAnswer).Where("form_id = ?", formID)
 	if memberID != "" {
 		q = q.Where("member_id = ?", memberID)
+	}
+	if periodKey != "" {
+		q = q.Where("period_key = ?", periodKey)
 	}
 	out, err := m.answersInPromptOrder(ctx, q)
 	if err != nil {

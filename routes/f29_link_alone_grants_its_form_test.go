@@ -41,7 +41,7 @@ func TestF29AClaimedLinkGrantsItsFormWithNoDeclaration(t *testing.T) {
 	}
 
 	assertOpen(t, x, "carol", "the linked form, claimed with nothing declared", x.linked.choiceForm)
-	answers, err := x.fm.ListAllAnswers(context.Background(), x.linked.form.ID, "carol")
+	answers, err := x.fm.ListAllAnswers(context.Background(), x.linked.form.ID, "carol", "")
 	if err != nil {
 		t.Fatalf("ListAllAnswers: %v", err)
 	}

@@ -191,3 +191,28 @@ func TestMySubmissionIsThisPeriodsAndCountsOnlyItsOwnAnswers(t *testing.T) {
 		}
 	}
 }
+
+func TestEveryonesAnswersNarrowToOnePeriod(t *testing.T) {
+	mgr, db := newTestManagerDB(t)
+	ctx := context.Background()
+	f, q := composeAimedForm(t, mgr, mwanachamaforms.Form{Title: "Weekly", Schedule: weeklySchedule()})
+	if _, err := mgr.SubmitAnswers(ctx, f.ID, "alice", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "last week"}}); err != nil {
+		t.Fatalf("SubmitAnswers: %v", err)
+	}
+	prev, err := weeklySchedule().PreviousPeriod(time.Now())
+	if err != nil {
+		t.Fatalf("PreviousPeriod: %v", err)
+	}
+	moveAnswersToPeriod(t, db, prev.Key)
+	if _, err := mgr.SubmitAnswers(ctx, f.ID, "alice", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "this week"}}); err != nil {
+		t.Fatalf("SubmitAnswers this period: %v", err)
+	}
+
+	if all, err := mgr.ListAllAnswers(ctx, f.ID, "", ""); err != nil || len(all) != 2 {
+		t.Fatalf("every period = %+v, %v", all, err)
+	}
+	last, err := mgr.ListAllAnswers(ctx, f.ID, "", prev.Key)
+	if err != nil || len(last) != 1 || last[0].ValueText != "last week" {
+		t.Fatalf("last period = %+v, %v", last, err)
+	}
+}

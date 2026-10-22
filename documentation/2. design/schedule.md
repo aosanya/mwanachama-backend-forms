@@ -51,6 +51,9 @@ every period's answers are kept apart under the same form.
 - A submission's answer count is counted within its own period, so
   `ListSubmissions`, which still returns every period's sends, never adds last
   period's answers to this period's send.
+- `GET /forms/{form_id}/answers` (`ListAllAnswers`, the operator's read)
+  takes an optional `period_key` query argument narrowing it to one period;
+  absent, it still reads every period together.
 - **Provisional:** an instant the schedule holds no period for (before its
   start, after its end) is stamped `""`, the same bucket as a form that runs
   once. Whether such a send should instead be refused belongs with the open
@@ -59,8 +62,8 @@ every period's answers are kept apart under the same form.
 ## What is not built yet
 
 - The other reads do not scope by period yet: the waiting and answered lists,
-  `ListAllAnswers`, `ListSubmissions` and the register's counts still read
-  every period together.
+  `ListSubmissions` and the register's counts still read every period
+  together.
 - No read for who in the audience missed a period (decision 334).
 - **An existing database keeps its old unique indexes.** The two indexes keep
   their names, so `spec.Migrate`'s create-if-absent does not rebuild them

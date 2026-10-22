@@ -198,7 +198,7 @@ type FormManager interface {
 	ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 	ListPreviousAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 
-	ListAllAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
+	ListAllAnswers(ctx context.Context, formID, memberID, periodKey string) ([]models.Answer, error)
 
 	GetSubmission(ctx context.Context, formID, memberID string) (models.Submission, error)
 
