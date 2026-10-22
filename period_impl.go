@@ -28,3 +28,12 @@ func periodKey(f Form, at time.Time, find func(models.FormSchedule, time.Time) (
 	}
 	return p.Key, nil
 }
+
+const standingSendPrefix = "send-"
+
+func sendPeriodKey(f Form, at time.Time) (string, error) {
+	if f.Standing {
+		return standingSendPrefix + newID(), nil
+	}
+	return currentPeriodKey(f, at)
+}

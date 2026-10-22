@@ -42,6 +42,7 @@ type Form struct {
 	ClosesAt           string `json:"closes_at"`
 	Language           string `json:"language,omitempty"`
 	WindowAdvisory     bool   `json:"window_advisory"`
+	Standing           bool   `json:"standing"`
 	PublishedAt        string `json:"published_at,omitempty"`
 	PublishedBy        string `json:"published_by,omitempty"`
 	ClosedAt           string `json:"closed_at,omitempty"`

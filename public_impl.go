@@ -165,7 +165,7 @@ func (m *formManager) SubmitAnswersIn(ctx context.Context, formID, memberID, ans
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
 	}
-	period, err := currentPeriodKey(f, time.Now())
+	period, err := sendPeriodKey(f, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
 	}

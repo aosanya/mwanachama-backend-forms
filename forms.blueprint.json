@@ -13,6 +13,7 @@
         {"name": "closes_at", "type": "timestamp", "description": "When it stops taking answers."},
         {"name": "language", "type": "string", "description": "The language tag it was written in: what its own title, description, prompts and choices are in, and what a reader is shown when no reviewed translation in their language exists. Empty when the composer named none."},
         {"name": "window_advisory", "type": "bool", "description": "Whether opens_at and closes_at are only shown rather than kept. False, the default, means they are kept: it is not listed as waiting and takes no answers outside them. True means its status alone decides. Chosen when it is composed and never changed after."},
+        {"name": "standing", "type": "bool", "description": "Whether this instrument is a standing one, which a person fills in unprompted as often as they like. True means every send is its own record, kept beside the earlier ones rather than replacing them. False, the default, means a resend as the same group in the same period edits the one before. Chosen when it is composed and never changed after."},
         {"name": "published_at", "type": "timestamp", "description": "When it was opened for answers."},
         {"name": "published_by", "type": "string", "description": "Who opened it."},
         {"name": "publisher_name", "type": "string", "description": "What the person who opened it is called, copied from the host's directory when it was opened, so a reader needs no directory to name them. Empty when the host knows no name."},
