@@ -61,5 +61,8 @@ it. Since F29 the claim alone is enough; no declaration is needed. See
 ## Not changed
 
 A mount without `ReachedOnly` (the operator's) is not narrowed at all.
-`list_answers` (own answers) is caller-bound already and is not narrowed.
+`list_answers` and `list_previous_answers` (own answers) are caller-bound
+already and are not narrowed, including the form they read for its schedule
+(F88): a member who left the group a form came through still reads what
+they sent, and a refusal names no Go method.
 `chapter_id` on a submission is still the body's (F16).

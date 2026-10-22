@@ -268,38 +268,30 @@ func (m *formManager) dropAnswersNotCarried(tx *gorm.DB, formID, memberID, chapt
 }
 
 func (m *formManager) ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {
-	f, err := m.Get(ctx, formID)
+	f, err := m.Get(unnarrowed(ctx), formID)
 	if err != nil {
-		return nil, fmt.Errorf("ListAnswers: %w", err)
+		return nil, err
 	}
 	period, err := currentPeriodKey(f, time.Now())
 	if err != nil {
-		return nil, fmt.Errorf("ListAnswers: %w", err)
+		return nil, err
 	}
-	out, err := m.answersInPeriod(ctx, formID, memberID, period)
-	if err != nil {
-		return nil, fmt.Errorf("ListAnswers: %w", err)
-	}
-	return out, nil
+	return m.answersInPeriod(ctx, formID, memberID, period)
 }
 
 func (m *formManager) ListPreviousAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {
-	f, err := m.Get(ctx, formID)
+	f, err := m.Get(unnarrowed(ctx), formID)
 	if err != nil {
-		return nil, fmt.Errorf("ListPreviousAnswers: %w", err)
+		return nil, err
 	}
 	period, err := previousPeriodKey(f, time.Now())
 	if err != nil {
-		return nil, fmt.Errorf("ListPreviousAnswers: %w", err)
+		return nil, err
 	}
 	if period == "" {
 		return []models.Answer{}, nil
 	}
-	out, err := m.answersInPeriod(ctx, formID, memberID, period)
-	if err != nil {
-		return nil, fmt.Errorf("ListPreviousAnswers: %w", err)
-	}
-	return out, nil
+	return m.answersInPeriod(ctx, formID, memberID, period)
 }
 
 func (m *formManager) answersInPeriod(ctx context.Context, formID, memberID, period string) ([]models.Answer, error) {
