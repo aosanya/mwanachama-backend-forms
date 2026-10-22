@@ -64,7 +64,7 @@
       "call": "Register",
       "action": "forms.form.list",
       "title": "Search forms",
-      "description": "A page of instruments, narrowed by title, group and state, with how many prompts and how many people answered each. The totals count everything matched, not just the page.",
+      "description": "A page of instruments, narrowed by title, group and state, with how many prompts and how many people answered each. The totals count everything matched, not just the page. Respondents are counted in each instrument's current period, or in the period named by period_key, keyed by the day it opened.",
       "args": [{"from": "query", "whole": true}],
       "returns": [{"body": true}]
     },

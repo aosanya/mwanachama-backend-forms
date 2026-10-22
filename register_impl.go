@@ -19,8 +19,15 @@ func lastMoved(f models.Form) (string, bool) {
 	return "", false
 }
 
-func (m *formManager) respondentCount(ctx context.Context, f models.Form) (int, error) {
-	period, err := currentPeriodKey(f, time.Now())
+func countedPeriod(f models.Form, named string) (string, error) {
+	if named != "" {
+		return named, nil
+	}
+	return currentPeriodKey(f, time.Now())
+}
+
+func (m *formManager) respondentCount(ctx context.Context, f models.Form, named string) (int, error) {
+	period, err := countedPeriod(f, named)
 	if err != nil {
 		return 0, err
 	}
@@ -78,14 +85,14 @@ func (m *formManager) Register(ctx context.Context, q models.RegisterQuery) (mod
 	for _, f := range matched {
 		page.Total++
 		page.ByStatus[f.Status]++
-		respondents, err := m.respondentCount(ctx, f)
+		respondents, err := m.respondentCount(ctx, f, q.PeriodKey)
 		if err != nil {
 			return models.RegisterPage{}, fmt.Errorf("Register: %w", err)
 		}
 		page.Respondents += respondents
 	}
 
-	page.Rows, err = m.registerRows(ctx, window(matched, q))
+	page.Rows, err = m.registerRows(ctx, window(matched, q), q.PeriodKey)
 	if err != nil {
 		return models.RegisterPage{}, fmt.Errorf("Register: %w", err)
 	}
@@ -114,14 +121,14 @@ func window(matched []models.Form, q models.RegisterQuery) []models.Form {
 	return out
 }
 
-func (m *formManager) registerRows(ctx context.Context, forms []models.Form) ([]models.RegisterRow, error) {
+func (m *formManager) registerRows(ctx context.Context, forms []models.Form, period string) ([]models.RegisterRow, error) {
 	out := make([]models.RegisterRow, 0, len(forms))
 	for _, f := range forms {
 		questions, err := m.currentQuestionCount(ctx, f.ID)
 		if err != nil {
 			return nil, err
 		}
-		respondents, err := m.respondentCount(ctx, f)
+		respondents, err := m.respondentCount(ctx, f, period)
 		if err != nil {
 			return nil, err
 		}

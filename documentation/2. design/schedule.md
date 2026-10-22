@@ -67,7 +67,13 @@ every period's answers are kept apart under the same form.
   within one form and group the newest period comes first.
 - The register's `respondents`, per row and in total, count sends in each
   form's **current** period; a form that runs once counts its `""` period,
-  which is every send it has. The register takes no `period_key` yet.
+  which is every send it has. An optional `period_key` query argument
+  (`RegisterQuery.PeriodKey`) counts every matched form's sends in that named
+  period instead, so an earlier period can be read back. The forms listed and
+  the totals by status do not change with it; a form that has no such period
+  (one that runs once, or a schedule on another rhythm) is still listed and
+  counts 0. The key is matched as written, the same way `list_all` and
+  `submissions` match theirs.
 - **Provisional:** an instant the schedule holds no period for (before its
   start, after its end) is stamped `""`, the same bucket as a form that runs
   once. Whether such a send should instead be refused belongs with the open
@@ -75,7 +81,6 @@ every period's answers are kept apart under the same form.
 
 ## What is not built yet
 
-- The register's counts cannot yet be narrowed to a named earlier period.
 - No read for who in the audience missed a period (decision 334).
 - **An existing database keeps its old unique indexes.** The two indexes keep
   their names, so `spec.Migrate`'s create-if-absent does not rebuild them

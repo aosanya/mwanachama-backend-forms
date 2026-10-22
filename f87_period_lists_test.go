@@ -83,3 +83,35 @@ func TestTheRegisterCountsThisPeriodsRespondents(t *testing.T) {
 		t.Fatalf("register = %+v, %v, want one respondent this period", page, err)
 	}
 }
+
+func TestTheRegisterCountsANamedPeriodsRespondents(t *testing.T) {
+	mgr, db := newTestManagerDB(t)
+	ctx := context.Background()
+	f, q := composeAimedForm(t, mgr, mwanachamaforms.Form{Title: "Weekly", Schedule: weeklySchedule()})
+	for _, member := range []string{"alice", "bob"} {
+		if _, err := mgr.SubmitAnswers(ctx, f.ID, member, []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "last week"}}); err != nil {
+			t.Fatalf("SubmitAnswers %s: %v", member, err)
+		}
+	}
+	prev, err := weeklySchedule().PreviousPeriod(time.Now())
+	if err != nil {
+		t.Fatalf("PreviousPeriod: %v", err)
+	}
+	moveAnswersToPeriod(t, db, prev.Key)
+	if _, err := mgr.SubmitAnswers(ctx, f.ID, "carol", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "this week"}}); err != nil {
+		t.Fatalf("SubmitAnswers carol: %v", err)
+	}
+
+	page, err := mgr.Register(ctx, mwanachamaforms.RegisterQuery{ChapterID: "council", PeriodKey: prev.Key})
+	if err != nil || len(page.Rows) != 1 || page.Rows[0].Respondents != 2 || page.Respondents != 2 {
+		t.Fatalf("register = %+v, %v, want two respondents in %s", page, err, prev.Key)
+	}
+	page, err = mgr.Register(ctx, mwanachamaforms.RegisterQuery{ChapterID: "council", PeriodKey: currentWeeklyKey(t)})
+	if err != nil || len(page.Rows) != 1 || page.Rows[0].Respondents != 1 || page.Respondents != 1 {
+		t.Fatalf("register = %+v, %v, want one respondent this period", page, err)
+	}
+	page, err = mgr.Register(ctx, mwanachamaforms.RegisterQuery{ChapterID: "council", PeriodKey: "1999-01-04"})
+	if err != nil || len(page.Rows) != 1 || page.Rows[0].Respondents != 0 || page.Total != 1 {
+		t.Fatalf("register = %+v, %v, want the form listed with nobody in a period it never had", page, err)
+	}
+}

@@ -6,6 +6,7 @@ type RegisterQuery struct {
 	Status    Status `query:"status"`
 	Limit     *int   `query:"limit"`
 	Offset    int    `query:"offset"`
+	PeriodKey string `query:"period_key"`
 }
 
 type RegisterRow struct {

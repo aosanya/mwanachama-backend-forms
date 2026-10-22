@@ -219,3 +219,19 @@ func TestRegisterFormsReadsItsFilterFromTheQuery(t *testing.T) {
 		t.Fatalf("page = %+v, want the one seeded form", page)
 	}
 }
+
+func TestRegisterFormsReadsAPeriodKeyFromTheQuery(t *testing.T) {
+	fm := newTestManager(t)
+	seedForm(t, fm)
+	rec := do(t, mount(t, fm), http.MethodGet, "/forms?q=seed&period_key=2026-10-19", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	var page mwanachamaforms.RegisterPage
+	if err := json.Unmarshal(rec.Body.Bytes(), &page); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if page.Total != 1 || page.Respondents != 0 {
+		t.Fatalf("page = %+v, want the seeded form with nobody in that period", page)
+	}
+}
