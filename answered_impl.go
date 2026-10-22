@@ -54,6 +54,7 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 				ChapterID:           sub.ChapterID,
 				AnsweredAt:          sub.SubmittedAt,
 				EditedAt:            sub.EditedAt,
+				PeriodKey:           sub.PeriodKey,
 			})
 		}
 	}
@@ -64,7 +65,10 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 		if out[i].FormID != out[j].FormID {
 			return out[i].FormID < out[j].FormID
 		}
-		return out[i].ChapterID < out[j].ChapterID
+		if out[i].ChapterID != out[j].ChapterID {
+			return out[i].ChapterID < out[j].ChapterID
+		}
+		return out[i].PeriodKey > out[j].PeriodKey
 	})
 	return out, nil
 }

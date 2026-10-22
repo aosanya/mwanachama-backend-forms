@@ -58,6 +58,16 @@ every period's answers are kept apart under the same form.
   optional `period_key` query argument; absent, it reads every period's sends.
   `GetSubmission` (`submissions/mine`) reads through it with the current
   period's key.
+- `GET /forms/waiting` (`ListWaiting`, F19/F30) reads the caller's sends in
+  the **current** period only, so a member who sent in an earlier period is
+  waiting again once the next period opens; `answered_as`/`unanswered_as`
+  are this period's.
+- `GET /forms/answered` (`ListAnswered`) keeps one row per send across every
+  period, each carrying its `period_key` (absent for a form that runs once);
+  within one form and group the newest period comes first.
+- The register's `respondents`, per row and in total, count sends in each
+  form's **current** period; a form that runs once counts its `""` period,
+  which is every send it has. The register takes no `period_key` yet.
 - **Provisional:** an instant the schedule holds no period for (before its
   start, after its end) is stamped `""`, the same bucket as a form that runs
   once. Whether such a send should instead be refused belongs with the open
@@ -65,8 +75,7 @@ every period's answers are kept apart under the same form.
 
 ## What is not built yet
 
-- The other reads do not scope by period yet: the waiting and answered lists
-  and the register's counts still read every period together.
+- The register's counts cannot yet be narrowed to a named earlier period.
 - No read for who in the audience missed a period (decision 334).
 - **An existing database keeps its old unique indexes.** The two indexes keep
   their names, so `spec.Migrate`'s create-if-absent does not rebuild them

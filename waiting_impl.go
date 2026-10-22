@@ -103,8 +103,12 @@ func (m *formManager) waitingRow(ctx context.Context, f models.Form, callerID st
 	if err != nil {
 		return models.WaitingForm{}, err
 	}
+	period, err := currentPeriodKey(f, time.Now())
+	if err != nil {
+		return models.WaitingForm{}, err
+	}
 	answeredAs := []string{}
-	if err := m.q(ctx, roleSubmission).Where("form_id = ? AND member_id = ?", f.ID, callerID).
+	if err := m.q(ctx, roleSubmission).Where("form_id = ? AND member_id = ? AND period_key = ?", f.ID, callerID, period).
 		Order("chapter_id").Pluck("chapter_id", &answeredAs).Error; err != nil {
 		return models.WaitingForm{}, err
 	}

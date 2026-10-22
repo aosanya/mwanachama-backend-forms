@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
@@ -18,9 +19,13 @@ func lastMoved(f models.Form) (string, bool) {
 	return "", false
 }
 
-func (m *formManager) respondentCount(ctx context.Context, formID string) (int, error) {
+func (m *formManager) respondentCount(ctx context.Context, f models.Form) (int, error) {
+	period, err := currentPeriodKey(f, time.Now())
+	if err != nil {
+		return 0, err
+	}
 	var count int64
-	err := m.q(ctx, roleSubmission).Where("form_id = ?", formID).Count(&count).Error
+	err = m.q(ctx, roleSubmission).Where("form_id = ? AND period_key = ?", f.ID, period).Count(&count).Error
 	return int(count), err
 }
 
@@ -73,7 +78,7 @@ func (m *formManager) Register(ctx context.Context, q models.RegisterQuery) (mod
 	for _, f := range matched {
 		page.Total++
 		page.ByStatus[f.Status]++
-		respondents, err := m.respondentCount(ctx, f.ID)
+		respondents, err := m.respondentCount(ctx, f)
 		if err != nil {
 			return models.RegisterPage{}, fmt.Errorf("Register: %w", err)
 		}
@@ -116,7 +121,7 @@ func (m *formManager) registerRows(ctx context.Context, forms []models.Form) ([]
 		if err != nil {
 			return nil, err
 		}
-		respondents, err := m.respondentCount(ctx, f.ID)
+		respondents, err := m.respondentCount(ctx, f)
 		if err != nil {
 			return nil, err
 		}

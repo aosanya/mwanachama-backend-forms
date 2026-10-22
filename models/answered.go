@@ -16,4 +16,5 @@ type AnsweredForm struct {
 	ChapterID           string `json:"chapter_id,omitempty"`
 	AnsweredAt          string `json:"answered_at"`
 	EditedAt            string `json:"edited_at,omitempty"`
+	PeriodKey           string `json:"period_key,omitempty"`
 }
