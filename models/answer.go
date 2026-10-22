@@ -14,6 +14,9 @@ type Answer struct {
 	ChapterID  string   `json:"chapter_id,omitempty"`
 	OptionIDs  []string `json:"option_ids,omitempty"`
 
+	FileIDs         []string `json:"file_ids,omitempty"`
+	CapturedFileIDs []string `json:"captured_file_ids,omitempty"`
+
 	ValueText   string   `json:"value_text,omitempty"`
 	ValueNumber *float64 `json:"value_number,omitempty"`
 	ValueDate   string   `json:"value_date,omitempty"`
@@ -25,7 +28,13 @@ type Answer struct {
 }
 
 func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {
+	return ValidateAnswerWithin(q, options, a, 0)
+}
+
+func ValidateAnswerWithin(q Question, options []QuestionOption, a Answer, defaultMaxFiles int) error {
 	switch q.AnswerType {
+	case AnswerPhoto, AnswerFile:
+		return checkFiles(q, a, defaultMaxFiles)
 	case AnswerYesNo:
 		if a.ValueBool == nil {
 			return fmt.Errorf("yes_no answer requires value_bool")

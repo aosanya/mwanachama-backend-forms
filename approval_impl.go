@@ -14,6 +14,8 @@ import (
 
 func (m *formManager) UseApprovalRequired(required bool) { m.approvalRequired = required }
 
+func (m *formManager) UseDefaultMaxFiles(n int) { m.defaultMaxFiles = n }
+
 func (m *formManager) isAuthor(f models.Form, actorID string) bool {
 	return actorID != "" && (actorID == f.CreatedBy || actorID == f.SubmittedBy)
 }

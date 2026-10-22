@@ -92,6 +92,10 @@ func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {
 	return models.ValidateAnswer(q, options, a)
 }
 
+func ValidateAnswerWithin(q Question, options []QuestionOption, a Answer, defaultMaxFiles int) error {
+	return models.ValidateAnswerWithin(q, options, a, defaultMaxFiles)
+}
+
 func ValidateValidators(q Question) error {
 	return models.ValidateValidators(q)
 }
@@ -135,6 +139,7 @@ type FormManager interface {
 	UseDeclarable(d Declarable)
 
 	UseApprovalRequired(required bool)
+	UseDefaultMaxFiles(n int)
 
 	Submit(ctx context.Context, id, submittedBy string) (models.Form, error)
 
@@ -224,6 +229,7 @@ type formManager struct {
 	declarable Declarable
 
 	approvalRequired bool
+	defaultMaxFiles  int
 }
 
 func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {

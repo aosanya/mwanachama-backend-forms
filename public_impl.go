@@ -149,7 +149,7 @@ func (m *formManager) SubmitAnswersIn(ctx context.Context, formID, memberID, ans
 		return nil, err
 	}
 	for _, a := range in {
-		if err := models.ValidateAnswer(questions[a.QuestionID], options[a.QuestionID], a); err != nil {
+		if err := models.ValidateAnswerWithin(questions[a.QuestionID], options[a.QuestionID], a, m.defaultMaxFiles); err != nil {
 			return nil, fmt.Errorf("%w: question %s: %v", ErrInvalidAnswer, a.QuestionID, err)
 		}
 	}

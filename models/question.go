@@ -11,7 +11,13 @@ const (
 	AnswerTime         AnswerType = "time"
 	AnswerNumber       AnswerType = "number"
 	AnswerCurrency     AnswerType = "currency"
+	AnswerPhoto        AnswerType = "photo"
+	AnswerFile         AnswerType = "file"
 )
+
+func (t AnswerType) HoldsFiles() bool {
+	return t == AnswerPhoto || t == AnswerFile
+}
 
 func (t AnswerType) HasOptions() bool {
 	return t == AnswerSingleChoice || t == AnswerMultiSelect
@@ -40,6 +46,9 @@ type Question struct {
 	MaxDate       string   `json:"max_date,omitempty"`
 	MinSelections *int     `json:"min_selections,omitempty"`
 	MaxSelections *int     `json:"max_selections,omitempty"`
+
+	MaxFiles       *int `json:"max_files,omitempty"`
+	RequireCapture bool `json:"require_capture,omitempty"`
 
 	Version              int    `json:"version"`
 	SupersedesQuestionID string `json:"supersedes_question_id,omitempty"`

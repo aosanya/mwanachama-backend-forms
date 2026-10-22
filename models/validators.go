@@ -17,6 +17,9 @@ func ValidateValidators(q Question) error {
 	if err := boundsOnlyFor(q, q.MinSelections != nil || q.MaxSelections != nil, "min_selections and max_selections", AnswerMultiSelect); err != nil {
 		return err
 	}
+	if err := validateFileRules(q); err != nil {
+		return err
+	}
 	if q.MinValue != nil && q.MaxValue != nil && *q.MinValue > *q.MaxValue {
 		return fmt.Errorf("min_value %v is above max_value %v", *q.MinValue, *q.MaxValue)
 	}

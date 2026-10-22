@@ -78,3 +78,7 @@ module is provisioned: `required` as `boolean default false`, the number and
 selection bounds as nullable numbers, the date bounds as text defaulting to
 empty. Every existing question therefore reads back with no validators, which
 is what it had before.
+
+## Photo and file questions
+
+`max_files` and `require_capture` are the bounds a `photo` or `file` question declares; see [photo-and-file.md](photo-and-file.md).
