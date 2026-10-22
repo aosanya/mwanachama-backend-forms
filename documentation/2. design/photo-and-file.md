@@ -11,6 +11,14 @@ who may see the file behind it is the host's question (decision 209).
 
 An answer must carry at least one id, with no id empty or given twice.
 
+The other way round holds too: an answer to any question that is not a
+`photo` or `file` question is refused when it carries `file_ids`, whatever
+else it fills. Ids sent beside a yes, a number or a text would otherwise be
+stored with nothing reading them, and a host would grant a reader the file on
+the strength of an answer that never asked for one. The refusal sits at the
+top of `models.ValidateAnswer`, before the per-type check, so it reaches
+every send the same way the value checks do.
+
 ## How many
 
 `question.max_files` (nullable) is the question's own limit. Absent means the

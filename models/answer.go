@@ -33,6 +33,9 @@ func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {
 }
 
 func ValidateAnswerWithin(q Question, options []QuestionOption, a Answer, defaultMaxFiles int) error {
+	if len(a.FileIDs) > 0 && !q.AnswerType.HoldsFiles() {
+		return fmt.Errorf("file_ids do not fit a %s question", q.AnswerType)
+	}
 	switch q.AnswerType {
 	case AnswerPhoto, AnswerFile:
 		return checkFiles(q, a, defaultMaxFiles)

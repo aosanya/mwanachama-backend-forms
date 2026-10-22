@@ -99,3 +99,27 @@ func TestAPhotoAnswerIsStoredAndHeldToTheHostDefault(t *testing.T) {
 		t.Fatalf("stored answer = %+v", out)
 	}
 }
+
+func TestFileIDsAreRefusedOnAQuestionThatHoldsNoFiles(t *testing.T) {
+	yes := true
+	n := 3.0
+	cases := []struct {
+		q models.Question
+		a models.Answer
+	}{
+		{models.Question{AnswerType: models.AnswerYesNo}, models.Answer{ValueBool: &yes}},
+		{models.Question{AnswerType: models.AnswerFreeText}, models.Answer{ValueText: "hello"}},
+		{models.Question{AnswerType: models.AnswerNumber}, models.Answer{ValueNumber: &n}},
+		{models.Question{AnswerType: models.AnswerDate}, models.Answer{ValueDate: "2026-10-22"}},
+	}
+	for _, c := range cases {
+		if err := models.ValidateAnswer(c.q, nil, c.a); err != nil {
+			t.Fatalf("%s answer without files refused: %v", c.q.AnswerType, err)
+		}
+		c.a.FileIDs = []string{"f1"}
+		err := models.ValidateAnswer(c.q, nil, c.a)
+		if err == nil || !strings.Contains(err.Error(), "file_ids") {
+			t.Fatalf("%s answer carrying file_ids was not refused for them: %v", c.q.AnswerType, err)
+		}
+	}
+}
