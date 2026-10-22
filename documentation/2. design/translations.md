@@ -83,8 +83,40 @@ The tag is recorded as sent and not checked against the form's languages:
 which languages a form offers depends on whether its original language counts
 among them, which is not yet decided.
 
+## Reads in a language
+
+`get_form`, `list_questions` and `list_options` take an optional `language`
+query argument. Each is declared against a `TranslatedReader` method that
+`FormManager` embeds — `GetIn`, `ListQuestionsIn`, `ListOptionsIn` — and
+`PublicLinkQuestionsIn` does the same for a shared link's questions. Each
+calls the read it replaces first and only then overlays, so:
+
+- **A refusal is unchanged.** `ReachedOnly`'s hiding and the public link's
+  `ErrLinkNotFound` happen inside the original read; a refused or hidden read
+  never reaches the overlay, and answers in the same words and with the same
+  empty list whatever language was asked for.
+- **Only reviewed texts are overlaid**, through `ReviewedTranslations`: a
+  form's `title`, a question's `prompt` and an option's `label`, each
+  replaced by its reviewed text in that language when one exists.
+- **Anything else is the original.** No language, a language with no texts,
+  and a text that exists but is not reviewed all serve the text as composed.
+
+The operation ids did not change; only their `call` and a query argument did.
+The answer shapes did not change either: a read does not say which language
+each text came back in, nor list the languages available alongside —
+`list_translation_languages` answers that, and whether the original language
+belongs in that list is still open.
+
 ## Not yet built
 
-- Reads that take a language: `get_form`, `list_questions`, `list_options`
-  and the public-link questions overlaying the reviewed texts and answering
-  the available languages.
+- `public_link_questions` still calls `PublicLinkQuestions` and takes no
+  `language`. `PublicLinkQuestionsIn` is built and tested, but
+  `mwanachama-wakala-api` mounts the anonymous half for an unissued instance
+  over `noLinkIssued`, which overrides `PublicLinkQuestions` with a refusal on
+  an otherwise nil `FormManager`. Pointing the operation at
+  `PublicLinkQuestionsIn` before that mount overrides it too would reach the
+  nil manager instead of refusing, so the switch waits for wakala-api to add
+  the override.
+
+- A read answering, beside its texts, the languages the form is available
+  in. Left out because whether `form.language` counts among them is open.

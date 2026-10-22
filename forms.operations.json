@@ -90,11 +90,14 @@
     "get_form": {
       "method": "GET",
       "path": "/forms/{form_id}",
-      "call": "Get",
+      "call": "GetIn",
       "action": "forms.form.read",
       "title": "Read form",
       "description": "Read one instrument: its title, its window, its audience and where it has got to.",
-      "args": [{"from": "path", "as": "form_id", "description": "The instrument to read."}],
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument to read."},
+        {"from": "query", "as": "language", "description": "A language tag to read the texts in. Each text with a reviewed translation in that language is served in it; an unknown or unreviewed language, or none, serves the original text."}
+      ],
       "returns": [{"body": true}]
     },
     "update_form": {
@@ -278,11 +281,14 @@
     "list_questions": {
       "method": "GET",
       "path": "/forms/{form_id}/questions",
-      "call": "ListQuestions",
+      "call": "ListQuestionsIn",
       "action": "forms.question.list",
       "title": "List questions",
       "description": "Every version of every prompt on one instrument, in the order they are asked.",
-      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose prompts to read."}],
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument whose prompts to read."},
+        {"from": "query", "as": "language", "description": "A language tag to read the texts in. Each text with a reviewed translation in that language is served in it; an unknown or unreviewed language, or none, serves the original text."}
+      ],
       "returns": [{"body": true}]
     },
     "update_question": {
@@ -305,13 +311,14 @@
     "list_options": {
       "method": "GET",
       "path": "/forms/{form_id}/questions/{question_id}/options",
-      "call": "ListOptions",
+      "call": "ListOptionsIn",
       "action": "forms.question_option.list",
       "title": "List choices",
       "description": "The choices one prompt offers, in the order they are shown.",
       "args": [
         {"from": "path", "as": "form_id", "ignored": true, "description": "The instrument the prompt belongs to. Part of the address, not of the call."},
-        {"from": "path", "as": "question_id", "description": "The prompt whose choices to read."}
+        {"from": "path", "as": "question_id", "description": "The prompt whose choices to read."},
+        {"from": "query", "as": "language", "description": "A language tag to read the texts in. Each text with a reviewed translation in that language is served in it; an unknown or unreviewed language, or none, serves the original text."}
       ],
       "returns": [{"body": true}]
     },

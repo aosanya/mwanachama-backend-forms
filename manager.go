@@ -110,6 +110,7 @@ func Deletable(s Status) bool { return models.Deletable(s) }
 
 type FormManager interface {
 	Translator
+	TranslatedReader
 
 	Create(ctx context.Context, f models.Form) (models.Form, error)
 
