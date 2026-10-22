@@ -58,6 +58,7 @@ type Form struct {
 	CreatedBy      string         `json:"created_by"`
 	Audience       Audience       `json:"audience"`
 	CollectionMode CollectionMode `json:"collection_mode"`
+	Schedule       FormSchedule   `json:"schedule,omitzero"`
 
 	CreatedAt   string `json:"created_at"`
 	LastUpdated string `json:"last_updated"`

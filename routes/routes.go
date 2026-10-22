@@ -53,6 +53,7 @@ var sentinels = map[string]error{
 	"ErrClosesInPast":        forms.ErrClosesInPast,
 	"ErrWindowInvalid":       forms.ErrWindowInvalid,
 	"ErrAudienceConflict":    forms.ErrAudienceConflict,
+	"ErrScheduleInvalid":     forms.ErrScheduleInvalid,
 	"ErrMissingPrompt":       forms.ErrMissingPrompt,
 	"ErrMissingOptionLabel":  forms.ErrMissingOptionLabel,
 	"ErrMissingNote":         forms.ErrMissingNote,

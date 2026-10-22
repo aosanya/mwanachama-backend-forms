@@ -37,6 +37,7 @@
     "ErrClosesInPast": 400,
     "ErrWindowInvalid": 400,
     "ErrAudienceConflict": 400,
+    "ErrScheduleInvalid": 400,
     "ErrMissingPrompt": 400,
     "ErrMissingOptionLabel": 400,
     "ErrMissingNote": 400,

@@ -5,6 +5,7 @@ type Submission struct {
 	FormID      string `json:"form_id"`
 	MemberID    string `json:"member_id"`
 	ChapterID   string `json:"chapter_id,omitempty"`
+	PeriodKey   string `json:"period_key,omitempty"`
 	SubmittedAt string `json:"submitted_at"`
 	EditedAt    string `json:"edited_at,omitempty"`
 	Collector   string `json:"collector,omitempty"`

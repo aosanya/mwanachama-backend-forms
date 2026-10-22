@@ -31,6 +31,7 @@ var (
 	ErrClosesInPast     = errors.New("mwanachamaforms: closes_at must be in the future")
 	ErrWindowInvalid    = errors.New("mwanachamaforms: opens_at must be before closes_at")
 	ErrAudienceConflict = errors.New("mwanachamaforms: a member-audience form cannot use interviewer collection")
+	ErrScheduleInvalid  = errors.New("mwanachamaforms: the schedule is not a valid repeat")
 )
 
 var (

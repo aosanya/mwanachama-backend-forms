@@ -23,6 +23,11 @@ func validateFrame(f models.Form) error {
 	if err := models.ValidateWindow(f.OpensAt, f.ClosesAt); err != nil {
 		return fmt.Errorf("%w: %v", ErrWindowInvalid, err)
 	}
+	if f.Schedule.Repeats() {
+		if err := f.Schedule.Validate(); err != nil {
+			return fmt.Errorf("%w: %v", ErrScheduleInvalid, err)
+		}
+	}
 	return nil
 }
 
@@ -100,6 +105,7 @@ func (m *formManager) Update(ctx context.Context, f models.Form) (models.Form, e
 
 	cur.Title, cur.ClosesAt, cur.OpensAt = f.Title, f.ClosesAt, f.OpensAt
 	cur.Audience, cur.CollectionMode = f.Audience, f.CollectionMode
+	cur.Schedule = f.Schedule
 	cur.LastUpdated = models.NowRFC3339()
 	if err := m.checks(roleForm, cur); err != nil {
 		return models.Form{}, err

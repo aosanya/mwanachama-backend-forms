@@ -12,6 +12,7 @@ type Answer struct {
 	QuestionID string   `json:"question_id"`
 	MemberID   string   `json:"member_id"`
 	ChapterID  string   `json:"chapter_id,omitempty"`
+	PeriodKey  string   `json:"period_key,omitempty"`
 	OptionIDs  []string `json:"option_ids,omitempty"`
 
 	FileIDs         []string `json:"file_ids,omitempty"`

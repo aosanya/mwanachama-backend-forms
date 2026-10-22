@@ -22,6 +22,8 @@ and
 - [answered.md](answered.md) — the member's other read,
   `GET /forms/answered`: every form the caller answered, open or closed,
   newest sent first, bound to the caller.
+- [schedule.md](schedule.md) — a form's optional repeat schedule, its
+  periods and the period key on submissions and answers (F87)
 - [window.md](window.md) — whether a form keeps its `opens_at`/`closes_at`
   window: `window_advisory`, why it is named for the exception, and what
   forms written before it get.

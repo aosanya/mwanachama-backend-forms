@@ -27,6 +27,7 @@
         {"name": "created_by", "type": "string", "description": "Who composed it."},
         {"name": "audience", "type": "enum", "description": "Whether it is aimed at known members or at anyone holding its link.", "default": "member", "values": ["member", "public"]},
         {"name": "collection_mode", "type": "enum", "description": "Whether the person answers it themselves or somebody records their answers for them.", "default": "self", "values": ["self", "interviewer"]},
+        {"name": "schedule", "type": "json", "description": "When the instrument repeats: a start, an optional end, a time zone and either a calendar rule or a list of dates. Empty for an instrument that runs once. Each opening starts a period, which closes when the next opens."},
         {"name": "created_at", "type": "timestamp", "description": "When it was first written. Listings are ordered by it, because the storage key carries no order.", "immutable": true},
         {"name": "last_updated", "type": "timestamp", "description": "When anything about it last changed."}
       ],
@@ -196,6 +197,7 @@
         {"name": "question_id", "type": "string", "description": "The prompt being answered.", "required": true},
         {"name": "member_id", "type": "string", "description": "Who answered — a member, or a public respondent's own id.", "required": true},
         {"name": "chapter_id", "type": "string", "description": "The group they answered as. A person answers once per group the instrument was aimed at that they belong to."},
+        {"name": "period_key", "type": "string", "description": "The period of a repeating instrument this was given in, named by the day it opened in the schedule's time zone. Empty for an instrument that runs once."},
         {"name": "option_ids", "type": "json", "description": "The choices picked, where the prompt offers a list."},
         {"name": "file_ids", "type": "json", "description": "The files given, where the prompt asks for photos or files. Opaque ids the files module holds."},
         {"name": "captured_file_ids", "type": "json", "description": "Which of the files given the host verified as taken now, with a time and place. Set by the host, never by the person answering."},
@@ -209,7 +211,7 @@
       ],
       "indexes": [
         {"name": "form", "description": "Counts how many people have answered one instrument.", "fields": ["form_id"]},
-        {"name": "question_member_group", "description": "Reads one person's answer to one prompt as one group, and keeps it to one so a resubmission as that group edits rather than doubles.", "fields": ["question_id", "member_id", "chapter_id"], "unique": true}
+        {"name": "question_member_group", "description": "Reads one person's answer to one prompt as one group, and keeps it to one so a resubmission as that group edits rather than doubles, within one period.", "fields": ["question_id", "member_id", "chapter_id", "period_key"], "unique": true}
       ]
     },
     {
@@ -220,6 +222,7 @@
         {"name": "form_id", "type": "string", "description": "The instrument they sent to.", "required": true},
         {"name": "member_id", "type": "string", "description": "Who sent — a member, or a public respondent's own id.", "required": true},
         {"name": "chapter_id", "type": "string", "description": "The group the send was made as, and counts toward. A person holds one send per group."},
+        {"name": "period_key", "type": "string", "description": "The period of a repeating instrument this was given in, named by the day it opened in the schedule's time zone. Empty for an instrument that runs once."},
         {"name": "submitted_at", "type": "timestamp", "description": "When they first sent. A resend leaves this alone."},
         {"name": "edited_at", "type": "timestamp", "description": "When they last sent again. Empty means never."},
         {"name": "collector", "type": "string", "description": "Who collected the answers. The sender themselves when they answered on their own."},
@@ -228,7 +231,7 @@
         {"name": "language", "type": "string", "description": "The language tag the sender answered in, as the send named it. A resend records its own. Empty when the send named none."}
       ],
       "indexes": [
-        {"name": "form_member_group", "description": "Reads one person's send to one instrument as one group, and keeps it to one so a resend as that group edits rather than doubles.", "fields": ["form_id", "member_id", "chapter_id"], "unique": true},
+        {"name": "form_member_group", "description": "Reads one person's send to one instrument as one group, and keeps it to one so a resend as that group edits rather than doubles, within one period.", "fields": ["form_id", "member_id", "chapter_id", "period_key"], "unique": true},
         {"name": "member", "description": "Lists every instrument one person has sent to.", "fields": ["member_id"]}
       ]
     },
