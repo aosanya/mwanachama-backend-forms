@@ -196,6 +196,7 @@ type FormManager interface {
 	SubmitAnswersIn(ctx context.Context, formID, memberID, answeringAs, language string, answers []models.Answer) ([]models.Answer, error)
 
 	ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
+	ListPreviousAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 
 	ListAllAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 

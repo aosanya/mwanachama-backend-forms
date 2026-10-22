@@ -464,6 +464,19 @@
       ],
       "returns": [{"body": true}]
     },
+    "list_previous_answers": {
+      "method": "GET",
+      "path": "/forms/{form_id}/answers/mine/previous",
+      "call": "ListPreviousAnswers",
+      "action": "forms.answer.list_previous",
+      "title": "Read my previous period's answers",
+      "description": "What the caller answered on a repeating instrument in the period before the current one, in the order the prompts were asked, for copying into this period. Empty when the instrument does not repeat or has no earlier period.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The repeating instrument answered."},
+        {"from": "caller", "as": "member_id"}
+      ],
+      "returns": [{"body": true}]
+    },
     "list_all_answers": {
       "method": "GET",
       "path": "/forms/{form_id}/answers",

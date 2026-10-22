@@ -29,14 +29,33 @@ every period's answers are kept apart under the same form.
   group **per period**. Every write today stores `""`, which is the period of a
   form that runs once, so a non-repeating form behaves exactly as before.
 
+## A send is stamped with its period
+
+- `SubmitAnswers` stamps `period_key` on every answer and on the submission
+  with the period the form's schedule holds at the moment of sending
+  (`PeriodAt(now)`). A form that runs once stamps `""`. A `period_key` in the
+  body is overwritten, like every other server-owned field.
+- A send edits, and F31's replace-the-set delete removes, only the rows of
+  the **same** period, so last period's answers survive this period's send.
+- `GET /forms/{form_id}/answers/mine` (`ListAnswers`) reads only the current
+  period's answers.
+- `GET /forms/{form_id}/answers/mine/previous` (`ListPreviousAnswers`, action
+  `forms.answer.list_previous`) reads the caller's answers from the period
+  before the current one, for Copy last answers (decision 333). It is empty
+  for a form that runs once and before a second period has opened. The member
+  is `from: caller`. **A host must grant the new action** before a member can
+  reach it.
+- **Provisional:** an instant the schedule holds no period for (before its
+  start, after its end) is stamped `""`, the same bucket as a form that runs
+  once. Whether such a send should instead be refused belongs with the open
+  questions below.
+
 ## What is not built yet
 
-- `SubmitAnswers` does not yet stamp the current period, and the reads
-  (`/answers/mine`, the waiting and answered lists, the register's counts, F31's
-  replace-the-set delete) do not yet scope by period. Until they do, a
-  repeating form still holds one set of answers per member and group.
-- No address yet for a member's previous period's answers, nor for who in the
-  audience missed a period (decision 334).
+- The other reads do not scope by period yet: the waiting and answered lists,
+  `/submissions/mine`, `ListAllAnswers` and the register's counts still read
+  every period together.
+- No read for who in the audience missed a period (decision 334).
 - **An existing database keeps its old unique indexes.** The two indexes keep
   their names, so `spec.Migrate`'s create-if-absent does not rebuild them
   with `period_key`; a deployment that already holds these tables needs the
@@ -50,3 +69,7 @@ every period's answers are kept apart under the same form.
 - How a repeating form's `opens_at`/`closes_at` and the F17 window relate to
   the schedule's `start`/`end` is not decided: today both are kept and
   neither constrains the other.
+- Whether the opening day in the schedule's zone (rather than the agency's
+  zone) is the right period key is with the owner; the key is kept as built.
+- Whether a send at an instant with no period is stamped `""` (today) or
+  refused is not decided.

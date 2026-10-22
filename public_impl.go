@@ -165,20 +165,25 @@ func (m *formManager) SubmitAnswersIn(ctx context.Context, formID, memberID, ans
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
 	}
+	period, err := currentPeriodKey(f, time.Now())
+	if err != nil {
+		return nil, fmt.Errorf("SubmitAnswers: %w", err)
+	}
 	out := make([]models.Answer, 0, len(in))
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		now := models.NowRFC3339()
 		for _, a := range in {
+			a.PeriodKey = period
 			written, err := m.writeAnswer(tx, formID, memberID, chapterID, now, a)
 			if err != nil {
 				return err
 			}
 			out = append(out, written)
 		}
-		if err := m.dropAnswersNotCarried(tx, formID, memberID, chapterID, in); err != nil {
+		if err := m.dropAnswersNotCarried(tx, formID, memberID, chapterID, period, in); err != nil {
 			return err
 		}
-		return m.writeSubmission(tx, formID, memberID, chapterID, channel, language, now)
+		return m.writeSubmission(tx, formID, memberID, chapterID, period, channel, language, now)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
@@ -235,7 +240,7 @@ func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now 
 	a.FormID, a.MemberID = formID, memberID
 
 	var held models.Answer
-	q := tx.Table(m.table(roleAnswer)).Where("question_id = ? AND member_id = ? AND chapter_id = ?", a.QuestionID, memberID, chapterID)
+	q := tx.Table(m.table(roleAnswer)).Where("question_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", a.QuestionID, memberID, chapterID, a.PeriodKey)
 	err := m.take(q, roleAnswer, &held, errNoAnswer)
 	switch {
 	case err == nil:
@@ -251,24 +256,55 @@ func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now 
 	}
 }
 
-func (m *formManager) dropAnswersNotCarried(tx *gorm.DB, formID, memberID, chapterID string, carried []models.Answer) error {
+func (m *formManager) dropAnswersNotCarried(tx *gorm.DB, formID, memberID, chapterID, period string, carried []models.Answer) error {
 	if len(carried) == 0 {
-		return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ? AND chapter_id = ?", formID, memberID, chapterID)
+		return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", formID, memberID, chapterID, period)
 	}
 	kept := make([]string, 0, len(carried))
 	for _, a := range carried {
 		kept = append(kept, a.QuestionID)
 	}
-	return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ? AND chapter_id = ? AND question_id NOT IN ?", formID, memberID, chapterID, kept)
+	return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND question_id NOT IN ?", formID, memberID, chapterID, period, kept)
 }
 
 func (m *formManager) ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {
-	out, err := m.answersInPromptOrder(ctx,
-		m.q(ctx, roleAnswer).Where("form_id = ? AND member_id = ?", formID, memberID))
+	f, err := m.Get(ctx, formID)
+	if err != nil {
+		return nil, fmt.Errorf("ListAnswers: %w", err)
+	}
+	period, err := currentPeriodKey(f, time.Now())
+	if err != nil {
+		return nil, fmt.Errorf("ListAnswers: %w", err)
+	}
+	out, err := m.answersInPeriod(ctx, formID, memberID, period)
 	if err != nil {
 		return nil, fmt.Errorf("ListAnswers: %w", err)
 	}
 	return out, nil
+}
+
+func (m *formManager) ListPreviousAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {
+	f, err := m.Get(ctx, formID)
+	if err != nil {
+		return nil, fmt.Errorf("ListPreviousAnswers: %w", err)
+	}
+	period, err := previousPeriodKey(f, time.Now())
+	if err != nil {
+		return nil, fmt.Errorf("ListPreviousAnswers: %w", err)
+	}
+	if period == "" {
+		return []models.Answer{}, nil
+	}
+	out, err := m.answersInPeriod(ctx, formID, memberID, period)
+	if err != nil {
+		return nil, fmt.Errorf("ListPreviousAnswers: %w", err)
+	}
+	return out, nil
+}
+
+func (m *formManager) answersInPeriod(ctx context.Context, formID, memberID, period string) ([]models.Answer, error) {
+	return m.answersInPromptOrder(ctx,
+		m.q(ctx, roleAnswer).Where("form_id = ? AND member_id = ? AND period_key = ?", formID, memberID, period))
 }
 
 func (m *formManager) ListAllAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {

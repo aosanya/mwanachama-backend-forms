@@ -11,9 +11,9 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, channel, language, now string) error {
+func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, period, channel, language, now string) error {
 	var held models.Submission
-	q := tx.Table(m.table(roleSubmission)).Where("form_id = ? AND member_id = ? AND chapter_id = ?", formID, memberID, chapterID)
+	q := tx.Table(m.table(roleSubmission)).Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", formID, memberID, chapterID, period)
 	err := m.take(q, roleSubmission, &held, ErrSubmissionNotFound)
 	switch {
 	case err == nil:
@@ -22,7 +22,7 @@ func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, 
 		return m.replaceTx(tx, roleSubmission, held.ID, held)
 	case errors.Is(err, ErrSubmissionNotFound):
 		return m.insertTx(tx, roleSubmission, models.Submission{
-			ID: newID(), FormID: formID, MemberID: memberID, ChapterID: chapterID, SubmittedAt: now,
+			ID: newID(), FormID: formID, MemberID: memberID, ChapterID: chapterID, PeriodKey: period, SubmittedAt: now,
 			Collector: memberID, CollectedAt: now, Channel: channel, Language: language,
 		})
 	default:
