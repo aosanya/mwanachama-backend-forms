@@ -239,6 +239,7 @@ func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {
 		roleAnswer:         models.Answer{},
 		roleSubmission:     models.Submission{},
 		roleResultReport:   models.ResultReport{},
+		roleTranslation:    models.Translation{},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("NewFormManager: %w", err)

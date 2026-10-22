@@ -80,6 +80,12 @@
       "name": "result_report",
       "table": "result_reports",
       "description": "One version of the report on what a closed survey collected."
+    },
+    {
+      "role": "translation",
+      "name": "translation",
+      "table": "translations",
+      "description": "A survey's text in another language, reviewed or waiting for review."
     }
   ]
 }
