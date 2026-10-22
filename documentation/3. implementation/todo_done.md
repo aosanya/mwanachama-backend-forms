@@ -527,3 +527,15 @@ group. `Provision` drops the retired one-per-person indexes. `answers.md`.
 Open with the owner: should `GET /forms/{id}/submissions/mine` and
 `/answers/mine` take `?as=`? Verified: `go build`, `go vet`, `gofmt`,
 `go test ./...` ok; wakala-api builds and its forms tests pass.
+
+## F88 — a member's own answers outside their groups' reach — 2026-10-22
+
+🐞 Fixed. F87 slice 2 read the form through `m.Get` for its period, which a
+`ReachedOnly` mount narrows, so `answers/mine` and `answers/mine/previous`
+answered 404 `ListAnswers: mwanachamaforms: form not found` once the form no
+longer reached the caller. Both now read the form unnarrowed (as
+`results_impl.go` and `claim_impl.go` do); the answers stay bound to the
+caller (F13), and a refusal names no Go method. `reached.md` widened.
+9fe8802 (merged as 3ab4860); test
+`routes/f88_own_answers_outside_reach_test.go` through the real route table.
+Verified: `go build`, `go vet`, `gofmt -l`, `go test ./...` ok.
