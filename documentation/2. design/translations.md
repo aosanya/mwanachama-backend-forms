@@ -85,10 +85,10 @@ among them, which is not yet decided.
 
 ## Reads in a language
 
-`get_form`, `list_questions` and `list_options` take an optional `language`
-query argument. Each is declared against a `TranslatedReader` method that
-`FormManager` embeds — `GetIn`, `ListQuestionsIn`, `ListOptionsIn` — and
-`PublicLinkQuestionsIn` does the same for a shared link's questions. Each
+`get_form`, `list_questions`, `list_options` and `public_link_questions`
+take an optional `language` query argument. Each is declared against a
+`TranslatedReader` method that `FormManager` embeds — `GetIn`,
+`ListQuestionsIn`, `ListOptionsIn` and `PublicLinkQuestionsIn`. Each
 calls the read it replaces first and only then overlays, so:
 
 - **A refusal is unchanged.** `ReachedOnly`'s hiding and the public link's
@@ -107,16 +107,15 @@ each text came back in, nor list the languages available alongside —
 `list_translation_languages` answers that, and whether the original language
 belongs in that list is still open.
 
-## Not yet built
+`public_link_questions` is read signed out, so its language is read signed
+out too. `mwanachama-wakala-api` mounts the anonymous half for an unissued
+instance over `noLinkIssued`, an otherwise nil `FormManager` that overrides
+each anonymous call with a refusal; it overrides `PublicLinkQuestionsIn` as
+well, and must, or an unissued instance would reach the nil manager instead
+of refusing. A host mounting the anonymous half over a stand-in of its own
+has to override the `In` call too.
 
-- `public_link_questions` still calls `PublicLinkQuestions` and takes no
-  `language`. `PublicLinkQuestionsIn` is built and tested, but
-  `mwanachama-wakala-api` mounts the anonymous half for an unissued instance
-  over `noLinkIssued`, which overrides `PublicLinkQuestions` with a refusal on
-  an otherwise nil `FormManager`. Pointing the operation at
-  `PublicLinkQuestionsIn` before that mount overrides it too would reach the
-  nil manager instead of refusing, so the switch waits for wakala-api to add
-  the override.
+## Not yet built
 
 - A read answering, beside its texts, the languages the form is available
   in. Left out because whether `form.language` counts among them is open.

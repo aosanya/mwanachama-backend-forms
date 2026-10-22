@@ -534,11 +534,14 @@
     "public_link_questions": {
       "method": "GET",
       "path": "/public-links/{key}/questions",
-      "call": "PublicLinkQuestions",
+      "call": "PublicLinkQuestionsIn",
       "action": "forms.public_link.questions",
       "title": "Read a shared link's prompts",
       "description": "Every current prompt of the instrument a shareable link opens, with its choices, in the order they are asked, so a person can answer before they have an account. Nothing about any other instrument, and no answers. An unknown token, a retired link and an instrument that is not open all answer the same way, so nothing can be learned by trying tokens.",
-      "args": [{"from": "path", "as": "key", "description": "The token the link carries."}],
+      "args": [
+        {"from": "path", "as": "key", "description": "The token the link carries."},
+        {"from": "query", "as": "language", "description": "A language tag to read the prompts and choices in. Each text with a reviewed translation in that language is served in it; an unknown or unreviewed language, or none, serves the original text."}
+      ],
       "returns": [{"body": true}]
     },
     "register_respondent": {
