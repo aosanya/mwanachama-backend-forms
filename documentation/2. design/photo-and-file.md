@@ -18,6 +18,9 @@ stored with nothing reading them, and a host would grant a reader the file on
 the strength of an answer that never asked for one. The refusal sits at the
 top of `models.ValidateAnswer`, before the per-type check, so it reaches
 every send the same way the value checks do.
+Through the route table a refused send answers 400 naming `file_ids` and
+stores nothing, so the same answer sent again without the ids lands
+(`routes/f86_file_ids_on_a_non_file_question_test.go`).
 
 ## How many
 
