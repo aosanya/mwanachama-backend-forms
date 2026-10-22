@@ -45,6 +45,12 @@ every period's answers are kept apart under the same form.
   for a form that runs once and before a second period has opened. The member
   is `from: caller`. **A host must grant the new action** before a member can
   reach it.
+- `GET /forms/{form_id}/submissions/mine` (`GetSubmission`) answers the
+  caller's send in the **current** period; a send from an earlier period is
+  not this period's, so it answers not found until the member sends again.
+- A submission's answer count is counted within its own period, so
+  `ListSubmissions`, which still returns every period's sends, never adds last
+  period's answers to this period's send.
 - **Provisional:** an instant the schedule holds no period for (before its
   start, after its end) is stamped `""`, the same bucket as a form that runs
   once. Whether such a send should instead be refused belongs with the open
@@ -53,7 +59,7 @@ every period's answers are kept apart under the same form.
 ## What is not built yet
 
 - The other reads do not scope by period yet: the waiting and answered lists,
-  `/submissions/mine`, `ListAllAnswers` and the register's counts still read
+  `ListAllAnswers`, `ListSubmissions` and the register's counts still read
   every period together.
 - No read for who in the audience missed a period (decision 334).
 - **An existing database keeps its old unique indexes.** The two indexes keep

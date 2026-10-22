@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -34,14 +35,24 @@ func (m *formManager) GetSubmission(ctx context.Context, formID, memberID string
 	if memberID == "" {
 		return models.Submission{}, ErrSubmissionNotFound
 	}
+	f, err := m.Get(ctx, formID)
+	if err != nil {
+		return models.Submission{}, fmt.Errorf("GetSubmission: %w", err)
+	}
+	period, err := currentPeriodKey(f, time.Now())
+	if err != nil {
+		return models.Submission{}, fmt.Errorf("GetSubmission: %w", err)
+	}
 	held, err := m.ListSubmissions(ctx, formID, memberID)
 	if err != nil {
 		return models.Submission{}, fmt.Errorf("GetSubmission: %w", err)
 	}
-	if len(held) == 0 {
-		return models.Submission{}, ErrSubmissionNotFound
+	for _, s := range held {
+		if s.PeriodKey == period {
+			return s, nil
+		}
 	}
-	return held[0], nil
+	return models.Submission{}, ErrSubmissionNotFound
 }
 
 func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID string) ([]models.Submission, error) {
@@ -58,7 +69,7 @@ func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID stri
 		return nil, fmt.Errorf("ListSubmissions: %w", err)
 	}
 	for i := range out {
-		out[i].Answers = counts[sentAs{out[i].MemberID, out[i].ChapterID}]
+		out[i].Answers = counts[sentAs{out[i].MemberID, out[i].ChapterID, out[i].PeriodKey}]
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].SubmittedAt != out[j].SubmittedAt {
@@ -75,25 +86,27 @@ func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID stri
 type sentAs struct {
 	MemberID  string
 	ChapterID string
+	PeriodKey string
 }
 
 func (m *formManager) answerCounts(ctx context.Context, formID, memberID string) (map[sentAs]int, error) {
 	type tally struct {
 		MemberID  string
 		ChapterID string
+		PeriodKey string
 		Given     int
 	}
-	q := m.q(ctx, roleAnswer).Select("member_id, chapter_id, count(*) as given").Where("form_id = ?", formID)
+	q := m.q(ctx, roleAnswer).Select("member_id, chapter_id, period_key, count(*) as given").Where("form_id = ?", formID)
 	if memberID != "" {
 		q = q.Where("member_id = ?", memberID)
 	}
 	var rows []tally
-	if err := q.Group("member_id, chapter_id").Scan(&rows).Error; err != nil {
+	if err := q.Group("member_id, chapter_id, period_key").Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 	out := make(map[sentAs]int, len(rows))
 	for _, r := range rows {
-		out[sentAs{r.MemberID, r.ChapterID}] = r.Given
+		out[sentAs{r.MemberID, r.ChapterID, r.PeriodKey}] = r.Given
 	}
 	return out, nil
 }

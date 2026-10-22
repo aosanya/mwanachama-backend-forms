@@ -157,3 +157,37 @@ func TestAFormThatRunsOnceHasNoPreviousAnswers(t *testing.T) {
 		t.Fatalf("previous = %+v, %v", got, err)
 	}
 }
+
+func TestMySubmissionIsThisPeriodsAndCountsOnlyItsOwnAnswers(t *testing.T) {
+	mgr, db := newTestManagerDB(t)
+	ctx := context.Background()
+	f, q := composeAimedForm(t, mgr, mwanachamaforms.Form{Title: "Weekly", Schedule: weeklySchedule()})
+	if _, err := mgr.SubmitAnswers(ctx, f.ID, "alice", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "last week"}}); err != nil {
+		t.Fatalf("SubmitAnswers: %v", err)
+	}
+	prev, err := weeklySchedule().PreviousPeriod(time.Now())
+	if err != nil {
+		t.Fatalf("PreviousPeriod: %v", err)
+	}
+	moveAnswersToPeriod(t, db, prev.Key)
+
+	if got, err := mgr.GetSubmission(ctx, f.ID, "alice"); !errors.Is(err, mwanachamaforms.ErrSubmissionNotFound) {
+		t.Fatalf("this period's submission = %+v, %v, want not found", got, err)
+	}
+	if _, err := mgr.SubmitAnswers(ctx, f.ID, "alice", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "this week"}}); err != nil {
+		t.Fatalf("SubmitAnswers this period: %v", err)
+	}
+	mine, err := mgr.GetSubmission(ctx, f.ID, "alice")
+	if err != nil || mine.PeriodKey == prev.Key || mine.Answers != 1 {
+		t.Fatalf("this period's submission = %+v, %v", mine, err)
+	}
+	all, err := mgr.ListSubmissions(ctx, f.ID, "alice")
+	if err != nil || len(all) != 2 {
+		t.Fatalf("submissions = %+v, %v", all, err)
+	}
+	for _, s := range all {
+		if s.Answers != 1 {
+			t.Fatalf("submission %+v counts answers from another period", s)
+		}
+	}
+}
