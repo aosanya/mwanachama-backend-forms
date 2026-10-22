@@ -424,7 +424,7 @@
     "submit_answers": {
       "method": "POST",
       "path": "/forms/{form_id}/answers",
-      "call": "SubmitAnswersAs",
+      "call": "SubmitAnswersIn",
       "action": "forms.answer.submit",
       "title": "Answer a form",
       "description": "Send every answer at once, as one group the instrument was aimed at that the caller belongs to. They are all checked before any is written, so one bad answer leaves nothing behind, and answering again as the same group edits what was already given as it rather than doubling it.",
@@ -432,6 +432,7 @@
         {"from": "path", "as": "form_id", "description": "The instrument being answered."},
         {"from": "caller", "as": "member_id"},
         {"from": "query", "as": "as", "description": "The group being answered as. Absent picks the first group the instrument was aimed at that the caller belongs to."},
+        {"from": "query", "as": "language", "description": "The language tag the caller answered in, recorded on the send. Absent records none."},
         {"from": "body", "as": "answers", "description": "One answer per prompt being answered."}
       ],
       "returns": [{"body": true}]

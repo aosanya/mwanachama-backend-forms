@@ -220,7 +220,8 @@
         {"name": "edited_at", "type": "timestamp", "description": "When they last sent again. Empty means never."},
         {"name": "collector", "type": "string", "description": "Who collected the answers. The sender themselves when they answered on their own."},
         {"name": "collected_at", "type": "timestamp", "description": "When the answers were collected, which for a paper sheet is earlier than when it was typed in."},
-        {"name": "channel", "type": "enum", "values": ["app", "link", "field", "paper"], "description": "How the answers reached the instrument: answered in the app, through a public link, collected in the field, or typed in from paper."}
+        {"name": "channel", "type": "enum", "values": ["app", "link", "field", "paper"], "description": "How the answers reached the instrument: answered in the app, through a public link, collected in the field, or typed in from paper."},
+        {"name": "language", "type": "string", "description": "The language tag the sender answered in, as the send named it. A resend records its own. Empty when the send named none."}
       ],
       "indexes": [
         {"name": "form_member_group", "description": "Reads one person's send to one instrument as one group, and keeps it to one so a resend as that group edits rather than doubles.", "fields": ["form_id", "member_id", "chapter_id"], "unique": true},

@@ -63,10 +63,22 @@ claiming another `form_id` is overwritten. Writing and reviewing are one
 action today; whether reviewing should be a separate grant from drafting is
 open (decision 256 says the operator reviews, not who may draft).
 
+## The language a send was answered in
+
+A submission carries `language`, the tag the sender answered in.
+`submit_answers` takes it as the `language` query argument and
+`SubmitAnswersIn` records it on the send; `SubmitAnswers` and
+`SubmitAnswersAs` record none. A resend records its own language, so the
+send says what the latest answers were given in, while `submitted_at` keeps
+the first send's time. Empty means the send named none.
+
+The tag is recorded as sent and not checked against the form's languages:
+which languages a form offers depends on whether its original language counts
+among them, which is not yet decided.
+
 ## Not yet built
 
 - Reads that take a language: `get_form`, `list_questions`, `list_options`
   and the public-link questions overlaying the reviewed texts and answering
   the available languages.
-- A submission recording the language it was answered in.
 - Checking that `subject_id` names a question or option of that form.

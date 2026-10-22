@@ -10,6 +10,7 @@ type Submission struct {
 	Collector   string `json:"collector,omitempty"`
 	CollectedAt string `json:"collected_at,omitempty"`
 	Channel     string `json:"channel,omitempty"`
+	Language    string `json:"language,omitempty"`
 	Answers     int    `json:"answers" spec:"-"`
 }
 

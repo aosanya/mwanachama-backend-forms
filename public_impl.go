@@ -126,6 +126,10 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 }
 
 func (m *formManager) SubmitAnswersAs(ctx context.Context, formID, memberID, answeringAs string, in []models.Answer) ([]models.Answer, error) {
+	return m.SubmitAnswersIn(ctx, formID, memberID, answeringAs, "", in)
+}
+
+func (m *formManager) SubmitAnswersIn(ctx context.Context, formID, memberID, answeringAs, language string, in []models.Answer) ([]models.Answer, error) {
 	if memberID == "" {
 		return nil, fmt.Errorf("%w: nobody is answering", ErrInvalidAnswer)
 	}
@@ -174,7 +178,7 @@ func (m *formManager) SubmitAnswersAs(ctx context.Context, formID, memberID, ans
 		if err := m.dropAnswersNotCarried(tx, formID, memberID, chapterID, in); err != nil {
 			return err
 		}
-		return m.writeSubmission(tx, formID, memberID, chapterID, channel, now)
+		return m.writeSubmission(tx, formID, memberID, chapterID, channel, language, now)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
