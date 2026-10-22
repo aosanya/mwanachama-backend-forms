@@ -109,6 +109,8 @@ func VisibleToMembers(s Status) bool { return models.VisibleToMembers(s) }
 func Deletable(s Status) bool { return models.Deletable(s) }
 
 type FormManager interface {
+	Translator
+
 	Create(ctx context.Context, f models.Form) (models.Form, error)
 
 	Get(ctx context.Context, id string) (models.Form, error)

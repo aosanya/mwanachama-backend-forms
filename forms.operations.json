@@ -575,6 +575,52 @@
         {"from": "caller", "as": "member_id"}
       ],
       "returns": [{"body": true}]
+    },
+    "put_translation": {
+      "method": "PUT",
+      "path": "/forms/{form_id}/translations",
+      "call": "PutTranslation",
+      "action": "forms.translation.put",
+      "title": "Put a translation",
+      "description": "Write one text of an instrument, of one of its prompts or of one of its choices in another language, or replace the one already held for that text and language. A text sent unreviewed is not served until it is put again marked reviewed. A text held by another instrument or another kind of object is refused.",
+      "args": [
+        {"from": "body", "whole": true},
+        {"from": "path", "as": "form_id", "into": "FormID", "description": "The instrument the text belongs to."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_translations": {
+      "method": "GET",
+      "path": "/forms/{form_id}/translations",
+      "call": "ListTranslations",
+      "action": "forms.translation.list",
+      "title": "List translations",
+      "description": "Every text of one instrument in every other language, reviewed or not, for review.",
+      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose texts to read."}],
+      "returns": [{"body": true}]
+    },
+    "list_reviewed_translations": {
+      "method": "GET",
+      "path": "/forms/{form_id}/translations/reviewed",
+      "call": "ReviewedTranslations",
+      "action": "forms.translation.list_reviewed",
+      "title": "Reviewed translations",
+      "description": "The reviewed texts of one instrument in one language: what a read in that language shows in place of the original.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument whose texts to read."},
+        {"from": "query", "as": "language", "description": "The language tag to read."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_translation_languages": {
+      "method": "GET",
+      "path": "/forms/{form_id}/languages",
+      "call": "TranslationLanguages",
+      "action": "forms.translation.languages",
+      "title": "Languages available",
+      "description": "The languages one instrument has at least one reviewed text in, sorted.",
+      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose languages to read."}],
+      "returns": [{"body": true}]
     }
   }
 }

@@ -34,7 +34,7 @@ and the route table's is
   each role, what it is called, and which table it lands in. It names
   `wakala` as its instance by way of example; a mount chooses its own
   through `SpecFor`.
-- **`forms.operations.json`** — the API's declaration. Forty-one operations,
+- **`forms.operations.json`** — the API's declaration. Forty-five operations,
   each with its method, path, manager method, gating action, status, prose
   and arguments. `routes/` is an adapter over
   `mwanachama-backend-shared/dispatch` and nothing else.

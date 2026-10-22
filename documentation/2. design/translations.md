@@ -27,8 +27,9 @@ A put naming a row held by another form or another subject role is refused.
 
 ## The manager
 
-The methods sit on the `Translator` interface, which the form manager
-implements; a mount reaches it with a type assertion on `FormManager`.
+The methods sit on the `Translator` interface, which `FormManager` embeds, so
+every manager a mount holds carries them and a shape built from
+`struct{ FormManager }` still dispatches the four operations below.
 
 - `PutTranslation` — write or replace one text. The form must exist.
 - `ListTranslations` — every text of a form, reviewed or not, for review.
@@ -37,13 +38,28 @@ implements; a mount reaches it with a type assertion on `FormManager`.
 - `TranslationLanguages(form)` — the languages with at least one reviewed
   text, sorted; what a read lists as available.
 
+## The operations
+
+Declared in `forms.operations.json`, so they reach HTTP and MCP alike, each
+gated by its own action:
+
+| operation | address | action |
+| --- | --- | --- |
+| `put_translation` | `PUT /forms/{form_id}/translations` | `forms.translation.put` |
+| `list_translations` | `GET /forms/{form_id}/translations` | `forms.translation.list` |
+| `list_reviewed_translations` | `GET /forms/{form_id}/translations/reviewed?language=` | `forms.translation.list_reviewed` |
+| `list_translation_languages` | `GET /forms/{form_id}/languages` | `forms.translation.languages` |
+
+The address outranks the body: a put names its form by the path, and a body
+claiming another `form_id` is overwritten. Writing and reviewing are one
+action today; whether reviewing should be a separate grant from drafting is
+open (decision 256 says the operator reviews, not who may draft).
+
 ## Not yet built
 
 - The form's own original language (a field on `form`).
 - Reads that take a language: `get_form`, `list_questions`, `list_options`
   and the public-link questions overlaying the reviewed texts and answering
   the available languages.
-- The operations in `forms.operations.json`, so wakala-api's WK177 can reach
-  any of this over HTTP and MCP.
 - A submission recording the language it was answered in.
 - Checking that `subject_id` names a question or option of that form.
