@@ -192,7 +192,7 @@
         {"name": "form_id", "type": "string", "description": "The instrument being answered.", "required": true},
         {"name": "question_id", "type": "string", "description": "The prompt being answered.", "required": true},
         {"name": "member_id", "type": "string", "description": "Who answered — a member, or a public respondent's own id.", "required": true},
-        {"name": "chapter_id", "type": "string", "description": "The group they answered from, recorded once and kept across an edit."},
+        {"name": "chapter_id", "type": "string", "description": "The group they answered as. A person answers once per group the instrument was aimed at that they belong to."},
         {"name": "option_ids", "type": "json", "description": "The choices picked, where the prompt offers a list."},
         {"name": "value_text", "type": "text", "description": "What they typed, where the prompt asks for prose."},
         {"name": "value_number", "type": "float", "description": "The amount given. Absent means unanswered, which is not the same as zero.", "nullable": true},
@@ -204,17 +204,17 @@
       ],
       "indexes": [
         {"name": "form", "description": "Counts how many people have answered one instrument.", "fields": ["form_id"]},
-        {"name": "question_member", "description": "Reads one person's answer to one prompt, and keeps it to one so a resubmission edits rather than doubles.", "fields": ["question_id", "member_id"], "unique": true}
+        {"name": "question_member_group", "description": "Reads one person's answer to one prompt as one group, and keeps it to one so a resubmission as that group edits rather than doubles.", "fields": ["question_id", "member_id", "chapter_id"], "unique": true}
       ]
     },
     {
       "role": "submission",
-      "description": "That one person sent their answers to one instrument, whether the send carried answers or none. It is what makes an instrument answered.",
+      "description": "That one person sent their answers to one instrument as one group, whether the send carried answers or none. It is what makes an instrument answered.",
       "fields": [
         {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
         {"name": "form_id", "type": "string", "description": "The instrument they sent to.", "required": true},
         {"name": "member_id", "type": "string", "description": "Who sent — a member, or a public respondent's own id.", "required": true},
-        {"name": "chapter_id", "type": "string", "description": "The group the send counts toward, recorded once and kept across a resend."},
+        {"name": "chapter_id", "type": "string", "description": "The group the send was made as, and counts toward. A person holds one send per group."},
         {"name": "submitted_at", "type": "timestamp", "description": "When they first sent. A resend leaves this alone."},
         {"name": "edited_at", "type": "timestamp", "description": "When they last sent again. Empty means never."},
         {"name": "collector", "type": "string", "description": "Who collected the answers. The sender themselves when they answered on their own."},
@@ -222,7 +222,7 @@
         {"name": "channel", "type": "enum", "values": ["app", "link", "field", "paper"], "description": "How the answers reached the instrument: answered in the app, through a public link, collected in the field, or typed in from paper."}
       ],
       "indexes": [
-        {"name": "form_member", "description": "Reads one person's send to one instrument, and keeps it to one so a resend edits rather than doubles.", "fields": ["form_id", "member_id"], "unique": true},
+        {"name": "form_member_group", "description": "Reads one person's send to one instrument as one group, and keeps it to one so a resend as that group edits rather than doubles.", "fields": ["form_id", "member_id", "chapter_id"], "unique": true},
         {"name": "member", "description": "Lists every instrument one person has sent to.", "fields": ["member_id"]}
       ]
     },

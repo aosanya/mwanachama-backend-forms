@@ -12,6 +12,9 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 	if err := renameLegacy(db, s); err != nil {
 		return err
 	}
+	if err := dropOnePerPersonIndexes(db, s); err != nil {
+		return err
+	}
 	if err := spec.Migrate(db, s); err != nil {
 		return err
 	}
@@ -27,10 +30,10 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 func recordEarlierSends(db *gorm.DB, s *spec.Spec) error {
 	answers, submissions := tableFor(s, roleAnswer), tableFor(s, roleSubmission)
 	stmt := fmt.Sprintf(`insert into %[2]s (id, form_id, member_id, chapter_id, submitted_at, edited_at)
-select a.form_id || ':' || a.member_id, a.form_id, a.member_id, min(a.chapter_id), min(a.answered_at), max(a.edited_at)
+select a.form_id || ':' || a.member_id || ':' || a.chapter_id, a.form_id, a.member_id, a.chapter_id, min(a.answered_at), max(a.edited_at)
 from %[1]s a
-where not exists (select 1 from %[2]s s where s.form_id = a.form_id and s.member_id = a.member_id)
-group by a.form_id, a.member_id`, answers, submissions)
+where not exists (select 1 from %[2]s s where s.form_id = a.form_id and s.member_id = a.member_id and s.chapter_id = a.chapter_id)
+group by a.form_id, a.member_id, a.chapter_id`, answers, submissions)
 	if err := db.Exec(stmt).Error; err != nil {
 		return fmt.Errorf("forms: record earlier sends: %w", err)
 	}
@@ -254,6 +257,20 @@ $$ LANGUAGE plpgsql`, lockFn, questions, forms),
 	for _, sql := range stmts {
 		if err := db.Exec(sql).Error; err != nil {
 			return fmt.Errorf("forms: syncConstraints: %w", err)
+		}
+	}
+	return nil
+}
+
+func dropOnePerPersonIndexes(db *gorm.DB, s *spec.Spec) error {
+	retired := map[string]string{roleAnswer: "question_member", roleSubmission: "form_member"}
+	for role, name := range retired {
+		table := tableFor(s, role)
+		if table == "" {
+			continue
+		}
+		if err := db.Exec("drop index if exists " + table + "_" + name + "_idx").Error; err != nil {
+			return fmt.Errorf("forms: drop %s's one-per-person index: %w", table, err)
 		}
 	}
 	return nil

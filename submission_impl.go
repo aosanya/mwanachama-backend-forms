@@ -13,7 +13,7 @@ import (
 
 func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, channel, now string) error {
 	var held models.Submission
-	q := tx.Table(m.table(roleSubmission)).Where("form_id = ? AND member_id = ?", formID, memberID)
+	q := tx.Table(m.table(roleSubmission)).Where("form_id = ? AND member_id = ? AND chapter_id = ?", formID, memberID, chapterID)
 	err := m.take(q, roleSubmission, &held, ErrSubmissionNotFound)
 	switch {
 	case err == nil:
@@ -58,33 +58,42 @@ func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID stri
 		return nil, fmt.Errorf("ListSubmissions: %w", err)
 	}
 	for i := range out {
-		out[i].Answers = counts[out[i].MemberID]
+		out[i].Answers = counts[sentAs{out[i].MemberID, out[i].ChapterID}]
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].SubmittedAt != out[j].SubmittedAt {
 			return out[i].SubmittedAt < out[j].SubmittedAt
 		}
-		return out[i].MemberID < out[j].MemberID
+		if out[i].MemberID != out[j].MemberID {
+			return out[i].MemberID < out[j].MemberID
+		}
+		return out[i].ChapterID < out[j].ChapterID
 	})
 	return out, nil
 }
 
-func (m *formManager) answerCounts(ctx context.Context, formID, memberID string) (map[string]int, error) {
+type sentAs struct {
+	MemberID  string
+	ChapterID string
+}
+
+func (m *formManager) answerCounts(ctx context.Context, formID, memberID string) (map[sentAs]int, error) {
 	type tally struct {
-		MemberID string
-		Given    int
+		MemberID  string
+		ChapterID string
+		Given     int
 	}
-	q := m.q(ctx, roleAnswer).Select("member_id, count(*) as given").Where("form_id = ?", formID)
+	q := m.q(ctx, roleAnswer).Select("member_id, chapter_id, count(*) as given").Where("form_id = ?", formID)
 	if memberID != "" {
 		q = q.Where("member_id = ?", memberID)
 	}
 	var rows []tally
-	if err := q.Group("member_id").Scan(&rows).Error; err != nil {
+	if err := q.Group("member_id, chapter_id").Scan(&rows).Error; err != nil {
 		return nil, err
 	}
-	out := make(map[string]int, len(rows))
+	out := make(map[sentAs]int, len(rows))
 	for _, r := range rows {
-		out[r.MemberID] = r.Given
+		out[sentAs{r.MemberID, r.ChapterID}] = r.Given
 	}
 	return out, nil
 }

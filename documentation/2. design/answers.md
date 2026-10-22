@@ -70,6 +70,46 @@ The rule is checked by reading the form's targets before writing, not by a
 unique index, so two aims racing on one draft could both land; the same is
 already true of `ErrDuplicateTarget`.
 
+## Answering as a group
+
+Decided 2026-10-22 by the owner (`mwanachama-frontend-member`'s decisions
+247 and 248) and built as F40. It amends the section above: a member who
+belongs to more than one group a form was sent to answers once for each,
+and each answer is counted under its own group. A trader who is also a
+teacher may answer as both.
+
+- **A send names the group it answers as**, in `?as=` on
+  `POST /forms/{form_id}/answers`. The manager method is `SubmitAnswersAs`;
+  `SubmitAnswers` is `SubmitAnswersAs` with no group, for callers that do
+  not choose one.
+- **The group must be one the form was sent to, and one the caller is in.**
+  A group no target names, or one the host's `Groups` does not list for the
+  caller, is `ErrInvalidAnswer` (400). Belonging through an inner group is
+  the host's to say: `Groups` names the caller's own groups and the groups
+  above them, the same list the waiting list reads. A mount with no `Groups`
+  checks only that the form was sent to the group.
+- **No group named keeps the F34 rule**: the first target, in the order the
+  targets were added, that the caller is in, else the first target. A body
+  naming `chapter_id` is still ignored.
+- **One send and one answer per question per (member, group).** The unique
+  indexes are `submission (form_id, member_id, chapter_id)` and
+  `answer (question_id, member_id, chapter_id)`. A resend as a group edits
+  that group's send and answers and replaces that group's whole set (F31);
+  it never touches what the member sent as another group.
+- **The reads report per group.** A waiting form carries `answered_as`, the
+  groups the caller has already sent as, beside `answered`. The answered
+  list has one row per form and group, each carrying its `chapter_id`.
+  `list_submissions` and `get_my_submission` read one row per group, and a
+  send's `answers` counts that group's answers alone;
+  `get_my_submission` answers the earliest.
+- **Rounds take the same rule** (decision 248): a duplicate is the same
+  person answering as the same group again. Counting each person once in
+  their ward's share is wakala-api's (WK167, WK168), not this module's.
+- **Provisioning an older database.** `Provision` drops the retired
+  one-per-person unique indexes (`question_member`, `form_member`) before
+  `spec.Migrate` creates the per-group ones, and records earlier sends per
+  form, member and group, with the id `<form_id>:<member_id>:<chapter_id>`.
+
 ## An empty send is a send
 
 Decided 2026-10-20 by the owner (`mwanachama-frontend-member`'s decisions

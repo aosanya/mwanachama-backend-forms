@@ -122,6 +122,10 @@ func mintRespondentKey() (string, error) {
 }
 
 func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string, in []models.Answer) ([]models.Answer, error) {
+	return m.SubmitAnswersAs(ctx, formID, memberID, "", in)
+}
+
+func (m *formManager) SubmitAnswersAs(ctx context.Context, formID, memberID, answeringAs string, in []models.Answer) ([]models.Answer, error) {
 	if memberID == "" {
 		return nil, fmt.Errorf("%w: nobody is answering", ErrInvalidAnswer)
 	}
@@ -149,9 +153,9 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 		return nil, err
 	}
 
-	chapterID, err := m.aimedAt(ctx, formID, memberID)
+	chapterID, err := m.answeringAs(ctx, formID, memberID, answeringAs)
 	if err != nil {
-		return nil, fmt.Errorf("SubmitAnswers: %w", err)
+		return nil, err
 	}
 	channel, err := m.sendChannel(ctx, memberID, formID)
 	if err != nil {
@@ -167,7 +171,7 @@ func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string
 			}
 			out = append(out, written)
 		}
-		if err := m.dropAnswersNotCarried(tx, formID, memberID, in); err != nil {
+		if err := m.dropAnswersNotCarried(tx, formID, memberID, chapterID, in); err != nil {
 			return err
 		}
 		return m.writeSubmission(tx, formID, memberID, chapterID, channel, now)
@@ -227,7 +231,7 @@ func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now 
 	a.FormID, a.MemberID = formID, memberID
 
 	var held models.Answer
-	q := tx.Table(m.table(roleAnswer)).Where("question_id = ? AND member_id = ?", a.QuestionID, memberID)
+	q := tx.Table(m.table(roleAnswer)).Where("question_id = ? AND member_id = ? AND chapter_id = ?", a.QuestionID, memberID, chapterID)
 	err := m.take(q, roleAnswer, &held, errNoAnswer)
 	switch {
 	case err == nil:
@@ -243,15 +247,15 @@ func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now 
 	}
 }
 
-func (m *formManager) dropAnswersNotCarried(tx *gorm.DB, formID, memberID string, carried []models.Answer) error {
+func (m *formManager) dropAnswersNotCarried(tx *gorm.DB, formID, memberID, chapterID string, carried []models.Answer) error {
 	if len(carried) == 0 {
-		return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ?", formID, memberID)
+		return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ? AND chapter_id = ?", formID, memberID, chapterID)
 	}
 	kept := make([]string, 0, len(carried))
 	for _, a := range carried {
 		kept = append(kept, a.QuestionID)
 	}
-	return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ? AND question_id NOT IN ?", formID, memberID, kept)
+	return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ? AND chapter_id = ? AND question_id NOT IN ?", formID, memberID, chapterID, kept)
 }
 
 func (m *formManager) ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {

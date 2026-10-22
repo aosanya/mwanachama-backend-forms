@@ -101,3 +101,32 @@ func (m *formManager) aimedAt(ctx context.Context, formID, memberID string) (str
 	}
 	return held[0].ChapterID, nil
 }
+
+func (m *formManager) answeringAs(ctx context.Context, formID, memberID, as string) (string, error) {
+	if as == "" {
+		chapterID, err := m.aimedAt(ctx, formID, memberID)
+		if err != nil {
+			return "", fmt.Errorf("SubmitAnswers: %w", err)
+		}
+		return chapterID, nil
+	}
+	held, err := m.ListTargets(ctx, formID)
+	if err != nil {
+		return "", fmt.Errorf("SubmitAnswers: %w", err)
+	}
+	aimed := slices.ContainsFunc(held, func(t models.Target) bool { return t.ChapterID == as })
+	if !aimed {
+		return "", fmt.Errorf("%w: the form was not sent to group %q", ErrInvalidAnswer, as)
+	}
+	if m.groups == nil {
+		return as, nil
+	}
+	groups, err := m.groups(ctx, memberID)
+	if err != nil {
+		return "", fmt.Errorf("SubmitAnswers: %w", err)
+	}
+	if !slices.Contains(groups, as) {
+		return "", fmt.Errorf("%w: the caller does not belong to group %q", ErrInvalidAnswer, as)
+	}
+	return as, nil
+}

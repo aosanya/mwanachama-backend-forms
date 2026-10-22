@@ -13,4 +13,5 @@ type WaitingForm struct {
 	Questions           int      `json:"questions"`
 	ReachedVia          []string `json:"reached_via"`
 	Answered            bool     `json:"answered"`
+	AnsweredAs          []string `json:"answered_as"`
 }

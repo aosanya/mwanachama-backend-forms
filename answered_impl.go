@@ -20,9 +20,9 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 	if len(sent) == 0 {
 		return []models.AnsweredForm{}, nil
 	}
-	given := make(map[string]models.Submission, len(sent))
+	given := make(map[string][]models.Submission, len(sent))
 	for _, sub := range sent {
-		given[sub.FormID] = sub
+		given[sub.FormID] = append(given[sub.FormID], sub)
 	}
 
 	ids := make([]string, 0, len(given))
@@ -37,29 +37,34 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 	now := time.Now()
 	out := make([]models.AnsweredForm, 0, len(forms))
 	for _, f := range forms {
-		sub := given[f.ID]
-		out = append(out, models.AnsweredForm{
-			FormID:              f.ID,
-			Title:               f.Title,
-			OriginatorChapterID: f.OriginatorChapterID,
-			PublishedBy:         f.PublishedBy,
-			PublisherName:       f.PublisherName,
-			PublishingAuthority: f.PublishingAuthority,
-			PublishedAt:         f.PublishedAt,
-			OpensAt:             f.OpensAt,
-			ClosesAt:            f.ClosesAt,
-			ClosedAt:            f.ClosedAt,
-			Status:              f.Status,
-			Open:                f.Status == models.StatusOpen && !f.OutsideWindow(now),
-			AnsweredAt:          sub.SubmittedAt,
-			EditedAt:            sub.EditedAt,
-		})
+		for _, sub := range given[f.ID] {
+			out = append(out, models.AnsweredForm{
+				FormID:              f.ID,
+				Title:               f.Title,
+				OriginatorChapterID: f.OriginatorChapterID,
+				PublishedBy:         f.PublishedBy,
+				PublisherName:       f.PublisherName,
+				PublishingAuthority: f.PublishingAuthority,
+				PublishedAt:         f.PublishedAt,
+				OpensAt:             f.OpensAt,
+				ClosesAt:            f.ClosesAt,
+				ClosedAt:            f.ClosedAt,
+				Status:              f.Status,
+				Open:                f.Status == models.StatusOpen && !f.OutsideWindow(now),
+				ChapterID:           sub.ChapterID,
+				AnsweredAt:          sub.SubmittedAt,
+				EditedAt:            sub.EditedAt,
+			})
+		}
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].PublishedAt != out[j].PublishedAt {
 			return out[i].PublishedAt > out[j].PublishedAt
 		}
-		return out[i].FormID < out[j].FormID
+		if out[i].FormID != out[j].FormID {
+			return out[i].FormID < out[j].FormID
+		}
+		return out[i].ChapterID < out[j].ChapterID
 	})
 	return out, nil
 }
