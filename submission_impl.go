@@ -43,7 +43,7 @@ func (m *formManager) GetSubmission(ctx context.Context, formID, memberID string
 	if err != nil {
 		return models.Submission{}, fmt.Errorf("GetSubmission: %w", err)
 	}
-	held, err := m.ListSubmissions(ctx, formID, memberID)
+	held, err := m.ListSubmissions(ctx, formID, memberID, period)
 	if err != nil {
 		return models.Submission{}, fmt.Errorf("GetSubmission: %w", err)
 	}
@@ -55,10 +55,13 @@ func (m *formManager) GetSubmission(ctx context.Context, formID, memberID string
 	return models.Submission{}, ErrSubmissionNotFound
 }
 
-func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID string) ([]models.Submission, error) {
+func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID, periodKey string) ([]models.Submission, error) {
 	q := m.q(ctx, roleSubmission).Where("form_id = ?", formID)
 	if memberID != "" {
 		q = q.Where("member_id = ?", memberID)
+	}
+	if periodKey != "" {
+		q = q.Where("period_key = ?", periodKey)
 	}
 	out, err := listOf[models.Submission](m, q, roleSubmission)
 	if err != nil {

@@ -46,7 +46,7 @@ func TestAMemberAnswersOncePerGroupTheyAnswerAs(t *testing.T) {
 	if _, err := mgr.SubmitAnswersAs(ctx, formID, "alice", "traders", []mwanachamaforms.Answer{{QuestionID: qID, ValueText: "edited"}}); err != nil {
 		t.Fatalf("resend as traders: %v", err)
 	}
-	sends, err := mgr.ListSubmissions(ctx, formID, "alice")
+	sends, err := mgr.ListSubmissions(ctx, formID, "alice", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}

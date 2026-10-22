@@ -513,7 +513,8 @@
       "description": "Everyone who has sent their answers to one instrument, first sender first, each with when they sent and how many answers the send carried, so somebody who sent nothing still shows as having responded. Optionally narrowed to one person. An operator's read, gated like everyone's answers.",
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument sent to."},
-        {"from": "query", "as": "member_id", "description": "Only this person's send. Absent reads everyone's."}
+        {"from": "query", "as": "member_id", "description": "Only this person's send. Absent reads everyone's."},
+        {"from": "query", "as": "period_key", "description": "Only the sends made in this period of a repeating instrument, keyed by the day it opened. Absent reads every period."}
       ],
       "returns": [{"body": true}]
     },

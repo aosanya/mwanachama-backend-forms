@@ -38,7 +38,7 @@ func TestF40ASendNamesTheGroupItAnswersAs(t *testing.T) {
 	if rec := doAs(t, mux, "alice", http.MethodPost, "/forms/"+f.ID+"/answers?as=farmers", body); rec.Code < 400 || rec.Code >= 500 {
 		t.Fatalf("answer as a group the form was not sent to: %d %s, want a 4xx", rec.Code, rec.Body)
 	}
-	sends, err := fm.ListSubmissions(ctx, f.ID, "alice")
+	sends, err := fm.ListSubmissions(ctx, f.ID, "alice", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}

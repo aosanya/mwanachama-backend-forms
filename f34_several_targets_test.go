@@ -38,7 +38,7 @@ func TestAnAnswerCarriesTheTargetItsMemberAnsweredThrough(t *testing.T) {
 	if len(answers) != 1 || answers[0].ChapterID != "ward-2" {
 		t.Fatalf("answers = %+v, want one carrying ward-2", answers)
 	}
-	sends, err := mgr.ListSubmissions(ctx, created.ID, "")
+	sends, err := mgr.ListSubmissions(ctx, created.ID, "", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}

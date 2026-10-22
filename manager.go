@@ -202,7 +202,7 @@ type FormManager interface {
 
 	GetSubmission(ctx context.Context, formID, memberID string) (models.Submission, error)
 
-	ListSubmissions(ctx context.Context, formID, memberID string) ([]models.Submission, error)
+	ListSubmissions(ctx context.Context, formID, memberID, periodKey string) ([]models.Submission, error)
 
 	Declare(ctx context.Context, d models.Declaration) (models.Declaration, error)
 

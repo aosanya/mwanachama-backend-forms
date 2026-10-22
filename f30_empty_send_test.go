@@ -30,7 +30,7 @@ func TestAnAnswerGivenBeforeSendsWereRecordedCountsAsASendOnceProvisioned(t *tes
 			t.Fatalf("Provision: %v", err)
 		}
 	}
-	got, err := mgr.ListSubmissions(ctx, f.ID, "")
+	got, err := mgr.ListSubmissions(ctx, f.ID, "", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}
