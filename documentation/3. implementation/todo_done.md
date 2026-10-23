@@ -539,3 +539,15 @@ caller (F13), and a refusal names no Go method. `reached.md` widened.
 9fe8802 (merged as 3ab4860); test
 `routes/f88_own_answers_outside_reach_test.go` through the real route table.
 Verified: `go build`, `go vet`, `gofmt -l`, `go test ./...` ok.
+
+## F35 — a public link's ward is a real ward — 2026-10-23
+
+The forms half of decision 236's public-link check. `UseDeclarable` names the
+groups a public form offers and refuses any other declared group (400,
+403b22e); `ListDeclarations`/`CountDeclarations` on the manager; the declared
+operations `GET /forms/{form_id}/declarations` (`forms.declaration.list`) and
+`/declarations/count` (`forms.declaration.count`), both gated (9073556,
+merged as d45bd2f); `declarable.md`. What remains is wakala-api's: switching
+the check on and granting the two actions, which is WK167 there, with the
+owner's questions on which groups a link offers and who reads the counts.
+Verified 2026-10-23: `go build`, `go vet`, `go test ./...` ok.
