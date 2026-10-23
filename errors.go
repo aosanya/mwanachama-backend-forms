@@ -57,5 +57,6 @@ var (
 var (
 	ErrFormNotOpen       = errors.New("mwanachamaforms: form is not open")
 	ErrOutsideWindow     = errors.New("mwanachamaforms: form is not taking answers at this time")
+	ErrPeriodClosed      = errors.New("mwanachamaforms: the period this send was opened for is no longer open")
 	ErrQuestionNotOnForm = errors.New("mwanachamaforms: question does not belong to this form")
 )

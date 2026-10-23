@@ -74,31 +74,37 @@ every period's answers are kept apart under the same form.
   (one that runs once, or a schedule on another rhythm) is still listed and
   counts 0. The key is matched as written, the same way `list_all` and
   `submissions` match theirs.
-- **Provisional:** an instant the schedule holds no period for (before its
-  start, after its end) is stamped `""`, the same bucket as a form that runs
-  once. Whether such a send should instead be refused belongs with the open
-  questions below.
-
 ## What is not built yet
 
-- No read for who in the audience missed a period (decision 334).
+- No read for who in the audience missed a period (decision 334): it needs
+  the host to list a target group's members, a seam forms does not have.
 - **An existing database keeps its old unique indexes.** The two indexes keep
   their names, so `spec.Migrate`'s create-if-absent does not rebuild them
   with `period_key`; a deployment that already holds these tables needs the
   two indexes dropped once so they are recreated. New databases are correct.
 
+## A send names its period (member app decisions 361, 370)
+
+- `POST /forms/{form_id}/answers` takes an optional `period_key` query
+  argument (`SubmitAnswersFor`): the period of a repeating form the send was
+  opened for. When it is not the period open now, the send is refused with
+  `ErrPeriodClosed` (409), even when it closed only because the next period
+  opened; nothing is written. Absent, the send lands in the period open now.
+- A send to a repeating form while no period is open (before the schedule's
+  start, after its end, or between a period's `open_days` close and the next
+  opening) is refused with `ErrOutsideWindow` (409), the refusal a form past
+  its window already gets. Nothing is stamped `""` on a repeating form any
+  more.
+- A form that runs once and a standing form ignore `period_key`.
+
 ## Open questions
 
-- Decision 334 says a period closes "on its own close date". A schedule
-  carries only openings; how a period's own close date is stated (a duration
-  after each opening? the form's `closes_at` time of day?) is not decided.
-- How a repeating form's `opens_at`/`closes_at` and the F17 window relate to
-  the schedule's `start`/`end` is not decided: today both are kept and
-  neither constrains the other.
-- Whether the opening day in the schedule's zone (rather than the agency's
-  zone) is the right period key is with the owner; the key is kept as built.
-- Whether a send at an instant with no period is stamped `""` (today) or
-  refused is not decided.
+- Whether a send to a repeating form that names no period should be refused
+  rather than landing in the period open now. Today it lands, so the member
+  app keeps working until it sends the key it opened the form for.
+- Who missed a period (decision 334) is the audience with no send in a period
+  that has closed. The audience is the members of the form's target groups,
+  which only the host knows; forms has no seam that lists a group's members.
 
 ## The schedule is shared's wire shape (S67, member app decision 367)
 

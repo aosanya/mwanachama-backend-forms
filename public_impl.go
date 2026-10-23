@@ -130,6 +130,10 @@ func (m *formManager) SubmitAnswersAs(ctx context.Context, formID, memberID, ans
 }
 
 func (m *formManager) SubmitAnswersIn(ctx context.Context, formID, memberID, answeringAs, language string, in []models.Answer) ([]models.Answer, error) {
+	return m.SubmitAnswersFor(ctx, formID, memberID, answeringAs, language, "", in)
+}
+
+func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, answeringAs, language, periodKey string, in []models.Answer) ([]models.Answer, error) {
 	if memberID == "" {
 		return nil, fmt.Errorf("%w: nobody is answering", ErrInvalidAnswer)
 	}
@@ -142,6 +146,10 @@ func (m *formManager) SubmitAnswersIn(ctx context.Context, formID, memberID, ans
 	}
 	if f.OutsideWindow(time.Now()) {
 		return nil, ErrOutsideWindow
+	}
+	period, err := sendPeriodFor(f, periodKey, time.Now())
+	if err != nil {
+		return nil, err
 	}
 
 	questions, options, err := m.questionsAnswered(ctx, formID, in)
@@ -162,10 +170,6 @@ func (m *formManager) SubmitAnswersIn(ctx context.Context, formID, memberID, ans
 		return nil, err
 	}
 	channel, err := m.sendChannel(ctx, memberID, formID)
-	if err != nil {
-		return nil, fmt.Errorf("SubmitAnswers: %w", err)
-	}
-	period, err := sendPeriodKey(f, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
 	}

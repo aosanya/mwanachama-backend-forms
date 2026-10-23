@@ -19,6 +19,7 @@
     "ErrFormNotPublished": 409,
     "ErrFormNotOpen": 409,
     "ErrOutsideWindow": 409,
+    "ErrPeriodClosed": 409,
     "ErrNotCurrentVersion": 409,
     "ErrDuplicateTarget": 409,
     "ErrFormHasTarget": 409,
@@ -466,7 +467,7 @@
     "submit_answers": {
       "method": "POST",
       "path": "/forms/{form_id}/answers",
-      "call": "SubmitAnswersIn",
+      "call": "SubmitAnswersFor",
       "action": "forms.answer.submit",
       "title": "Answer a form",
       "description": "Send every answer at once, as one group the instrument was aimed at that the caller belongs to. They are all checked before any is written, so one bad answer leaves nothing behind, and answering again as the same group edits what was already given as it rather than doubling it.",
@@ -475,6 +476,7 @@
         {"from": "caller", "as": "member_id"},
         {"from": "query", "as": "as", "description": "The group being answered as. Absent picks the first group the instrument was aimed at that the caller belongs to."},
         {"from": "query", "as": "language", "description": "The language tag the caller answered in, recorded on the send. Absent records none."},
+        {"from": "query", "as": "period_key", "description": "The period of a repeating instrument this send was opened for, keyed by the day it opened. The send is refused when that period is no longer open, even because the next one opened. Absent sends to the period open now."},
         {"from": "body", "as": "answers", "description": "One answer per prompt being answered."}
       ],
       "returns": [{"body": true}]

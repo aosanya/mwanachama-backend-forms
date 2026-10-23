@@ -2,6 +2,7 @@ package mwanachamaforms
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/aosanya/mwanachama-backend-forms/models"
@@ -36,4 +37,21 @@ func sendPeriodKey(f Form, at time.Time) (string, error) {
 		return standingSendPrefix + newID(), nil
 	}
 	return currentPeriodKey(f, at)
+}
+
+func sendPeriodFor(f Form, named string, at time.Time) (string, error) {
+	if f.Standing || !f.Schedule.Repeats() {
+		return sendPeriodKey(f, at)
+	}
+	p, err := f.Schedule.PeriodAt(at)
+	if errors.Is(err, models.ErrNoPeriod) {
+		return "", ErrOutsideWindow
+	}
+	if err != nil {
+		return "", fmt.Errorf("SubmitAnswers: %w", err)
+	}
+	if named != "" && named != p.Key {
+		return "", ErrPeriodClosed
+	}
+	return p.Key, nil
 }
