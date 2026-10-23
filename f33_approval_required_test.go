@@ -93,7 +93,7 @@ func TestApprovalRequiredRefusalNeedsAReasonAndReturnsTheFormToDraft(t *testing.
 	}
 }
 
-func TestApprovalNotRequiredPublishesADraftAndLetsTheAuthorClear(t *testing.T) {
+func TestApprovalOffPublishesADraftAndRefusesASubmission(t *testing.T) {
 	um := newTestManager(t)
 	f := newAuthoredDraft(t, um, "author")
 	out, _, err := um.Publish(context.Background(), f.ID, "", "author", "")
@@ -102,10 +102,30 @@ func TestApprovalNotRequiredPublishesADraftAndLetsTheAuthorClear(t *testing.T) {
 	}
 
 	g := newAuthoredDraft(t, um, "author")
-	if _, err := um.Submit(context.Background(), g.ID, "author"); err != nil {
+	if _, err := um.Submit(context.Background(), g.ID, "author"); !errors.Is(err, mwanachamaforms.ErrApprovalNotRequired) {
+		t.Fatalf("Submit err = %v, want ErrApprovalNotRequired", err)
+	}
+	got, err := um.Get(context.Background(), g.ID)
+	if err != nil || got.Status != mwanachamaforms.StatusDraft {
+		t.Fatalf("Get = %+v, %v; want still draft", got, err)
+	}
+}
+
+func TestApprovalOnRefusesTheAuthorOnApproveAndApproveSlot(t *testing.T) {
+	ctx := context.Background()
+	um := newTestManager(t)
+	um.UseApprovalRequired(true)
+	f := newAuthoredDraft(t, um, "author")
+	if _, err := um.Submit(ctx, f.ID, "author"); err != nil {
 		t.Fatalf("Submit: %v", err)
 	}
-	if _, err := um.Approve(context.Background(), g.ID, "author", ""); err != nil {
-		t.Fatalf("Approve: %v", err)
+	if _, err := um.Approve(ctx, f.ID, "author", ""); !errors.Is(err, mwanachamaforms.ErrSelfApproval) {
+		t.Fatalf("Approve err = %v, want ErrSelfApproval", err)
+	}
+	if _, err := um.ApproveSlot(ctx, f.ID, "author", "", ""); !errors.Is(err, mwanachamaforms.ErrSelfApproval) {
+		t.Fatalf("ApproveSlot err = %v, want ErrSelfApproval", err)
+	}
+	if _, err := um.Approve(ctx, f.ID, "approver", ""); err != nil {
+		t.Fatalf("Approve by another: %v", err)
 	}
 }

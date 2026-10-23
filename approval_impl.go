@@ -36,6 +36,9 @@ func (m *formManager) openApproval(ctx context.Context, formID string) (models.A
 }
 
 func (m *formManager) Submit(ctx context.Context, id, submittedBy string) (models.Form, error) {
+	if !m.approvalRequired.Load() {
+		return models.Form{}, ErrApprovalNotRequired
+	}
 	f, err := m.Get(ctx, id)
 	if err != nil {
 		return models.Form{}, err

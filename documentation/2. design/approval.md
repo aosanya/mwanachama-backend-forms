@@ -32,8 +32,11 @@ value or the new one, never a torn read. `go test -race` pins it with
 
 ## When it is off
 
-Approval is never asked: a draft publishes directly, and a form that is
-submitted anyway can be cleared by anyone, its author included.
+There is no approval step (F90, member app decision 385): a draft publishes
+directly, and `submit` refuses with `ErrApprovalNotRequired` (409), leaving the
+form a draft. With approval on, the author never clears their own form on
+either `approve` or `approve_slot` (decision 215). Both are pinned in
+`f33_approval_required_test.go`.
 
 ## The approver is the caller
 

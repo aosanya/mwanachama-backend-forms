@@ -12,6 +12,7 @@
     "ErrNotSubmitted": 409,
     "ErrAwaitingApproval": 409,
     "ErrNotApproved": 409,
+    "ErrApprovalNotRequired": 409,
     "ErrSelfApproval": 403,
     "ErrSlotRequired": 409,
     "ErrUnknownSlot": 400,

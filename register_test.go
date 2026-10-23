@@ -9,6 +9,7 @@ import (
 
 func TestRegister_FiltersAndCounts(t *testing.T) {
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	newDraftForm(t, um)
 	f2 := newDraftForm(t, um)
 	if _, err := um.Submit(context.Background(), f2.ID, "author"); err != nil {

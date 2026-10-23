@@ -167,6 +167,7 @@ func TestPublish_PublicAudienceCreatesLink(t *testing.T) {
 
 func TestPublish_AwaitingApproval(t *testing.T) {
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f := newDraftForm(t, um)
 	if _, err := um.Submit(context.Background(), f.ID, "author"); err != nil {
 		t.Fatalf("Submit: %v", err)

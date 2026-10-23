@@ -10,6 +10,7 @@ import (
 
 func TestSubmit(t *testing.T) {
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f := newDraftForm(t, um)
 	out, err := um.Submit(context.Background(), f.ID, "author")
 	if err != nil {
@@ -29,6 +30,7 @@ func TestSubmit(t *testing.T) {
 
 func TestSubmit_NotDraft(t *testing.T) {
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f := newDraftForm(t, um)
 	if _, err := um.Submit(context.Background(), f.ID, "author"); err != nil {
 		t.Fatalf("Submit: %v", err)
@@ -40,6 +42,7 @@ func TestSubmit_NotDraft(t *testing.T) {
 
 func TestApprove(t *testing.T) {
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f := newDraftForm(t, um)
 	if _, err := um.Submit(context.Background(), f.ID, "author"); err != nil {
 		t.Fatalf("Submit: %v", err)
@@ -62,6 +65,7 @@ func TestApprove(t *testing.T) {
 
 func TestRefuse_RequiresNote(t *testing.T) {
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f := newDraftForm(t, um)
 	if _, err := um.Submit(context.Background(), f.ID, "author"); err != nil {
 		t.Fatalf("Submit: %v", err)
@@ -73,6 +77,7 @@ func TestRefuse_RequiresNote(t *testing.T) {
 
 func TestRefuse(t *testing.T) {
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f := newDraftForm(t, um)
 	if _, err := um.Submit(context.Background(), f.ID, "author"); err != nil {
 		t.Fatalf("Submit: %v", err)
@@ -88,6 +93,7 @@ func TestRefuse(t *testing.T) {
 
 func TestWithdraw(t *testing.T) {
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f := newDraftForm(t, um)
 	if _, err := um.Submit(context.Background(), f.ID, "author"); err != nil {
 		t.Fatalf("Submit: %v", err)
@@ -118,6 +124,7 @@ func TestWithdraw_NotWithdrawable(t *testing.T) {
 
 func TestListAwaitingApproval(t *testing.T) {
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f1 := newDraftForm(t, um)
 	f2 := newDraftForm(t, um)
 	if _, err := um.Submit(context.Background(), f1.ID, "author"); err != nil {

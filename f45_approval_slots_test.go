@@ -29,6 +29,7 @@ func newSlottedForm(t *testing.T, um mwanachamaforms.FormManager) mwanachamaform
 func TestASlottedFormClearsOnlyOnceEverySlotIsGrantedByDifferentApprovers(t *testing.T) {
 	ctx := context.Background()
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f := newSlottedForm(t, um)
 
 	if _, err := um.Approve(ctx, f.ID, "r1", ""); !errors.Is(err, mwanachamaforms.ErrSlotRequired) {
@@ -65,6 +66,7 @@ func TestASlottedFormClearsOnlyOnceEverySlotIsGrantedByDifferentApprovers(t *tes
 func TestARefusalDiscardsTheRoundsGrantedSlots(t *testing.T) {
 	ctx := context.Background()
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f := newSlottedForm(t, um)
 	if _, err := um.ApproveSlot(ctx, f.ID, "r1", "lead", ""); err != nil {
 		t.Fatalf("ApproveSlot: %v", err)
@@ -88,6 +90,7 @@ func TestARefusalDiscardsTheRoundsGrantedSlots(t *testing.T) {
 func TestAFormWithoutSlotsTakesApproveSlotAsAPlainApproval(t *testing.T) {
 	ctx := context.Background()
 	um := newTestManager(t)
+	um.UseApprovalRequired(true)
 	f := newDraftForm(t, um)
 	if _, err := um.Submit(ctx, f.ID, "author"); err != nil {
 		t.Fatalf("Submit: %v", err)

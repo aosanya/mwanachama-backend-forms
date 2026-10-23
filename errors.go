@@ -41,6 +41,7 @@ var (
 	ErrMissingNote         = errors.New("mwanachamaforms: a note is required to refuse")
 	ErrAwaitingApproval    = errors.New("mwanachamaforms: form is awaiting approval")
 	ErrNotApproved         = errors.New("mwanachamaforms: form has not been cleared to publish")
+	ErrApprovalNotRequired = errors.New("mwanachamaforms: this agency publishes without approval; there is nothing to submit")
 	ErrSelfApproval        = errors.New("mwanachamaforms: a form cannot be cleared by its own author")
 	ErrSlotRequired        = errors.New("mwanachamaforms: this form is cleared slot by slot; name the approval slot")
 	ErrUnknownSlot         = errors.New("mwanachamaforms: the form declares no such approval slot")
