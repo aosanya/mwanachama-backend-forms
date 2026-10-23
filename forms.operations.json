@@ -24,6 +24,8 @@
     "ErrFormNotOpen": 409,
     "ErrOutsideWindow": 409,
     "ErrPeriodClosed": 409,
+    "ErrPeriodNotClosed": 409,
+    "ErrNotRepeating": 409,
     "ErrNotCurrentVersion": 409,
     "ErrDuplicateTarget": 409,
     "ErrFormHasTarget": 409,
@@ -564,6 +566,19 @@
         {"from": "path", "as": "form_id", "description": "The instrument sent to."},
         {"from": "query", "as": "member_id", "description": "Only this person's send. Absent reads everyone's."},
         {"from": "query", "as": "period_key", "description": "Only the sends made in this period of a repeating instrument, keyed by the day it opened. Absent reads every period."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_missed": {
+      "method": "GET",
+      "path": "/forms/{form_id}/periods/{period_key}/missed",
+      "call": "ListMissed",
+      "action": "forms.submission.list_missed",
+      "title": "Who missed a period",
+      "description": "Everyone in a repeating instrument's audience who sent nothing in one period that has closed, each with the group that reached them. The audience is the members of the instrument's target groups, as the host lists them. An operator's read, gated like everyone's answers.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The repeating instrument."},
+        {"from": "path", "as": "period_key", "description": "The closed period, keyed by the day it opened."}
       ],
       "returns": [{"body": true}]
     },

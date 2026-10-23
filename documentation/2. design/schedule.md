@@ -76,8 +76,6 @@ every period's answers are kept apart under the same form.
   `submissions` match theirs.
 ## What is not built yet
 
-- No read for who in the audience missed a period (decision 334): it needs
-  the host to list a target group's members, a seam forms does not have.
 - **An existing database keeps its old unique indexes.** The two indexes keep
   their names, so `spec.Migrate`'s create-if-absent does not rebuild them
   with `period_key`; a deployment that already holds these tables needs the
@@ -102,9 +100,9 @@ every period's answers are kept apart under the same form.
 - Whether a send to a repeating form that names no period should be refused
   rather than landing in the period open now. Today it lands, so the member
   app keeps working until it sends the key it opened the form for.
-- Who missed a period (decision 334) is the audience with no send in a period
-  that has closed. The audience is the members of the form's target groups,
-  which only the host knows; forms has no seam that lists a group's members.
+- Whether a period before a schedule's first opening should be refused by
+  who-missed. Today a key is matched as written against the period open now,
+  so only a key at or after the current period is refused.
 
 ## The schedule is shared's wire shape (S67, member app decision 367)
 
@@ -126,3 +124,26 @@ every period's answers are kept apart under the same form.
   send between periods. `PreviousPeriod` answers the period that opened
   before the current one even when it closed early, so Copy last answers
   still finds it.
+
+## Who missed a period (decision 334)
+
+- `GET /forms/{form_id}/periods/{period_key}/missed` (`ListMissed`, action
+  `forms.submission.list_missed`) answers everyone in a repeating form's
+  audience with no send in one period that has closed, each with the target
+  group that reached them (`models.MissedMember`, `member_id`, `chapter_id`),
+  ordered by member. It is an operator's read, gated like `list_all`; it is
+  not on `AnonymousActions`. **A host must grant the action.**
+- **The audience is the host's.** `UseMembers(Members)` gives the manager a
+  `Members` function, `(ctx, groupID, includesDescendants) ([]string, error)`,
+  called once per target with that target's own `includes_descendants`, so
+  the host decides what a group's sub-groups are. A member reached through
+  several targets is listed once, under the first target that reached them.
+- A member counts as having sent when they have a submission in that period
+  through any group, so a send is never asked for twice.
+- **A manager given no `Members` answers an empty list**, the same posture as
+  `Groups`: with nobody listed, nobody is known to have missed.
+- A period that has not closed is refused with `ErrPeriodNotClosed` (409): the
+  period open now, any later key, and an empty key. After the schedule's end,
+  or between a period's `open_days` close and the next opening, every earlier
+  period counts as closed. A form that runs once is refused with
+  `ErrNotRepeating` (409): it has no periods to miss.

@@ -136,6 +136,10 @@ type FormManager interface {
 
 	UseNames(n Names)
 
+	UseMembers(mb Members)
+
+	ListMissed(ctx context.Context, formID, periodKey string) ([]models.MissedMember, error)
+
 	UseDeclarable(d Declarable)
 
 	UseApprovalRequired(required bool)
@@ -232,6 +236,8 @@ type formManager struct {
 	st     *store
 	groups Groups
 	names  Names
+
+	members Members
 
 	declarable Declarable
 

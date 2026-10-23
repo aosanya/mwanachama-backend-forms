@@ -44,6 +44,8 @@ var sentinels = map[string]error{
 	"ErrFormNotOpen":         forms.ErrFormNotOpen,
 	"ErrOutsideWindow":       forms.ErrOutsideWindow,
 	"ErrPeriodClosed":        forms.ErrPeriodClosed,
+	"ErrPeriodNotClosed":     forms.ErrPeriodNotClosed,
+	"ErrNotRepeating":        forms.ErrNotRepeating,
 	"ErrNotCurrentVersion":   forms.ErrNotCurrentVersion,
 	"ErrDuplicateTarget":     forms.ErrDuplicateTarget,
 	"ErrFormHasTarget":       forms.ErrFormHasTarget,
