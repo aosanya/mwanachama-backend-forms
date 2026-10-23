@@ -111,6 +111,9 @@ func (m *formManager) decide(ctx context.Context, id, approverID, note string, d
 	if m.approvalRequired && decision == models.DecisionApproved && m.isAuthor(f, approverID) {
 		return models.Form{}, ErrSelfApproval
 	}
+	if decision == models.DecisionApproved && len(f.ApprovalRoles) > 0 {
+		return models.Form{}, ErrSlotRequired
+	}
 	submittedBy := f.SubmittedBy
 
 	round, found, err := m.openApproval(ctx, id)
@@ -147,6 +150,100 @@ func (m *formManager) decide(ctx context.Context, id, approverID, note string, d
 
 func (m *formManager) Approve(ctx context.Context, id, approverID, note string) (models.Form, error) {
 	return m.decide(ctx, id, approverID, note, models.DecisionApproved)
+}
+
+func (m *formManager) ApproveSlot(ctx context.Context, id, approverID, slot, note string) (models.Form, error) {
+	f, err := m.Get(ctx, id)
+	if err != nil {
+		return models.Form{}, err
+	}
+	if len(f.ApprovalRoles) == 0 {
+		return m.decide(ctx, id, approverID, note, models.DecisionApproved)
+	}
+	if f.Status != models.StatusSubmitted {
+		return models.Form{}, ErrNotSubmitted
+	}
+	if m.approvalRequired && m.isAuthor(f, approverID) {
+		return models.Form{}, ErrSelfApproval
+	}
+	if !declaresSlot(f.ApprovalRoles, slot) {
+		return models.Form{}, ErrUnknownSlot
+	}
+	round, found, err := m.openApproval(ctx, id)
+	if err != nil {
+		return models.Form{}, fmt.Errorf("ApproveSlot: %w", err)
+	}
+	if !found {
+		return models.Form{}, ErrNotSubmitted
+	}
+	grants, err := m.slotGrants(ctx, round)
+	if err != nil {
+		return models.Form{}, fmt.Errorf("ApproveSlot: %w", err)
+	}
+	for _, g := range grants {
+		if g.Slot == slot {
+			return models.Form{}, ErrSlotGranted
+		}
+		if g.DecidedBy == approverID {
+			return models.Form{}, ErrApproverHoldsSlot
+		}
+	}
+
+	now := models.NowRFC3339()
+	grant := models.Approval{
+		ID: newID(), FormID: id, RequestedBy: round.RequestedBy, RequestedAt: round.RequestedAt,
+		DecidedBy: approverID, DecidedAt: now, Decision: models.DecisionApproved, Note: note, Slot: slot,
+	}
+	cleared := len(grants)+1 == len(distinctSlots(f.ApprovalRoles))
+	if cleared {
+		f.Status, f.ApprovedAt, f.ApprovedBy, f.LastUpdated = models.StatusApproved, now, approverID, now
+		round.DecidedBy, round.DecidedAt, round.Decision = approverID, now, models.DecisionApproved
+	}
+
+	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := m.insertTx(tx, roleApproval, grant); err != nil {
+			return err
+		}
+		if !cleared {
+			return nil
+		}
+		if err := m.replaceTx(tx, roleForm, id, f); err != nil {
+			return err
+		}
+		return m.replaceTx(tx, roleApproval, round.ID, round)
+	})
+	if err != nil {
+		return models.Form{}, fmt.Errorf("ApproveSlot: %w", err)
+	}
+	return f, nil
+}
+
+func (m *formManager) slotGrants(ctx context.Context, round models.Approval) ([]models.Approval, error) {
+	return listOf[models.Approval](m,
+		m.q(ctx, roleApproval).Where("form_id = ? AND requested_at = ? AND slot <> ? AND decision = ?",
+			round.FormID, round.RequestedAt, "", string(models.DecisionApproved)), roleApproval)
+}
+
+func declaresSlot(roles []string, slot string) bool {
+	if strings.TrimSpace(slot) == "" {
+		return false
+	}
+	for _, r := range roles {
+		if r == slot {
+			return true
+		}
+	}
+	return false
+}
+
+func distinctSlots(roles []string) map[string]bool {
+	out := map[string]bool{}
+	for _, r := range roles {
+		if strings.TrimSpace(r) != "" {
+			out[r] = true
+		}
+	}
+	return out
 }
 
 func (m *formManager) Refuse(ctx context.Context, id, approverID, note string) (models.Form, error) {

@@ -146,6 +146,7 @@ type FormManager interface {
 	Withdraw(ctx context.Context, id, actorID string) (models.Form, error)
 
 	Approve(ctx context.Context, id, approverID, note string) (models.Form, error)
+	ApproveSlot(ctx context.Context, id, approverID, slot, note string) (models.Form, error)
 
 	Refuse(ctx context.Context, id, approverID, note string) (models.Form, error)
 

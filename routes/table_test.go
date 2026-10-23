@@ -50,6 +50,7 @@ func TestTheAddressTableIsWhatTheSpecDeclares(t *testing.T) {
 		"POST /forms",
 		"POST /forms/{form_id}/answers",
 		"POST /forms/{form_id}/approvals/approve",
+		"POST /forms/{form_id}/approvals/approve-slot",
 		"POST /forms/{form_id}/approvals/refuse",
 		"POST /forms/{form_id}/close",
 		"POST /forms/{form_id}/propagation/pick-up",

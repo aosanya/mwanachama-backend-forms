@@ -24,6 +24,7 @@
         {"name": "submitted_by", "type": "string", "description": "Who last sent it for a decision."},
         {"name": "approved_at", "type": "timestamp", "description": "When it was last cleared."},
         {"name": "approved_by", "type": "string", "description": "Who last cleared it."},
+        {"name": "approval_roles", "type": "json", "description": "The distinct approval slots that must each be granted, by different approvers, before a round clears it. Empty means one plain approval clears it."},
         {"name": "results_published_at", "type": "timestamp", "description": "When what it collected was made readable to those who answered."},
         {"name": "created_by", "type": "string", "description": "Who composed it."},
         {"name": "audience", "type": "enum", "description": "Whether it is aimed at known members or at anyone holding its link.", "default": "member", "values": ["member", "public"]},
@@ -109,7 +110,8 @@
         {"name": "decided_by", "type": "string", "description": "Who decided. Empty while the round is still open."},
         {"name": "decided_at", "type": "timestamp", "description": "When it was decided. Empty is what makes a round the open one."},
         {"name": "decision", "type": "enum", "description": "Which way it went. Empty while the round is still open.", "values": ["", "approved", "refused"]},
-        {"name": "note", "type": "text", "description": "Why it went that way. Required to refuse."}
+        {"name": "note", "type": "text", "description": "Why it went that way. Required to refuse."},
+        {"name": "slot", "type": "string", "description": "The approval slot this row grants within the round it names by requested_at. Empty for the round itself."}
       ],
       "indexes": [
         {"name": "form", "description": "Reads one instrument's decision history, newest first.", "fields": ["form_id"]}

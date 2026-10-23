@@ -16,4 +16,5 @@ type Approval struct {
 	DecidedAt   string   `json:"decided_at,omitempty"`
 	Decision    Decision `json:"decision,omitempty"`
 	Note        string   `json:"note,omitempty"`
+	Slot        string   `json:"slot,omitempty"`
 }

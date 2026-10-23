@@ -38,20 +38,21 @@ type Form struct {
 	OriginatorChapterID string `json:"originator_chapter_id"`
 	Status              Status `json:"status"`
 
-	OpensAt            string `json:"opens_at,omitempty"`
-	ClosesAt           string `json:"closes_at"`
-	Language           string `json:"language,omitempty"`
-	WindowAdvisory     bool   `json:"window_advisory"`
-	Standing           bool   `json:"standing"`
-	PublishedAt        string `json:"published_at,omitempty"`
-	PublishedBy        string `json:"published_by,omitempty"`
-	ClosedAt           string `json:"closed_at,omitempty"`
-	ClosedBy           string `json:"closed_by,omitempty"`
-	SubmittedAt        string `json:"submitted_at,omitempty"`
-	SubmittedBy        string `json:"submitted_by,omitempty"`
-	ApprovedAt         string `json:"approved_at,omitempty"`
-	ApprovedBy         string `json:"approved_by,omitempty"`
-	ResultsPublishedAt string `json:"results_published_at,omitempty"`
+	OpensAt            string   `json:"opens_at,omitempty"`
+	ClosesAt           string   `json:"closes_at"`
+	Language           string   `json:"language,omitempty"`
+	WindowAdvisory     bool     `json:"window_advisory"`
+	Standing           bool     `json:"standing"`
+	PublishedAt        string   `json:"published_at,omitempty"`
+	PublishedBy        string   `json:"published_by,omitempty"`
+	ClosedAt           string   `json:"closed_at,omitempty"`
+	ClosedBy           string   `json:"closed_by,omitempty"`
+	SubmittedAt        string   `json:"submitted_at,omitempty"`
+	SubmittedBy        string   `json:"submitted_by,omitempty"`
+	ApprovedAt         string   `json:"approved_at,omitempty"`
+	ApprovedBy         string   `json:"approved_by,omitempty"`
+	ApprovalRoles      []string `json:"approval_roles,omitempty"`
+	ResultsPublishedAt string   `json:"results_published_at,omitempty"`
 
 	PublisherName       string `json:"publisher_name,omitempty"`
 	PublishingAuthority string `json:"publishing_authority,omitempty"`

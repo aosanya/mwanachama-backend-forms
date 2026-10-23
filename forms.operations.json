@@ -13,6 +13,10 @@
     "ErrAwaitingApproval": 409,
     "ErrNotApproved": 409,
     "ErrSelfApproval": 403,
+    "ErrSlotRequired": 409,
+    "ErrUnknownSlot": 400,
+    "ErrSlotGranted": 409,
+    "ErrApproverHoldsSlot": 409,
     "ErrNotOpen": 409,
     "ErrPublished": 409,
     "ErrPublicFormNoTargets": 409,
@@ -230,6 +234,21 @@
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument awaiting a decision."},
         {"from": "caller", "as": "approver_id"},
+        {"from": "body", "as": "note", "description": "Anything they want recorded with it."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "approve_form_slot": {
+      "method": "POST",
+      "path": "/forms/{form_id}/approvals/approve-slot",
+      "call": "ApproveSlot",
+      "action": "forms.approval.approve_slot",
+      "title": "Grant one approval slot",
+      "description": "Grant one of the approval slots the instrument declares in the open round. The round clears it once every slot is granted, each by a different approver.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument awaiting a decision."},
+        {"from": "caller", "as": "approver_id"},
+        {"from": "body", "as": "slot", "description": "Which declared approval slot this grants."},
         {"from": "body", "as": "note", "description": "Anything they want recorded with it."}
       ],
       "returns": [{"body": true}]

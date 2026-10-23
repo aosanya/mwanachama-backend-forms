@@ -36,3 +36,31 @@ submitted anyway can be cleared by anyone, its author included.
 the self-approval check a field the author fills in. A body naming another
 approver is overwritten, the same rule `actor_id`, `member_id`,
 `published_by` and `created_by` already follow.
+
+## Several approvals before a round clears (F45)
+
+A form may declare `approval_roles`: the distinct approval slots a round must
+have granted before the form is cleared to publish. Empty, which every existing
+form is, keeps the behaviour above exactly: one plain approval clears it.
+
+- `POST /forms/{form_id}/approvals/approve-slot` (`forms.approval.approve_slot`)
+  grants one slot, named in the body, inside the open round. The approver comes
+  from the caller.
+- A grant is its own decided `approval` row carrying `slot`, filed under the
+  round's `requested_at`. Because it is decided at once it never counts as an
+  open round, so the one-open-approval index is unchanged.
+- An unknown slot is `ErrUnknownSlot` (400); a slot already granted in the round
+  is `ErrSlotGranted` (409); an approver who already granted another slot of the
+  round is `ErrApproverHoldsSlot` (409); the author is refused as before when
+  approval is required.
+- The form stays `submitted`, so publishing still answers
+  `ErrAwaitingApproval`, until the last slot is granted; that grant closes the
+  round as approved in the same transaction.
+- A plain `approve` on a form that declares slots is `ErrSlotRequired` (409).
+  `approve-slot` on a form with no slots is a plain approval.
+- A refusal or a withdrawal closes the round as before; the grants it held are
+  left behind as history, and the next round starts with none.
+
+Who may name the slots, and which grant holder may fill which slot, are the
+host's to decide: this module only records the slot labels and that each is
+filled once by a different approver.
