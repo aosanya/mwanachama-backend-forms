@@ -99,3 +99,24 @@ every period's answers are kept apart under the same form.
   zone) is the right period key is with the owner; the key is kept as built.
 - Whether a send at an instant with no period is stamped `""` (today) or
   refused is not decided.
+
+## The schedule is shared's wire shape (S67, member app decision 367)
+
+- `models.FormSchedule` is a defined type over
+  `mwanachama-backend-shared/recur.Wire`, so its fields and JSON names are
+  shared's: `start`, `end`, `zone`, `rule` or `dates`, and `open_days`. The
+  wire is unchanged apart from `open_days`, which is new and optional.
+  `Recur()` is `recur.Wire.Schedule()`; forms keeps no copy of the reader.
+  taskmanager (W72) and comm (CM102) read the same type.
+- **A list of dates needs an end** (decision 362). shared's reader refuses
+  `dates` without `end`, so `Create` and `Update` now answer
+  `ErrScheduleInvalid` (400) for one; a rule may still run open-ended.
+- **`open_days` is how many days each period stays open** (decision 359).
+  A period closes `open_days` days after it opens, on the same wall-clock
+  time in the schedule's zone, or when the next opens, whichever is first;
+  `0` or absent keeps the old rule (the next opening). The closing time is
+  `recur.Schedule.Period`'s; `PeriodAt` answers `ErrNoPeriod` between a
+  period's close and the next opening, so a send there is refused like any
+  send between periods. `PreviousPeriod` answers the period that opened
+  before the current one even when it closed early, so Copy last answers
+  still finds it.

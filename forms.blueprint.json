@@ -28,7 +28,7 @@
         {"name": "created_by", "type": "string", "description": "Who composed it."},
         {"name": "audience", "type": "enum", "description": "Whether it is aimed at known members or at anyone holding its link.", "default": "member", "values": ["member", "public"]},
         {"name": "collection_mode", "type": "enum", "description": "Whether the person answers it themselves or somebody records their answers for them.", "default": "self", "values": ["self", "interviewer"]},
-        {"name": "schedule", "type": "json", "description": "When the instrument repeats: a start, an optional end, a time zone and either a calendar rule or a list of dates. Empty for an instrument that runs once. Each opening starts a period, which closes when the next opens."},
+        {"name": "schedule", "type": "json", "description": "When the instrument repeats: a start, an end (needed for a list of dates), a time zone, either a calendar rule or a list of dates, and optionally how many days each period stays open. Empty for an instrument that runs once. Each opening starts a period, which closes after its open days or when the next opens, whichever is first."},
         {"name": "created_at", "type": "timestamp", "description": "When it was first written. Listings are ordered by it, because the storage key carries no order.", "immutable": true},
         {"name": "last_updated", "type": "timestamp", "description": "When anything about it last changed."}
       ],

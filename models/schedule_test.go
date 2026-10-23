@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -45,7 +46,7 @@ func TestThereIsNoPeriodBeforeTheStartOrAfterTheEnd(t *testing.T) {
 }
 
 func TestAListOfDatesIsASchedule(t *testing.T) {
-	s := FormSchedule{Start: "2026-01-05T08:00:00+03:00", Zone: "Africa/Nairobi", Dates: []string{"2026-01-05", "2026-05-04", "2026-09-07"}}
+	s := FormSchedule{Start: "2026-01-05T08:00:00+03:00", End: "2026-12-31T23:59:59+03:00", Zone: "Africa/Nairobi", Dates: []string{"2026-01-05", "2026-05-04", "2026-09-07"}}
 	p, err := s.PeriodAt(time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC))
 	if err != nil {
 		t.Fatal(err)
@@ -65,5 +66,49 @@ func TestAScheduleWithoutAZoneOrWithBothRuleAndDatesIsRefused(t *testing.T) {
 	s.Dates = []string{"2026-10-05"}
 	if s.Validate() == nil {
 		t.Fatal("rule and dates accepted")
+	}
+}
+
+func TestAListOfDatesWithoutAnEndIsRefused(t *testing.T) {
+	s := FormSchedule{Start: "2026-01-05T08:00:00+03:00", Zone: "Africa/Nairobi", Dates: []string{"2026-01-05", "2026-05-04"}}
+	if s.Validate() == nil {
+		t.Fatal("dates without an end accepted")
+	}
+}
+
+func TestAPeriodClosesOpenDaysAfterItOpensWhenThatComesFirst(t *testing.T) {
+	s := weekly()
+	s.OpenDays = 2
+	p, err := s.PeriodAt(time.Date(2026, 10, 13, 12, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !p.ClosesAt.Equal(p.OpensAt.AddDate(0, 0, 2)) {
+		t.Fatalf("closes %v opens %v", p.ClosesAt, p.OpensAt)
+	}
+	if _, err := s.PeriodAt(time.Date(2026, 10, 15, 12, 0, 0, 0, time.UTC)); !errors.Is(err, ErrNoPeriod) {
+		t.Fatalf("between periods: %v", err)
+	}
+	prev, err := s.PreviousPeriod(time.Date(2026, 10, 13, 12, 0, 0, 0, time.UTC))
+	if err != nil || prev.Key != "2026-10-05" {
+		t.Fatalf("previous %q %v", prev.Key, err)
+	}
+	s.OpenDays = 30
+	p, err = s.PeriodAt(time.Date(2026, 10, 13, 12, 0, 0, 0, time.UTC))
+	if err != nil || !p.ClosesAt.Equal(p.OpensAt.AddDate(0, 0, 7)) {
+		t.Fatalf("longer than the gap: %v %v", p, err)
+	}
+}
+
+func TestOpenDaysRidesTheWire(t *testing.T) {
+	s := weekly()
+	s.OpenDays = 3
+	raw, err := json.Marshal(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var back FormSchedule
+	if err := json.Unmarshal(raw, &back); err != nil || back.OpenDays != 3 {
+		t.Fatalf("%s %v", raw, err)
 	}
 }
