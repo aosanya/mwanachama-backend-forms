@@ -551,3 +551,21 @@ merged as d45bd2f); `declarable.md`. What remains is wakala-api's: switching
 the check on and granting the two actions, which is WK167 there, with the
 owner's questions on which groups a link offers and who reads the counts.
 Verified 2026-10-23: `go build`, `go vet`, `go test ./...` ok.
+
+## F89 — remove a question and move a question to a position while composing — 2026-10-23
+
+Member app decision 215, for studio WKS106's remove and drag to reorder.
+`remove_question` (`DELETE /forms/{form_id}/questions/{question_id}`,
+`forms.question.delete`, 204) deletes a draft question and its options and
+renumbers the rest; `move_question`
+(`POST /forms/{form_id}/questions/{question_id}/position`,
+`forms.question.move`) puts a question at a position counted from 1 and
+answers the form's questions in order. Both refuse a form that has left draft
+with `ErrNotDraft` (409); a position outside 1..n is `ErrInvalidQuestion`
+(400). 4c3fa71; `composing.md`. wakala-api's `instance-form-compose`
+self-test (596a1dc, 12/12) drives both through the mount; no grant was needed,
+and the resident allowlist leaves both out. Not decided, left out: removing or
+moving a published question; whether a removed question's translations go with
+it. Verified 2026-10-23: `go build`, `go vet`, `go test ./...` ok, `gofmt -l`
+empty; wakala-api `make self-test` 2004/2014, the same seven collections red
+as on the base (1992/2002).
