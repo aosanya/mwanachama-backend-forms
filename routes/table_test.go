@@ -18,6 +18,7 @@ func TestTheAddressTableIsWhatTheSpecDeclares(t *testing.T) {
 
 	want := []string{
 		"DELETE /forms/{form_id}",
+		"DELETE /forms/{form_id}/questions/{question_id}",
 		"DELETE /forms/{form_id}/targets/{target_id}",
 		"GET /approvals/awaiting",
 		"GET /forms",
@@ -55,6 +56,7 @@ func TestTheAddressTableIsWhatTheSpecDeclares(t *testing.T) {
 		"POST /forms/{form_id}/publish",
 		"POST /forms/{form_id}/questions",
 		"POST /forms/{form_id}/questions/{question_id}/options",
+		"POST /forms/{form_id}/questions/{question_id}/position",
 		"POST /forms/{form_id}/questions/{question_id}/versions",
 		"POST /forms/{form_id}/results",
 		"POST /forms/{form_id}/submit",

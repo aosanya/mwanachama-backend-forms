@@ -315,6 +315,34 @@
         {"as": "options", "description": "Its new choices."}
       ]
     },
+    "remove_question": {
+      "method": "DELETE",
+      "path": "/forms/{form_id}/questions/{question_id}",
+      "call": "RemoveQuestion",
+      "action": "forms.question.delete",
+      "status": 204,
+      "title": "Remove a question",
+      "description": "Remove a draft prompt and its choices. The prompts after it move up one place. Refused once the instrument has left draft.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument the prompt belongs to."},
+        {"from": "path", "as": "question_id", "description": "The prompt to remove."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "move_question": {
+      "method": "POST",
+      "path": "/forms/{form_id}/questions/{question_id}/position",
+      "call": "MoveQuestion",
+      "action": "forms.question.move",
+      "title": "Move a question",
+      "description": "Put a draft prompt at a position, counted from 1, and renumber the others around it. Refused once the instrument has left draft.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument the prompt belongs to."},
+        {"from": "path", "as": "question_id", "description": "The prompt to move."},
+        {"from": "body", "as": "position", "description": "Where the prompt should be asked, counted from 1."}
+      ],
+      "returns": [{"body": true}]
+    },
     "list_options": {
       "method": "GET",
       "path": "/forms/{form_id}/questions/{question_id}/options",

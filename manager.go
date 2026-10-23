@@ -167,6 +167,10 @@ type FormManager interface {
 
 	UpdateQuestion(ctx context.Context, formID, questionID string, in models.QuestionDraft) (models.Question, []models.QuestionOption, error)
 
+	RemoveQuestion(ctx context.Context, formID, questionID string) error
+
+	MoveQuestion(ctx context.Context, formID, questionID string, position int) ([]models.Question, error)
+
 	ListQuestions(ctx context.Context, formID string) ([]models.Question, error)
 
 	ListOptions(ctx context.Context, questionID string) ([]models.QuestionOption, error)
