@@ -3,6 +3,7 @@ package mwanachamaforms
 import (
 	"context"
 	"fmt"
+	"sync/atomic"
 
 	"gorm.io/gorm"
 
@@ -241,7 +242,7 @@ type formManager struct {
 
 	declarable Declarable
 
-	approvalRequired bool
+	approvalRequired atomic.Bool
 	defaultMaxFiles  int
 }
 

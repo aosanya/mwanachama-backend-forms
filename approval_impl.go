@@ -12,7 +12,7 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-func (m *formManager) UseApprovalRequired(required bool) { m.approvalRequired = required }
+func (m *formManager) UseApprovalRequired(required bool) { m.approvalRequired.Store(required) }
 
 func (m *formManager) UseDefaultMaxFiles(n int) { m.defaultMaxFiles = n }
 
@@ -108,7 +108,7 @@ func (m *formManager) decide(ctx context.Context, id, approverID, note string, d
 	if f.Status != models.StatusSubmitted {
 		return models.Form{}, ErrNotSubmitted
 	}
-	if m.approvalRequired && decision == models.DecisionApproved && m.isAuthor(f, approverID) {
+	if m.approvalRequired.Load() && decision == models.DecisionApproved && m.isAuthor(f, approverID) {
 		return models.Form{}, ErrSelfApproval
 	}
 	if decision == models.DecisionApproved && len(f.ApprovalRoles) > 0 {
@@ -163,7 +163,7 @@ func (m *formManager) ApproveSlot(ctx context.Context, id, approverID, slot, not
 	if f.Status != models.StatusSubmitted {
 		return models.Form{}, ErrNotSubmitted
 	}
-	if m.approvalRequired && m.isAuthor(f, approverID) {
+	if m.approvalRequired.Load() && m.isAuthor(f, approverID) {
 		return models.Form{}, ErrSelfApproval
 	}
 	if !declaresSlot(f.ApprovalRoles, slot) {

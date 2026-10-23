@@ -185,7 +185,7 @@ func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publish
 	case models.StatusSubmitted:
 		return models.Form{}, models.PublicLink{}, ErrAwaitingApproval
 	case models.StatusDraft:
-		if m.approvalRequired {
+		if m.approvalRequired.Load() {
 			return models.Form{}, models.PublicLink{}, ErrNotApproved
 		}
 	case models.StatusApproved:

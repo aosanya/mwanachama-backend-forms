@@ -10,6 +10,12 @@ The host turns it on per mounted instance with
 `FormManager.UseApprovalRequired(true)`, beside `UseGroups` and `UseNames`.
 A manager never told anything behaves exactly as it did before F33.
 
+The flag is an `atomic.Bool` on the manager, so a host may call
+`UseApprovalRequired` on a manager that is already serving requests: a
+publish, an approval or a refusal reading it at the same instant sees the old
+value or the new one, never a torn read. `go test -race` pins it with
+`TestApprovalRequiredCanBeSetWhilePublishesReadIt`.
+
 ## When it is on
 
 - **`publish` refuses a form that has not been cleared.** A draft answers
