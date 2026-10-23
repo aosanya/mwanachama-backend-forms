@@ -584,3 +584,5 @@ which roles hold the new action, who may name the slots, who may fill which
 slot. Verified 2026-10-23: `go build`, `go vet`, `go test ./...` ok,
 `gofmt -l` empty; wakala-api builds, its http and server suites fail only on
 the committed OpenBug/OpenHole reds.
+
+| F90 | 🧭 Approval off means no approval step (member app decision 385) | 2026-10-23 | 0d99941 merged as de7a867 (with `.Load()` on WK156's atomic flag): `Submit` refused with `ErrApprovalNotRequired` (409) when approval is off; author refused on Approve and ApproveSlot when on, pinned; approval.md. wakala-api d15db30, e90b5aa merged as 1f05744 0575bc9: journey 08 turns approval on with an agent approving, journey 12 publishes drafts directly. Verified: forms go test and -race green; wakala-api go build/vet clean, go test ./... no failures outside committed `_OpenHole_`/`_OpenBug_` reds. |
