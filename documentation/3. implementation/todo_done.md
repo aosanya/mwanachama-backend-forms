@@ -569,3 +569,18 @@ moving a published question; whether a removed question's translations go with
 it. Verified 2026-10-23: `go build`, `go vet`, `go test ./...` ok, `gofmt -l`
 empty; wakala-api `make self-test` 2004/2014, the same seven collections red
 as on the base (1992/2002).
+
+## F45 — several approvals before a round opens — 2026-10-23
+
+The municipality template's wish (AGX14, member app decision 283): a form's
+`approval_roles` names the approval slots a round needs, and
+`POST /forms/{form_id}/approvals/approve-slot`
+(`forms.approval.approve_slot`, approver from the caller) grants one. One
+approver fills at most one slot; publish answers `ErrAwaitingApproval` until
+every slot is granted, and the last grant closes the round as approved. A form
+with no slots behaves as before; a plain approve on a form with slots is
+`ErrSlotRequired`. 4c48977 (run c9c1e3); `approval.md`. Open for the owner:
+which roles hold the new action, who may name the slots, who may fill which
+slot. Verified 2026-10-23: `go build`, `go vet`, `go test ./...` ok,
+`gofmt -l` empty; wakala-api builds, its http and server suites fail only on
+the committed OpenBug/OpenHole reds.
