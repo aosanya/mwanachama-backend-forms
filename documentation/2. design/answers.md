@@ -57,7 +57,11 @@ and built as F20, which also settles F16.
   order the targets were added, that is among them; when none is, or the
   mount supplies no `Groups`, it falls back to the first target. So the
   host's `Groups` must name the target group itself, not only the sub-group,
-  for an answer reached through a sub-group to land on its target.
+  for an answer reached through a sub-group to land on its target. A host
+  that names the caller's own group and its ancestors (wakala-api's WK167)
+  is enough: a target that includes descendants files a sub-group member's
+  send under the target, which
+  `TestAnAnswerReachedThroughASubGroupFilesUnderItsTarget` pins.
 - **A form aimed nowhere files answers under no group.** A public form
   cannot carry a target, and a member form may be published without one;
   either way `chapter_id` is empty.

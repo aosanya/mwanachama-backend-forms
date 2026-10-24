@@ -46,3 +46,38 @@ func TestAnAnswerCarriesTheTargetItsMemberAnsweredThrough(t *testing.T) {
 		t.Fatalf("sends = %+v, want one from ward-2", sends)
 	}
 }
+
+func TestAnAnswerReachedThroughASubGroupFilesUnderItsTarget(t *testing.T) {
+	mgr := newTestManager(t)
+	ctx := context.Background()
+	created, err := mgr.Create(ctx, mwanachamaforms.Form{Title: "Round", OriginatorChapterID: "council", ClosesAt: futureRFC3339(24 * time.Hour)})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	q, _, err := mgr.AddQuestion(ctx, mwanachamaforms.QuestionDraft{Question: mwanachamaforms.Question{
+		FormID: created.ID, AnswerType: mwanachamaforms.AnswerFreeText, Prompt: "How is the village?",
+	}})
+	if err != nil {
+		t.Fatalf("AddQuestion: %v", err)
+	}
+	for _, target := range []mwanachamaforms.Target{
+		{FormID: created.ID, ChapterID: "ward-9"},
+		{FormID: created.ID, ChapterID: "council", IncludesDescendants: true},
+	} {
+		if _, err := mgr.AddTarget(ctx, target); err != nil {
+			t.Fatalf("AddTarget %s: %v", target.ChapterID, err)
+		}
+	}
+	if _, _, err := mgr.Publish(ctx, created.ID, "", "sender-1", ""); err != nil {
+		t.Fatalf("Publish: %v", err)
+	}
+	mgr.UseGroups(func(context.Context, string) ([]string, error) { return []string{"village-7", "council"}, nil })
+
+	answers, err := mgr.SubmitAnswers(ctx, created.ID, "alice", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "fine", ChapterID: "village-7"}})
+	if err != nil {
+		t.Fatalf("SubmitAnswers: %v", err)
+	}
+	if len(answers) != 1 || answers[0].ChapterID != "council" {
+		t.Fatalf("answers = %+v, want one carrying council", answers)
+	}
+}
