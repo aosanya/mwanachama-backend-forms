@@ -165,7 +165,7 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 		return nil, err
 	}
 
-	chapterID, err := m.answeringAs(ctx, formID, memberID, answeringAs)
+	chapterID, err := m.sendingAs(ctx, f, memberID, answeringAs)
 	if err != nil {
 		return nil, err
 	}

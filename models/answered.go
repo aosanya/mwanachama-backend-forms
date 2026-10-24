@@ -1,6 +1,7 @@
 package models
 
 type AnsweredForm struct {
+	SendID              string `json:"send_id"`
 	FormID              string `json:"form_id"`
 	Title               string `json:"title"`
 	OriginatorChapterID string `json:"originator_chapter_id"`

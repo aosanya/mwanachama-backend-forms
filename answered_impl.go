@@ -39,6 +39,7 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 	for _, f := range forms {
 		for _, sub := range given[f.ID] {
 			out = append(out, models.AnsweredForm{
+				SendID:              sub.ID,
 				FormID:              f.ID,
 				Title:               f.Title,
 				OriginatorChapterID: f.OriginatorChapterID,

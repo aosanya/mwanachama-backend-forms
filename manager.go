@@ -39,6 +39,7 @@ type (
 	DeclarationCount      = models.DeclarationCount
 	Answer                = models.Answer
 	Submission            = models.Submission
+	Send                  = models.Send
 	ResultReport          = models.ResultReport
 	QuestionDraft         = models.QuestionDraft
 	ResolvedLink          = models.ResolvedLink
@@ -135,6 +136,8 @@ type FormManager interface {
 
 	UseGroups(g Groups)
 
+	UseStandingAudience(a StandingAudience)
+
 	UseNames(n Names)
 
 	UseMembers(mb Members)
@@ -216,6 +219,8 @@ type FormManager interface {
 
 	ListSubmissions(ctx context.Context, formID, memberID, periodKey string) ([]models.Submission, error)
 
+	GetSend(ctx context.Context, formID, sendID, memberID string) (models.Send, error)
+
 	Declare(ctx context.Context, d models.Declaration) (models.Declaration, error)
 
 	OpenPublicLink(ctx context.Context, key string) (models.ResolvedLink, error)
@@ -238,6 +243,8 @@ type formManager struct {
 	st     *store
 	groups Groups
 	names  Names
+
+	standingAudience StandingAudience
 
 	members Members
 

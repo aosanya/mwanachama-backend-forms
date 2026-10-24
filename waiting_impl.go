@@ -46,7 +46,7 @@ func (m *formManager) ListWaiting(ctx context.Context, callerID string) ([]model
 	now := time.Now()
 	out := make([]models.WaitingForm, 0, len(forms))
 	for _, f := range forms {
-		if f.OutsideWindow(now) {
+		if f.Standing || f.OutsideWindow(now) {
 			continue
 		}
 		row, err := m.waitingRow(ctx, f, callerID, groups, reached[f.ID])

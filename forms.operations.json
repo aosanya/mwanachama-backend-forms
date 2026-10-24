@@ -556,6 +556,20 @@
       ],
       "returns": [{"body": true}]
     },
+    "get_my_send": {
+      "method": "GET",
+      "path": "/forms/{form_id}/sends/{send_id}",
+      "call": "GetSend",
+      "action": "forms.submission.read_my_send",
+      "title": "Read one of my sends",
+      "description": "One send the caller made to one instrument, named by its id, with the answers it carried in the order the prompts were asked. For an instrument that keeps every send as its own record, this is how each one is read back; the ids are on the caller's list of what they answered. A send that is not the caller's answers exactly as one that does not exist.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument sent to."},
+        {"from": "path", "as": "send_id", "description": "The send, as listed among what the caller answered."},
+        {"from": "caller", "as": "member_id"}
+      ],
+      "returns": [{"body": true}]
+    },
     "list_submissions": {
       "method": "GET",
       "path": "/forms/{form_id}/submissions",

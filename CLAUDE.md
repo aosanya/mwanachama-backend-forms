@@ -141,6 +141,14 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   of the caller's groups, and a form that did not answers exactly as a
   missing one; see
   [reached.md](documentation/2.%20design/reached.md).
+- **A standing form is reached by an audience the host supplies** (F91).
+  `UseStandingAudience` answers whether a caller is in one target group's
+  audience; under `ReachedOnly` that, not belonging, decides who reaches a
+  standing form, and none supplied reaches nobody. A standing form is never
+  waiting, every send is its own record, and
+  `GET /forms/{form_id}/sends/{send_id}` reads one of the caller's own sends
+  back by id; see
+  [standing-forms.md](documentation/2.%20design/standing-forms.md).
 - **A public link grants its respondent that one form** (F24). A signed-in
   caller claims the token they answered under
   (`POST /public-links/{key}/respondents/claim`, the member `from: caller`,
