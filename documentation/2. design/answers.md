@@ -193,3 +193,21 @@ answer on record.
 - An answer to a question version that has since been superseded is not
   carried by a send made against the current version, so it is removed with
   the rest. The answer to the current version is what stands.
+
+## One response per person is met by construction (F46)
+
+The municipality template's RU-2, "one response per person" (AGX14, member
+app decision 283), needs no new subject reference: an answer's and a
+submission's `member_id` is the signed-in caller, bound from the mount (F13),
+and the `submission` object's `form_member_group` index is unique on
+`(form_id, member_id, chapter_id, period_key)`. A second send by the same
+caller as the same group in the same period edits the one row; a second row
+is refused by the database, not by a read-then-write.
+`TestASecondSendBySameCallerLeavesOneSubmissionAndTheStoreRefusesADouble`
+pins both halves.
+
+What it deliberately does not do: a person in two of the form's target groups
+holds one send per group (F40), and a repeating form one per period (F87).
+Decision 248 already settled that a duplicate is the same person answering as
+the same group again, and that counting each person once across groups is
+wakala-api's (WK167, WK168), not this module's.
