@@ -1,6 +1,6 @@
 # Photo and file questions (F86)
 
-Member app decisions 317, 318 and 320 (2026-10-22). Takes up F43 and F53.
+Member app decisions 317, 318 and 320 (2026-10-22). Takes up F43 (which absorbs F53).
 
 ## The answer types
 
