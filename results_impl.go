@@ -76,6 +76,12 @@ func (m *formManager) LatestResults(ctx context.Context, formID, callerID string
 		return models.ResultReport{}, fmt.Errorf("LatestResults: %w", err)
 	}
 	if !reaches {
+		reaches, err = m.reportReachesInnerGroup(ctx, report, callerID)
+		if err != nil {
+			return models.ResultReport{}, fmt.Errorf("LatestResults: %w", err)
+		}
+	}
+	if !reaches {
 		return models.ResultReport{}, ErrReportNotFound
 	}
 	return report, nil
@@ -115,6 +121,30 @@ func (m *formManager) reportReaches(ctx context.Context, report models.ResultRep
 	}
 	for _, t := range targets {
 		if slices.Contains(groups, t.ChapterID) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (m *formManager) reportReachesInnerGroup(ctx context.Context, report models.ResultReport, callerID string) (bool, error) {
+	if m.members == nil {
+		return false, nil
+	}
+	chosen := report.ChapterIDs
+	if len(chosen) == 0 {
+		targets, err := m.ListTargets(unnarrowed(ctx), report.FormID)
+		if err != nil {
+			return false, err
+		}
+		chosen = chosenGroups(nil, targets)
+	}
+	for _, id := range chosen {
+		within, err := m.members(ctx, id, true)
+		if err != nil {
+			return false, err
+		}
+		if slices.Contains(within, callerID) {
 			return true, nil
 		}
 	}

@@ -58,3 +58,32 @@ func TestAReportWithNoGroupsChosenGoesToEveryTarget(t *testing.T) {
 		t.Fatalf("report = %+v", got)
 	}
 }
+
+func TestAReportReachesAnInnerGroupTheHostNamesOnlyAsMembersWithin(t *testing.T) {
+	fm := newTestManager(t)
+	fm.UseGroups(groupsOf(map[string][]string{
+		"irene": {"inner-ward"},
+		"bob":   {"ward-2"},
+	}))
+	fm.UseMembers(func(_ context.Context, groupID string, includesDescendants bool) ([]string, error) {
+		if groupID == "district" && includesDescendants {
+			return []string{"irene"}, nil
+		}
+		return nil, nil
+	})
+	f := publish(t, fm, composeForm(t, fm, "Water", "council", []string{"district", "ward-2"}, 1))
+	if _, err := fm.Close(context.Background(), f.ID, "clerk"); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+	h := mountAsCaller(t, fm)
+	path := "/forms/" + f.ID + "/results"
+	if rec := callAs(t, h, http.MethodPost, path, "clerk", `{"git_path":"r/water.md","git_commit":"abc","chapter_ids":["district"]}`); rec.Code != http.StatusCreated {
+		t.Fatalf("publish: status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	if rec := callAs(t, h, http.MethodGet, path+"/latest", "irene", ""); rec.Code != http.StatusOK {
+		t.Fatalf("inner-group resident reads: status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	if rec := callAs(t, h, http.MethodGet, path+"/latest", "bob", ""); rec.Code != http.StatusNotFound {
+		t.Fatalf("unchosen target reads: status = %d", rec.Code)
+	}
+}

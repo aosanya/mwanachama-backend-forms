@@ -46,7 +46,12 @@ applies to `forms.results.publish` (member app Q18).
 - **A chosen group's inner groups read it too** (member app decision 246):
   the host's `Groups` names a caller's own groups and every group they sit
   inside (wakala-api WK167), so a resident of a sub-group matches the chosen
-  group above them. Forms walks no tree.
+  group above them. Where the host's `Groups` names only a caller's own
+  groups, the read falls back to the host's `Members` hook with
+  `includes_descendants` set (the same seam F34's missed list uses): a
+  caller among the members within a chosen group reads it (wakala-api
+  WK155). Forms walks no tree itself, and a mount with no `Members` gets only
+  the `Groups` match.
 - A report published before F39 carries no `chapter_ids`; it keeps F34's
   rule and reaches every target of the form.
 - A form with no report, a report published to none of the caller's groups,
@@ -56,4 +61,5 @@ applies to `forms.results.publish` (member app Q18).
 
 Pinned by `routes/f32_publishing_results_test.go`, including
 `TestAReportOnAFormAimedAtSeveralGroupsIsReadInEveryOne`, and
-`routes/f39_report_to_chosen_groups_test.go`.
+`routes/f39_report_to_chosen_groups_test.go`, including
+`TestAReportReachesAnInnerGroupTheHostNamesOnlyAsMembersWithin`.
