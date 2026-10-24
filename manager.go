@@ -144,6 +144,7 @@ type FormManager interface {
 	UseDeclarable(d Declarable)
 
 	UseApprovalRequired(required bool)
+	FormTypes() []models.FormType
 	UseDefaultMaxFiles(n int)
 
 	Submit(ctx context.Context, id, submittedBy string) (models.Form, error)
@@ -244,6 +245,7 @@ type formManager struct {
 
 	approvalRequired atomic.Bool
 	defaultMaxFiles  int
+	formTypes        []models.FormType
 }
 
 func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {
@@ -269,7 +271,13 @@ func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("NewFormManager: %w", err)
 	}
-	return &formManager{db: db, st: st}, nil
+	settings, err := resolveSettings(db, s)
+	if err != nil {
+		return nil, fmt.Errorf("NewFormManager: %w", err)
+	}
+	m := &formManager{db: db, st: st, formTypes: settings.formTypes}
+	m.approvalRequired.Store(settings.approvalRequired)
+	return m, nil
 }
 
 func (m *formManager) q(ctx context.Context, role string) *gorm.DB {

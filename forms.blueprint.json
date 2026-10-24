@@ -275,5 +275,9 @@
         {"name": "form_language", "description": "Reads an instrument's texts in one language, and which languages it has.", "fields": ["form_id", "language"]}
       ]
     }
+  ],
+  "settings": [
+    {"name": "approval_required", "type": "bool", "description": "Whether an instrument must be sent for a decision and cleared before it can be published. False, the default, means it can be published straight from a draft.", "default": false},
+    {"name": "form_types", "type": "json", "description": "The kinds of instrument this deployment composes, each with its name and the audience and collection mode a new one of that kind starts with: a list of objects with name, audience (member or public) and collection_mode (self or interviewer). Empty, the default, means no kinds are named and every instrument starts with the field defaults.", "default": []}
   ]
 }

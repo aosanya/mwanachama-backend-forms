@@ -73,3 +73,9 @@ form is, keeps the behaviour above exactly: one plain approval clears it.
 Who may name the slots, and which grant holder may fill which slot, are the
 host's to decide: this module only records the slot labels and that each is
 filled once by a different approver.
+
+## The declared setting (F42)
+
+The flag is also the declared `approval_required` setting, resolved through
+the definition and override layers when the manager is built; see
+[settings.md](settings.md). `UseApprovalRequired` still overrides it.
