@@ -23,6 +23,19 @@ func narrowedTo(ctx context.Context) (string, bool) {
 }
 
 func (m *formManager) hiddenFromCaller(ctx context.Context, f models.Form) (bool, error) {
+	unreached, err := m.unreachedByCaller(ctx, f)
+	if err != nil || !unreached {
+		return false, err
+	}
+	callerID, _ := narrowedTo(ctx)
+	if !models.VisibleToMembers(f.Status) || callerID == "" {
+		return true, nil
+	}
+	sent, err := m.hasSent(ctx, callerID, f.ID)
+	return !sent, err
+}
+
+func (m *formManager) unreachedByCaller(ctx context.Context, f models.Form) (bool, error) {
 	callerID, narrowed := narrowedTo(ctx)
 	if !narrowed {
 		return false, nil
@@ -36,6 +49,12 @@ func (m *formManager) hiddenFromCaller(ctx context.Context, f models.Form) (bool
 	}
 	came, err := m.cameByLink(ctx, callerID, f.ID)
 	return !came, err
+}
+
+func (m *formManager) hasSent(ctx context.Context, callerID, formID string) (bool, error) {
+	var held int64
+	err := m.q(ctx, roleSubmission).Where("form_id = ? AND member_id = ?", formID, callerID).Count(&held).Error
+	return held > 0, err
 }
 
 func (m *formManager) reaches(ctx context.Context, callerID string, f models.Form) (bool, error) {

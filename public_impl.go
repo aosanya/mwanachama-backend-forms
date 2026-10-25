@@ -141,6 +141,12 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 	if err != nil {
 		return nil, err
 	}
+	if unreached, err := m.unreachedByCaller(ctx, f); err != nil || unreached {
+		if err != nil {
+			return nil, err
+		}
+		return nil, ErrFormNotFound
+	}
 	if f.Status != models.StatusOpen {
 		return nil, ErrFormNotOpen
 	}

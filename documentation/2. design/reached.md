@@ -65,4 +65,13 @@ A mount without `ReachedOnly` (the operator's) is not narrowed at all.
 already and are not narrowed, including the form they read for its schedule
 (F88): a member who left the group a form came through still reads what
 they sent, and a refusal names no Go method.
+
+## A sent form stays readable after leaving its group
+
+A form the caller has sent (a `submission` row of theirs on it) stays
+readable once it no longer reaches them (F93, member app decision 470):
+`get_form`, `list_questions`, `list_options` and `submissions/mine` answer
+as before. `submit_answers` still asks whether the form reaches the caller
+and answers a form that does not exactly as a missing one, so a sent form
+is history, not something to answer again. A form never sent stays hidden.
 `chapter_id` on a submission is still the body's (F16).
