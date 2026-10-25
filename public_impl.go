@@ -41,7 +41,7 @@ func (m *formManager) ResolveLinkKey(ctx context.Context, key string) (models.Pu
 		}
 		return models.PublicLink{}, models.Form{}, false, fmt.Errorf("ResolveLinkKey: %w", err)
 	}
-	if f.Status != models.StatusOpen || f.Audience != models.AudiencePublic {
+	if f.Status != models.StatusOpen || f.Audience != models.AudiencePublic || f.PastClosing(time.Now()) {
 		return models.PublicLink{}, models.Form{}, false, nil
 	}
 	return link, f, true, nil

@@ -51,13 +51,18 @@ publish time anyway). Times are compared as instants, not as strings.
 Nothing closes a form when its window passes. Status still moves only when
 somebody closes it; a kept window only stops it being listed and answered.
 
+- **The public link** (F92, member app decision 469). `ResolveLinkKey`
+  answers a form whose kept window has passed `closes_at`
+  (`Form.PastClosing`) exactly as a closed one: not found, the same
+  `ErrLinkNotFound` a wrong key gets, so the link names no reason. Every
+  path through `OpenPublicLink` follows — the link's questions, registering
+  and declaring as a respondent, and claiming the token. An advisory form's
+  link stays open for as long as the form is open, as its submit does.
+
 ## Where it is not enforced
 
-- **The public link.** `ResolveLinkKey` and the anonymous respondent paths
-  still decide on status and audience alone. The row named the waiting list
-  and the member's submit, and a public link's refusal must name no reason
-  (see CLAUDE.md), so whether a kept window should silence a link is left
-  for its own decision.
+- **The public link before it opens.** `ResolveLinkKey` ignores `opens_at`;
+  only the closing date silences a link (below).
 - **The operator's register and `get_form`.** They show every form whatever
   its window, so the people who sent it can still see it.
 

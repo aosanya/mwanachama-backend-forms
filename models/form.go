@@ -102,10 +102,15 @@ func (f Form) OutsideWindow(now time.Time) bool {
 	if opens, err := time.Parse(time.RFC3339Nano, f.OpensAt); err == nil && now.Before(opens) {
 		return true
 	}
-	if closes, err := time.Parse(time.RFC3339Nano, f.ClosesAt); err == nil && now.After(closes) {
-		return true
+	return f.PastClosing(now)
+}
+
+func (f Form) PastClosing(now time.Time) bool {
+	if f.WindowAdvisory {
+		return false
 	}
-	return false
+	closes, err := time.Parse(time.RFC3339Nano, f.ClosesAt)
+	return err == nil && now.After(closes)
 }
 
 func ValidateAudienceCollection(a Audience, m CollectionMode) error {
