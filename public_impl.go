@@ -180,6 +180,7 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
 	}
 	out := make([]models.Answer, 0, len(in))
+	sendID := ""
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		now := models.NowRFC3339()
 		for _, a := range in {
@@ -193,10 +194,15 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 		if err := m.dropAnswersNotCarried(tx, formID, memberID, chapterID, period, in); err != nil {
 			return err
 		}
-		return m.writeSubmission(tx, formID, memberID, chapterID, period, channel, language, now)
+		var err error
+		sendID, err = m.writeSubmission(tx, formID, memberID, chapterID, period, channel, language, now)
+		return err
 	})
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
+	}
+	for i := range out {
+		out[i].SendID = sendID
 	}
 	sort.Slice(out, func(i, j int) bool {
 		return questions[out[i].QuestionID].Ordinal < questions[out[j].QuestionID].Ordinal

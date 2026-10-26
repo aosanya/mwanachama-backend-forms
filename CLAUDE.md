@@ -149,6 +149,13 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   `GET /forms/{form_id}/sends/{send_id}` reads one of the caller's own sends
   back by id; see
   [standing-forms.md](documentation/2.%20design/standing-forms.md).
+- **A standing form names where its sends land** (HS75, decision 45).
+  `landing` is `thread`, `case` or empty, chosen at `Create` on a standing
+  form only and never changed by `Update`; the module records it and the
+  host opens the thread or the case. A standing form is stored advisory, so
+  its window is shown and never kept, and a schedule on it is ignored.
+  `SubmitAnswersFor` returns each answer with the new send's `send_id`; see
+  [standing-forms.md](documentation/2.%20design/standing-forms.md).
 - **A public link grants its respondent that one form** (F24). A signed-in
   caller claims the token they answered under
   (`POST /public-links/{key}/respondents/claim`, the member `from: caller`,
@@ -171,8 +178,8 @@ question asks for and the bounds it declares), `models.ValidateValidators`
   `window_advisory` is false by default, so a new form, an omitted field
   and a row older than the column are all enforced: the waiting list drops
   it outside `opens_at`..`closes_at` and `SubmitAnswers` refuses with
-  `ErrOutsideWindow` (409). Only `Create` sets it. See
-  [window.md](documentation/2.%20design/window.md).
+  `ErrOutsideWindow` (409). Only `Create` sets it, and it always sets it for
+  a standing form. See [window.md](documentation/2.%20design/window.md).
 - **A closed form's report is a reference, versioned** (F32).
   `POST /forms/{form_id}/results` records the host's git path and commit for
   a closed form, to its one group, publisher `from: caller`, and sets

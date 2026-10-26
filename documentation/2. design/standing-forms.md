@@ -1,6 +1,6 @@
 # Standing forms
 
-Hub Steward board row HS50; Hub Steward decision 18, gap 14.
+Hub Steward board rows HS50 and HS75; Hub Steward decisions 18 and 45, gap 14.
 
 A standing form is one a member fills in unprompted, as often as they like:
 the lab's issue form is the first. Every send is its own record. An ordinary
@@ -79,17 +79,104 @@ is its own record.
 
 Tests: `routes/f91_standing_audience_test.go`.
 
-## Not settled, so not built
+## What decision 45 settled (HS75, owner, 2026-10-26)
 
-Decision 18 says what a standing form is; decision 448 settled who reaches
-it, the waiting list and reading back. These remain, and none is guessed
-here:
+> A standing form is open at all times; a schedule on it is ignored as it is
+> today; and each standing form names where its sends land: a chat thread
+> with the agent, or a case on the board. The forms module imports neither
+> module; the host wires each landing.
 
-1. **The window.** A standing form is still held to `opens_at`..`closes_at`
-   unless composed advisory. Should standing imply advisory?
-2. **Where a send lands.** Decision 18 sends each one to the lab's
-   taskmanager board as a case (HS51–HS54), and decision 448 has each
-   application open its own request (WK198). That hand-off is the host's,
-   not this module's.
-3. **A schedule.** A standing form with a repeating schedule ignores the
-   schedule for its sends. Should composing both be refused?
+### Open at all times
+
+- **`Create` stores a standing form with `window_advisory` true**, whatever
+  the body said. `opens_at` and `closes_at` are still required and still
+  validated as before (a closing time in the future, after the opening one),
+  because a form is composed with them; they are only shown, never kept.
+  `Form.OutsideWindow` is unchanged and reads the stored flag, so a standing
+  form never makes `SubmitAnswers` answer `ErrOutsideWindow`, before it opens
+  or after it closes, and `ListAnswered` reports it open for as long as its
+  status is open. The waiting list never listed a standing form anyway.
+- A form that is not standing is exactly as before: it keeps its window
+  unless it was composed advisory ([window.md](window.md)).
+- **Forms stored before this change.** A standing form written under HS50 or
+  F91 was stored with whatever `window_advisory` it was sent. `Provision`
+  now sets it true on every standing row that holds it false, in one
+  idempotent update, so decision 45 holds for rows already in a database
+  and not only for new ones. No other row is touched.
+- `Publish` is not changed: it still refuses a form whose `closes_at` has
+  already passed (`ErrClosesInPast`), advisory or not. Only sends after
+  publishing are exempt from the window.
+
+### A schedule is ignored
+
+A standing form composed with a repeating schedule keeps the schedule, as
+today, and ignores it for its sends: every send takes its own `send-<uuid>`
+key (`sendPeriodFor`), so repeated sends are never folded into one period and
+never refused for being outside one. Composing both is allowed, not refused.
+`TestAStandingFormComposedWithAScheduleStillTakesRepeatedSends` pins it.
+
+### Where a send lands
+
+- **`form.landing`**, an enum declared in `forms.blueprint.json` and carried
+  by `models.Form.Landing`: `thread` (a chat thread with the agent), `case`
+  (a case on the board) or empty (the send lands nowhere beyond its own
+  record, as before). Empty is a declared value, which is why a form row
+  that predates the column reads back as landing nowhere.
+- **Only a standing form may name one.** `Create` refuses a landing on a form
+  that is not standing, and a value outside the three, with
+  `ErrInvalidForm` (400). The first rule is `models.ValidateLanding`; the
+  second is the blueprint's own enum check.
+- **Chosen at `Create`, never changed.** Like `standing` and
+  `window_advisory`, `Update` copies only the frame fields it names, so an
+  edit can neither clear a landing, change it, nor give one to a form that
+  has none.
+- It is on the form itself, so every shape that carries a form carries it:
+  the compose body and the compose tool take `landing` beside `standing`,
+  `get_form` returns it, and `Get`, `ListForChapter` and `ListReachable`
+  return it to a host. It is left out of the JSON when empty. The register,
+  waiting and answered rows never carried `standing` and do not carry it.
+- **The module only records the choice.** It imports neither the chat module
+  nor the task manager. Opening the thread or the case is the host's.
+- Where a deployment's table already holds rows, `Provision` adds the column
+  as `text default ''`. An enum that declares the empty value and no default
+  is now one of the column kinds `Provision` can add to an existing table,
+  beside optional text, bool and nullable number.
+
+### How a host reads the landing and the send id
+
+A host wraps `FormManager` and overrides `SubmitAnswersFor` (the method the
+`submit_answers` route calls, and the one every shorter `SubmitAnswers*`
+delegates to), as wakala-api's `sendsRecorded` already does for the send
+records. No interface changed.
+
+1. Read the form once: `Get(ctx, formID)` returns `Form.Landing` and
+   `Form.Standing`. A landing of `thread` or `case` is the host's cue to
+   open one; empty means do nothing.
+2. Call the wrapped `SubmitAnswersFor`. Every `Answer` it returns carries
+   **`send_id`**, the id of the send's own `submission` row, the same id the
+   answered list carries as `send_id` and `GET /forms/{form_id}/sends/{send_id}`
+   (`GetSend`) reads back. `send_id` is derived at the moment of the send and
+   is never stored on an answer (`spec:"-"`); a body that names one is
+   overwritten. The other reads (`ListAnswers`, `ListAllAnswers`) leave it
+   empty; use `ListSubmissions` or the answered list for those.
+3. Each answer also carries the send's `period_key`, `send-<uuid>` on a
+   standing form, so `ListSubmissions(ctx, formID, memberID, periodKey)`
+   returns that send's submission when only the key is held.
+4. **An empty send has no answers to carry the id.** A standing form with no
+   required question takes a send with every answer skipped
+   (F30), and `SubmitAnswersFor` then returns an empty slice. The host reads
+   the member's newest row from `ListSubmissions(ctx, formID, memberID, "")`,
+   which sorts oldest first, and takes the last. It can only be mistaken for
+   another send if the same member sends the same form twice at once.
+5. Ordinary forms carry `send_id` too, on the same answers: a resend returns
+   the id of the one send it edited.
+
+Tests: `hs75_landing_test.go` and `routes/hs75_landing_test.go`.
+
+## Still not this module's
+
+- Opening the chat thread or the board case, and what either one carries,
+  belong to the host (wakala-api WK198 for the thread, HS51 to HS54 for the
+  lab's case).
+- Whether the thread or case can be answered or closed by the sender is the
+  receiving module's rule.

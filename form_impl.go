@@ -49,6 +49,12 @@ func (m *formManager) Create(ctx context.Context, f models.Form) (models.Form, e
 	if err := models.ValidateAudienceCollection(f.Audience, f.CollectionMode); err != nil {
 		return models.Form{}, fmt.Errorf("%w: %v", ErrAudienceConflict, err)
 	}
+	if err := models.ValidateLanding(f.Standing, f.Landing); err != nil {
+		return models.Form{}, fmt.Errorf("%w: %v", ErrInvalidForm, err)
+	}
+	if f.Standing {
+		f.WindowAdvisory = true
+	}
 
 	f.Status = models.StatusDraft
 	f.PublishedAt, f.PublishedBy = "", ""

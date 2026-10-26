@@ -32,6 +32,14 @@ const (
 	CollectionInterviewer CollectionMode = "interviewer"
 )
 
+type Landing string
+
+const (
+	LandingNone   Landing = ""
+	LandingThread Landing = "thread"
+	LandingCase   Landing = "case"
+)
+
 type Form struct {
 	ID                  string `json:"id"`
 	Title               string `json:"title"`
@@ -43,6 +51,7 @@ type Form struct {
 	Language           string   `json:"language,omitempty"`
 	WindowAdvisory     bool     `json:"window_advisory"`
 	Standing           bool     `json:"standing"`
+	Landing            Landing  `json:"landing,omitempty"`
 	PublishedAt        string   `json:"published_at,omitempty"`
 	PublishedBy        string   `json:"published_by,omitempty"`
 	ClosedAt           string   `json:"closed_at,omitempty"`
@@ -111,6 +120,13 @@ func (f Form) PastClosing(now time.Time) bool {
 	}
 	closes, err := time.Parse(time.RFC3339Nano, f.ClosesAt)
 	return err == nil && now.After(closes)
+}
+
+func ValidateLanding(standing bool, l Landing) error {
+	if l != LandingNone && !standing {
+		return fmt.Errorf("landing %q needs a standing form", l)
+	}
+	return nil
 }
 
 func ValidateAudienceCollection(a Audience, m CollectionMode) error {

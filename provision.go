@@ -24,6 +24,9 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 	if err := recordEarlierSends(db, s); err != nil {
 		return err
 	}
+	if err := keepStandingFormsAdvisory(db, s); err != nil {
+		return err
+	}
 	return syncConstraints(db, s)
 }
 
@@ -36,6 +39,15 @@ where not exists (select 1 from %[2]s s where s.form_id = a.form_id and s.member
 group by a.form_id, a.member_id, a.chapter_id`, answers, submissions)
 	if err := db.Exec(stmt).Error; err != nil {
 		return fmt.Errorf("forms: record earlier sends: %w", err)
+	}
+	return nil
+}
+
+func keepStandingFormsAdvisory(db *gorm.DB, s *spec.Spec) error {
+	table := tableFor(s, roleForm)
+	err := db.Table(table).Where("standing = ? AND window_advisory = ?", true, false).Update("window_advisory", true).Error
+	if err != nil {
+		return fmt.Errorf("forms: make standing forms advisory: %w", err)
 	}
 	return nil
 }
@@ -53,7 +65,7 @@ func addMissingColumns(db *gorm.DB, s *spec.Spec) error {
 			}
 			definition, ok := addableColumn(f)
 			if !ok {
-				return fmt.Errorf("forms: %s has no column %s, and only an optional text, bool or nullable number column can be added to a table that already holds rows", table, f.Name)
+				return fmt.Errorf("forms: %s has no column %s, and only an optional text, bool, enum that may be empty or nullable number column can be added to a table that already holds rows", table, f.Name)
 			}
 			stmt := fmt.Sprintf("alter table %s add column %s %s", table, f.Name, definition)
 			if err := db.Exec(stmt).Error; err != nil {
@@ -73,6 +85,8 @@ func addableColumn(f spec.Field) (string, bool) {
 		return "text default ''", true
 	case f.Type == spec.TypeBool && !f.Nullable:
 		return "boolean default false", true
+	case f.Type == spec.TypeEnum && f.Default == "" && declares(f.Values, ""):
+		return "text default ''", true
 	case f.Type == spec.TypeInt && f.Nullable:
 		return "bigint", true
 	case f.Type == spec.TypeFloat && f.Nullable:

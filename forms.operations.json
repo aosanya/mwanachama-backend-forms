@@ -59,7 +59,7 @@
       "action": "forms.form.create",
       "status": 201,
       "title": "Compose a form",
-      "description": "Write a new instrument. It starts as a draft whatever the request says, and every lifecycle stamp on it is the store's to set.",
+      "description": "Write a new instrument. It starts as a draft whatever the request says, and every lifecycle stamp on it is the store's to set. A standing instrument, which a person fills in as often as they like, never keeps its opening and closing times, and may name where each send lands: thread for a chat thread with the agent, case for a case on the board. Whether it is standing and where it lands are chosen here and never change.",
       "args": [
         {"from": "body", "whole": true},
         {"from": "caller", "as": "created_by", "into": "CreatedBy"}
@@ -121,7 +121,7 @@
       "call": "Update",
       "action": "forms.form.update",
       "title": "Edit form",
-      "description": "Change a draft's title, its window, its audience and how it is collected. Nothing else about it is editable, and it stops being editable once it leaves draft.",
+      "description": "Change a draft's title, its window, its audience and how it is collected. Nothing else about it is editable, not whether it is standing nor where its sends land, and it stops being editable once it leaves draft.",
       "args": [
         {"from": "body", "whole": true},
         {"from": "path", "as": "form_id", "into": "ID", "description": "The instrument to edit."}
@@ -492,7 +492,7 @@
       "call": "SubmitAnswersFor",
       "action": "forms.answer.submit",
       "title": "Answer a form",
-      "description": "Send every answer at once, as one group the instrument was aimed at that the caller belongs to. They are all checked before any is written, so one bad answer leaves nothing behind, and answering again as the same group edits what was already given as it rather than doubling it.",
+      "description": "Send every answer at once, as one group the instrument was aimed at that the caller belongs to. They are all checked before any is written, so one bad answer leaves nothing behind, and answering again as the same group edits what was already given as it rather than doubling it. A standing instrument keeps every send as its own record instead, and each answer returned carries that record's id as send_id.",
       "args": [
         {"from": "path", "as": "form_id", "description": "The instrument being answered."},
         {"from": "caller", "as": "member_id"},

@@ -17,6 +17,7 @@ type (
 	Status                = models.Status
 	Audience              = models.Audience
 	CollectionMode        = models.CollectionMode
+	Landing               = models.Landing
 	Question              = models.Question
 	QuestionOption        = models.QuestionOption
 	AddOptionResult       = models.AddOptionResult
@@ -67,6 +68,12 @@ const (
 )
 
 const (
+	LandingNone   = models.LandingNone
+	LandingThread = models.LandingThread
+	LandingCase   = models.LandingCase
+)
+
+const (
 	DecisionApproved = models.DecisionApproved
 	DecisionRefused  = models.DecisionRefused
 )
@@ -108,6 +115,10 @@ func ValidateWindow(opensAt, closesAt string) error {
 
 func ValidateAudienceCollection(a Audience, m CollectionMode) error {
 	return models.ValidateAudienceCollection(a, m)
+}
+
+func ValidateLanding(standing bool, l Landing) error {
+	return models.ValidateLanding(standing, l)
 }
 
 func VisibleToMembers(s Status) bool { return models.VisibleToMembers(s) }

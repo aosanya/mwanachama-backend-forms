@@ -13,6 +13,7 @@ type Answer struct {
 	MemberID   string   `json:"member_id"`
 	ChapterID  string   `json:"chapter_id,omitempty"`
 	PeriodKey  string   `json:"period_key,omitempty"`
+	SendID     string   `json:"send_id,omitempty" spec:"-"`
 	OptionIDs  []string `json:"option_ids,omitempty"`
 
 	FileIDs         []string `json:"file_ids,omitempty"`

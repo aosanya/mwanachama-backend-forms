@@ -26,9 +26,11 @@ written before the column existed all read as enforced, and no code path
 has to remember to fill it in.
 
 **It is set when the form is composed and never after.** `Create` keeps
-whatever the body says; `Update` copies only the title and the window, so
-an edit naming `window_advisory` changes nothing. Publishing, closing and
-every other transition carry it forward untouched.
+whatever the body says, except that a standing form is always stored
+advisory (HS75, [standing-forms.md](standing-forms.md)); `Update` copies
+only the title and the window, so an edit naming `window_advisory` changes
+nothing. Publishing, closing and every other transition carry it forward
+untouched.
 
 ## Where it is enforced
 
