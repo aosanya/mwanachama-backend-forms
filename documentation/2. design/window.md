@@ -85,3 +85,25 @@ an optional `bool` too, with the same default a fresh table would have; a
 missing column of any other type is still an error naming it.
 `TestAFormThatPredatesTheFieldKeepsItsWindow` drops the column from a table
 holding a form, provisions again, and checks the form reads back enforced.
+
+## A send is editable until the form closes (HS90)
+
+Member app decision 41 (owner, 2026-10-26): a person's own send can be edited
+until the form's closing date and time, and then no more. Forms already does
+this with no new field, and `hs90_edit_until_close_test.go` pins it:
+
+- `SubmitAnswers` again by the same member on the same form edits the one
+  record in place. The answer keeps its id, its `answered_at` and its group;
+  only `edited_at` moves, and the submission's `edited_at` with it.
+- Past a kept window's `closes_at` the same call is refused with
+  `ErrOutsideWindow` (409) and the stored answer is left as it was sent. A
+  form closed by its sender before its date is refused with `ErrFormNotOpen`.
+- `window_advisory` is the opposite of an opt-out: an advisory window is not
+  kept, so edits stay open for as long as the form is open.
+
+**What forms cannot say yet.** Decision 41 also wants a form that "must not be
+edited after it is sent" to say so when it is composed. No such field exists:
+a send is always editable while the form takes answers. It needs a decision on
+its name and on whether it is enforced here (refuse a second `SubmitAnswers`
+with a new error) or only shown by the member app. The member app asks one
+function, `canEditSend`, so it can honour the field the day it exists.
