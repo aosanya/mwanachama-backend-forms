@@ -126,3 +126,17 @@ func (m *formManager) sendChannel(ctx context.Context, memberID, formID string) 
 	}
 	return models.ChannelLink, nil
 }
+
+func (m *formManager) refuseResend(ctx context.Context, formID, memberID, chapterID, period string) error {
+	var sent int64
+	err := m.q(ctx, roleSubmission).
+		Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", formID, memberID, chapterID, period).
+		Count(&sent).Error
+	if err != nil {
+		return fmt.Errorf("SubmitAnswers: %w", err)
+	}
+	if sent > 0 {
+		return ErrLockedAfterSend
+	}
+	return nil
+}

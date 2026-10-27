@@ -24,6 +24,7 @@
     "ErrFormNotPublished": 409,
     "ErrFormNotOpen": 409,
     "ErrOutsideWindow": 409,
+    "ErrLockedAfterSend": 409,
     "ErrPeriodClosed": 409,
     "ErrPeriodNotClosed": 409,
     "ErrNotRepeating": 409,

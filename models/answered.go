@@ -14,6 +14,7 @@ type AnsweredForm struct {
 	ClosedAt            string `json:"closed_at,omitempty"`
 	Status              Status `json:"status"`
 	Open                bool   `json:"open"`
+	LockedAfterSend     bool   `json:"locked_after_send"`
 	ChapterID           string `json:"chapter_id,omitempty"`
 	AnsweredAt          string `json:"answered_at"`
 	EditedAt            string `json:"edited_at,omitempty"`

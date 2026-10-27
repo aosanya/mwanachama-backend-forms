@@ -175,6 +175,11 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 	if err != nil {
 		return nil, err
 	}
+	if f.LockedAfterSend {
+		if err := m.refuseResend(ctx, formID, memberID, chapterID, period); err != nil {
+			return nil, err
+		}
+	}
 	channel, err := m.sendChannel(ctx, memberID, formID)
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)

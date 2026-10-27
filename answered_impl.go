@@ -51,6 +51,7 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 				ClosesAt:            f.ClosesAt,
 				ClosedAt:            f.ClosedAt,
 				Status:              f.Status,
+				LockedAfterSend:     f.LockedAfterSend,
 				Open:                f.Status == models.StatusOpen && !f.OutsideWindow(now),
 				ChapterID:           sub.ChapterID,
 				AnsweredAt:          sub.SubmittedAt,
