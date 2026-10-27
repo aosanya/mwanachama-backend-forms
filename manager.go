@@ -230,6 +230,8 @@ type FormManager interface {
 
 	ListSubmissions(ctx context.Context, formID, memberID, periodKey string) ([]models.Submission, error)
 
+	MarkPaid(ctx context.Context, formID, memberID string, paid bool, markedBy string) (models.Submission, error)
+
 	GetSend(ctx context.Context, formID, sendID, memberID string) (models.Send, error)
 
 	Declare(ctx context.Context, d models.Declaration) (models.Declaration, error)

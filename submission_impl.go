@@ -74,6 +74,7 @@ func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID, per
 	}
 	for i := range out {
 		out[i].Answers = counts[sentAs{out[i].MemberID, out[i].ChapterID, out[i].PeriodKey}]
+		out[i].Paid = out[i].PaidAt != ""
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].SubmittedAt != out[j].SubmittedAt {

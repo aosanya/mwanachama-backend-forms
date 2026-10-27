@@ -12,6 +12,9 @@ type Submission struct {
 	CollectedAt string `json:"collected_at,omitempty"`
 	Channel     string `json:"channel,omitempty"`
 	Language    string `json:"language,omitempty"`
+	PaidAt      string `json:"paid_at,omitempty"`
+	PaidBy      string `json:"paid_by,omitempty"`
+	Paid        bool   `json:"paid" spec:"-"`
 	Answers     int    `json:"answers" spec:"-"`
 }
 

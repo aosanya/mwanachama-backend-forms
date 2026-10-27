@@ -44,6 +44,7 @@ func TestTheAddressTableIsWhatTheSpecDeclares(t *testing.T) {
 		"GET /forms/{form_id}/translations/reviewed",
 		"GET /forms/{form_id}/languages",
 		"GET /forms/{form_id}/periods/{period_key}/missed",
+		"PUT /forms/{form_id}/submissions/{member_id}/paid",
 		"PUT /forms/{form_id}/translations",
 		"GET /public-links/{key}",
 		"GET /public-links/{key}/questions",

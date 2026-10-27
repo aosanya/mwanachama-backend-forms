@@ -585,6 +585,21 @@
       ],
       "returns": [{"body": true}]
     },
+    "mark_paid": {
+      "method": "PUT",
+      "path": "/forms/{form_id}/submissions/{member_id}/paid",
+      "call": "MarkPaid",
+      "action": "forms.submission.mark_paid",
+      "title": "Mark a send paid or not paid",
+      "description": "The organiser records that the person who sent this instrument has paid, or that they have not. The mark is kept on the person's own send beside their answers, so sending again before the close does not clear it. Nothing here takes a payment: a person records it. Never sent answers not found.",
+      "args": [
+        {"from": "path", "as": "form_id", "description": "The instrument sent to."},
+        {"from": "path", "as": "member_id", "description": "The person whose send is marked."},
+        {"from": "body", "as": "paid", "description": "True marks the send paid, false marks it not paid."},
+        {"from": "caller", "as": "marked_by"}
+      ],
+      "returns": [{"body": true}]
+    },
     "list_missed": {
       "method": "GET",
       "path": "/forms/{form_id}/periods/{period_key}/missed",
