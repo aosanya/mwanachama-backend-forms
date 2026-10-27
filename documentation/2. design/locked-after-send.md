@@ -16,3 +16,14 @@ repeating form all still work.
 
 The answered list carries the flag as `locked_after_send` so the app can
 hide its edit button.
+
+## A form table that predates the column
+
+No dedicated step is needed. `Provision` runs `addMissingColumns` after
+`spec.Migrate`, which adds every declared column an existing table lacks, on
+sqlite and postgres alike, and skips one already present, so a second run
+changes nothing. `locked_after_send` is an optional bool, so it is added as
+`boolean default false`: forms made before the field read back as editable.
+`hs109_provision_test.go` builds the old shape by dropping the column, runs
+`Provision` twice and checks the column, an earlier form reading unlocked and
+a new locked form; it fails when `addMissingColumns` is removed.
