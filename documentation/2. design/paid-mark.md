@@ -9,3 +9,5 @@ Reads need no new address. `GET /forms/{form_id}/submissions/mine` is the farmer
 This module does not know who the organiser is. The host gates `forms.submission.mark_paid` to the group coordinator and `forms.submission.read_mine` to the farmer. Nothing here takes a payment and nothing posts in a chat.
 
 What remains outside this repo: wakala-api granting the action to the group coordinator role, the member app's "Not paid yet" / "Paid" line from `paid`, and the studio's list with its mark control.
+
+The Group order no longer uses this mark (Hub Steward decision 90, HS296): who has paid there is a row in the Group order's Payments record, kept in the agency and added by the Group coordinator in the member app. The mark stays in this module, unchanged, for any other commitment that wants it.
