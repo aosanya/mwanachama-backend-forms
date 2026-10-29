@@ -18,7 +18,7 @@ form keeps one send per person, per group, per period, and a resend edits it
   the period it writes under. For an ordinary form that is
   `currentPeriodKey`, unchanged. For a standing form it is a fresh
   `send-<uuid>`. Because `period_key` already sits in the unique indexes of
-  both `answer` (`question_member_group`) and `submission`
+  both `answer` (`question_group`) and `submission`
   (`form_member_group`) since F87, a distinct key per send is all that keeps
   sends apart: no index, no table and no write path changed.
 - F31 still holds, scoped to the send: the answers a send does not carry are

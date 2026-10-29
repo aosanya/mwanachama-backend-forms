@@ -216,7 +216,7 @@
       ],
       "indexes": [
         {"name": "form", "description": "Counts how many people have answered one instrument.", "fields": ["form_id"]},
-        {"name": "question_member_group", "description": "Reads one person's answer to one prompt as one group, and keeps it to one so a resubmission as that group edits rather than doubles, within one period.", "fields": ["question_id", "member_id", "chapter_id", "period_key"], "unique": true}
+        {"name": "question_group", "description": "Reads one person's answer to one prompt as one group, and keeps it to one so a resubmission as that group edits rather than doubles, within one period.", "fields": ["question_id", "member_id", "chapter_id", "period_key"], "unique": true}
       ]
     },
     {
@@ -275,7 +275,7 @@
         {"name": "updated_at", "type": "timestamp", "description": "When the text or its review last changed."}
       ],
       "indexes": [
-        {"name": "subject_field_language", "description": "Keeps one text per object, field and language, so a correction replaces rather than doubles.", "fields": ["subject_id", "field", "language"], "unique": true},
+        {"name": "subject_language", "description": "Keeps one text per object, field and language, so a correction replaces rather than doubles.", "fields": ["subject_id", "field", "language"], "unique": true},
         {"name": "form_language", "description": "Reads an instrument's texts in one language, and which languages it has.", "fields": ["form_id", "language"]}
       ]
     }

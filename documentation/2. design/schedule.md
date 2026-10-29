@@ -25,7 +25,7 @@ every period's answers are kept apart under the same form.
   there is no period: `ErrNoPeriod`.
 - **`submission.period_key` and `answer.period_key`** are declared string
   columns, and both unique indexes (`form_member_group`,
-  `question_member_group`) now include it, so one member answers once per
+  `question_group`) now include it, so one member answers once per
   group **per period**. Every write today stores `""`, which is the period of a
   form that runs once, so a non-repeating form behaves exactly as before.
 
