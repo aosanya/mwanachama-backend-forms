@@ -199,7 +199,9 @@ Tests: `hs75_landing_test.go` and `routes/hs75_landing_test.go`.
 ## Still not this module's
 
 - Opening the chat thread or the board case, and what either one carries,
-  belong to the host (wakala-api WK198 for the thread, HS51 to HS54 for the
-  lab's case).
+  belong to the host (wakala-api WK198 for the thread, HS51 for the lab's
+  case, in wakala-api's `form-case-landing.md`). Nothing in this module
+  changed for HS51: the landing, `send_id` and one key per standing send were
+  already the seam.
 - Whether the thread or case can be answered or closed by the sender is the
   receiving module's rule.
