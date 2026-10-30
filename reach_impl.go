@@ -59,6 +59,10 @@ func (m *formManager) hasSent(ctx context.Context, callerID, formID string) (boo
 
 func (m *formManager) reaches(ctx context.Context, callerID string, f models.Form) (bool, error) {
 	if f.Standing {
+		nobody, err := m.sentToNobody(ctx, f.ID)
+		if err != nil || nobody {
+			return nobody, err
+		}
 		group, err := m.standingGroup(ctx, callerID, f.ID, "")
 		return group != "", err
 	}

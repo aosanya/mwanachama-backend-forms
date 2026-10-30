@@ -79,6 +79,29 @@ is its own record.
 
 Tests: `routes/f91_standing_audience_test.go`.
 
+## Sent to nobody (HS50, agency-wide)
+
+The lab's issue form is "a form nobody is sent" (decision 18): it carries no
+target at all and is open to every member of its agency.
+
+- **The mount is the agency.** A standing form with no target has no group to
+  ask an audience about, so under `ReachedOnly` it is reached by every caller
+  who is signed in, and by no one who is not (`callerID` empty answers the
+  same 404 as a missing form). Who counts as a member of the agency is the
+  host's: it only mounts the routes for them.
+- **Fence-closed default unchanged for targeted forms.** The rule above, that
+  a mount with `ReachedOnly` and no audience supplied reaches nobody, applies
+  to a standing form that names a target. Adding a target to a standing form
+  puts it back under its audience.
+- **Whichever host functions are wired.** With or without `UseGroups` and
+  `UseStandingAudience`, a send to nobody succeeds and is recorded with an
+  empty `chapter_id`; naming a group with `as` is refused
+  (`ErrInvalidAnswer`) because the form was sent to none.
+- **Still never waiting, still its own record per send**, read back by id and
+  through the answered list by its sender alone, as above.
+
+Tests: `routes/hs50_agency_wide_test.go`.
+
 ## What decision 45 settled (HS75, owner, 2026-10-26)
 
 > A standing form is open at all times; a schedule on it is ignored as it is

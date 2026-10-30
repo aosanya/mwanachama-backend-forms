@@ -34,8 +34,21 @@ func (m *formManager) standingGroup(ctx context.Context, callerID, formID, as st
 	return "", nil
 }
 
+func (m *formManager) sentToNobody(ctx context.Context, formID string) (bool, error) {
+	var held int64
+	err := m.q(ctx, roleTarget).Where("form_id = ?", formID).Count(&held).Error
+	return held == 0, err
+}
+
 func (m *formManager) sendingAs(ctx context.Context, f models.Form, memberID, as string) (string, error) {
 	if !f.Standing || m.standingAudience == nil {
+		return m.answeringAs(ctx, f.ID, memberID, as)
+	}
+	nobody, err := m.sentToNobody(ctx, f.ID)
+	if err != nil {
+		return "", fmt.Errorf("SubmitAnswers: %w", err)
+	}
+	if nobody {
 		return m.answeringAs(ctx, f.ID, memberID, as)
 	}
 	group, err := m.standingGroup(ctx, memberID, f.ID, as)
