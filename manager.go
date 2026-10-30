@@ -7,6 +7,7 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/aosanya/mwanachama-backend-shared/identity"
 	"github.com/aosanya/mwanachama-backend-shared/spec"
 
 	"github.com/aosanya/mwanachama-backend-forms/models"
@@ -126,6 +127,7 @@ func VisibleToMembers(s Status) bool { return models.VisibleToMembers(s) }
 func Deletable(s Status) bool { return models.Deletable(s) }
 
 type FormManager interface {
+	identity.Owner
 	Translator
 	TranslatedReader
 

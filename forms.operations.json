@@ -111,7 +111,7 @@
       "title": "Read form",
       "description": "Read one instrument: its title, its window, its audience and where it has got to.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument to read."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument to read."},
         {"from": "query", "as": "language", "description": "A language tag to read the texts in. Each text with a reviewed translation in that language is served in it; an unknown or unreviewed language, or none, serves the original text."}
       ],
       "returns": [{"body": true}]
@@ -125,7 +125,7 @@
       "description": "Change a draft's title, its window, its audience and how it is collected. Nothing else about it is editable, not whether it is standing nor where its sends land, and it stops being editable once it leaves draft.",
       "args": [
         {"from": "body", "whole": true},
-        {"from": "path", "as": "form_id", "into": "ID", "description": "The instrument to edit."}
+        {"from": "path", "as": "form_id", "refers": "forms.form", "into": "ID", "description": "The instrument to edit."}
       ],
       "returns": [{"body": true}]
     },
@@ -137,7 +137,7 @@
       "status": 204,
       "title": "Delete form",
       "description": "Remove an instrument and everything composed into it. A form that has been published cannot be deleted, because people have answered it.",
-      "args": [{"from": "path", "as": "form_id", "description": "The instrument to remove."}],
+      "args": [{"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument to remove."}],
       "returns": [{"body": true}]
     },
     "submit_form": {
@@ -148,7 +148,7 @@
       "title": "Send for a decision",
       "description": "Hand a draft to whoever clears it, opening a round that waits for an answer.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument being sent."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument being sent."},
         {"from": "body", "as": "submitted_by", "description": "Who is sending it."}
       ],
       "returns": [{"body": true}]
@@ -161,7 +161,7 @@
       "title": "Take it back",
       "description": "Pull an instrument back to draft before or after it was cleared, closing the round that was waiting.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument being pulled back."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument being pulled back."},
         {"from": "body", "as": "actor_id", "description": "Who is pulling it back."}
       ],
       "returns": [{"body": true}]
@@ -174,7 +174,7 @@
       "title": "Open for answers",
       "description": "Start taking answers. A public instrument gets its shareable link here; a member one reaches every group it was aimed at. Publishing twice changes nothing.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument to open."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument to open."},
         {"from": "body", "as": "candidate_link_key", "description": "The token the shareable link should carry, for a public instrument. Refused if another link already holds it."},
         {"from": "caller", "as": "published_by"},
         {"from": "body", "as": "publishing_authority", "description": "The office or group it is sent on behalf of, shown to whoever it reaches. Optional, one line, at most 120 characters."}
@@ -192,7 +192,7 @@
       "title": "Stop taking answers",
       "description": "Close an open instrument. Closing twice changes nothing.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument to close."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument to close."},
         {"from": "body", "as": "closed_by", "description": "Who is closing it."}
       ],
       "returns": [{"body": true}]
@@ -207,7 +207,7 @@
       "title": "Publish a form's report",
       "description": "Record the report on what a closed instrument collected: where it sits and at which commit, both supplied by the host. It is readable to the groups the publisher chooses, any group of the agency, and the groups inside them; with none chosen it goes to every group the instrument was aimed at. It sets when the results were published. Publishing again records the next version. An instrument that is not closed is refused.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The closed instrument the report is about."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The closed instrument the report is about."},
         {"from": "body", "as": "git_path", "description": "Where the report sits in the repository that holds it."},
         {"from": "body", "as": "git_commit", "description": "The commit that holds this version of it."},
         {"from": "body", "as": "chapter_ids", "description": "The groups to publish it to, any group of the agency. Optional; omitted, it goes to every group the instrument was aimed at."},
@@ -223,7 +223,7 @@
       "title": "Read a form's report",
       "description": "Where the newest report on an instrument sits, for a caller in a group it was published to or a group inside one, as the host names the caller's groups. A form with no report, and one whose report went to none of the caller's groups, answer exactly as a missing one.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument whose report to read."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument whose report to read."},
         {"from": "caller", "as": "caller_id"}
       ],
       "returns": [{"body": true}]
@@ -236,7 +236,7 @@
       "title": "Clear a form",
       "description": "Decide the open round in favour, which clears the instrument to be published.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument awaiting a decision."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument awaiting a decision."},
         {"from": "caller", "as": "approver_id"},
         {"from": "body", "as": "note", "description": "Anything they want recorded with it."}
       ],
@@ -250,7 +250,7 @@
       "title": "Grant one approval slot",
       "description": "Grant one of the approval slots the instrument declares in the open round. The round clears it once every slot is granted, each by a different approver.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument awaiting a decision."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument awaiting a decision."},
         {"from": "caller", "as": "approver_id"},
         {"from": "body", "as": "slot", "description": "Which declared approval slot this grants."},
         {"from": "body", "as": "note", "description": "Anything they want recorded with it."}
@@ -265,7 +265,7 @@
       "title": "Refuse a form",
       "description": "Decide the open round against, sending the instrument back to draft. A refusal has to say why.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument awaiting a decision."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument awaiting a decision."},
         {"from": "caller", "as": "approver_id"},
         {"from": "body", "as": "note", "description": "Why it was refused. Required."}
       ],
@@ -278,7 +278,7 @@
       "action": "forms.approval.list",
       "title": "Decision history",
       "description": "Every round one instrument has been through, most recent first.",
-      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose history to read."}],
+      "args": [{"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument whose history to read."}],
       "returns": [{"body": true}]
     },
     "list_awaiting_approval": {
@@ -302,7 +302,7 @@
       "description": "Append a prompt, and the choices it offers, to a draft. Its position and its version are the store's to set.",
       "args": [
         {"from": "body", "whole": true},
-        {"from": "path", "as": "form_id", "into": "FormID", "description": "The instrument to append to."}
+        {"from": "path", "as": "form_id", "refers": "forms.form", "into": "FormID", "description": "The instrument to append to."}
       ],
       "returns": [
         {"as": "question", "description": "The prompt as written."},
@@ -317,7 +317,7 @@
       "title": "List questions",
       "description": "Every version of every prompt on one instrument, in the order they are asked.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument whose prompts to read."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument whose prompts to read."},
         {"from": "query", "as": "language", "description": "A language tag to read the texts in. Each text with a reviewed translation in that language is served in it; an unknown or unreviewed language, or none, serves the original text."}
       ],
       "returns": [{"body": true}]
@@ -330,8 +330,8 @@
       "title": "Rewrite a question",
       "description": "Replace a draft prompt's wording and its whole set of choices. The old choices are removed rather than merged, so their ids stop resolving.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument the prompt belongs to."},
-        {"from": "path", "as": "question_id", "description": "The prompt to rewrite."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument the prompt belongs to."},
+        {"from": "path", "as": "question_id", "refers": "forms.question", "description": "The prompt to rewrite."},
         {"from": "body", "whole": true}
       ],
       "returns": [
@@ -348,8 +348,8 @@
       "title": "Remove a question",
       "description": "Remove a draft prompt and its choices. The prompts after it move up one place. Refused once the instrument has left draft.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument the prompt belongs to."},
-        {"from": "path", "as": "question_id", "description": "The prompt to remove."}
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument the prompt belongs to."},
+        {"from": "path", "as": "question_id", "refers": "forms.question", "description": "The prompt to remove."}
       ],
       "returns": [{"body": true}]
     },
@@ -361,8 +361,8 @@
       "title": "Move a question",
       "description": "Put a draft prompt at a position, counted from 1, and renumber the others around it. Refused once the instrument has left draft.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument the prompt belongs to."},
-        {"from": "path", "as": "question_id", "description": "The prompt to move."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument the prompt belongs to."},
+        {"from": "path", "as": "question_id", "refers": "forms.question", "description": "The prompt to move."},
         {"from": "body", "as": "position", "description": "Where the prompt should be asked, counted from 1."}
       ],
       "returns": [{"body": true}]
@@ -376,7 +376,7 @@
       "description": "The choices one prompt offers, in the order they are shown.",
       "args": [
         {"from": "path", "as": "form_id", "ignored": true, "description": "The instrument the prompt belongs to. Part of the address, not of the call."},
-        {"from": "path", "as": "question_id", "description": "The prompt whose choices to read."},
+        {"from": "path", "as": "question_id", "refers": "forms.question", "description": "The prompt whose choices to read."},
         {"from": "query", "as": "language", "description": "A language tag to read the texts in. Each text with a reviewed translation in that language is served in it; an unknown or unreviewed language, or none, serves the original text."}
       ],
       "returns": [{"body": true}]
@@ -391,7 +391,7 @@
       "description": "Append one more choice to a prompt, whatever state its instrument is in. It is the one content edit a published instrument allows, because adding a choice cannot invalidate an answer already given.",
       "args": [
         {"from": "path", "as": "form_id", "ignored": true, "description": "The instrument the prompt belongs to. Part of the address, not of the call."},
-        {"from": "path", "as": "question_id", "description": "The prompt to add to."},
+        {"from": "path", "as": "question_id", "refers": "forms.question", "description": "The prompt to add to."},
         {"from": "body", "as": "label", "description": "The choice as it should be shown."},
         {"from": "caller", "as": "actor_id"}
       ],
@@ -407,7 +407,7 @@
       "description": "Replace a published prompt with a new one, leaving the old prompt and the answers already given against it untouched. Only the version nothing has superseded may be superseded.",
       "args": [
         {"from": "path", "as": "form_id", "ignored": true, "description": "The instrument the prompt belongs to. Part of the address, not of the call."},
-        {"from": "path", "as": "question_id", "description": "The prompt to supersede."},
+        {"from": "path", "as": "question_id", "refers": "forms.question", "description": "The prompt to supersede."},
         {"from": "caller", "as": "actor_id"},
         {"from": "body", "whole": true}
       ],
@@ -424,7 +424,7 @@
       "description": "Aim a draft member-audience instrument at its one group, optionally reaching the groups beneath it. An instrument is aimed at one group only, so a second aim is refused; a public instrument carries no aims.",
       "args": [
         {"from": "body", "whole": true},
-        {"from": "path", "as": "form_id", "into": "FormID", "description": "The instrument being aimed."}
+        {"from": "path", "as": "form_id", "refers": "forms.form", "into": "FormID", "description": "The instrument being aimed."}
       ],
       "returns": [{"body": true}]
     },
@@ -435,7 +435,7 @@
       "action": "forms.target.list",
       "title": "List aims",
       "description": "Every group one instrument is aimed at, oldest aim first.",
-      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose aims to read."}],
+      "args": [{"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument whose aims to read."}],
       "returns": [{"body": true}]
     },
     "remove_target": {
@@ -447,7 +447,7 @@
       "title": "Stop aiming at a group",
       "description": "Remove one of a draft's aims.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument the aim belongs to."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument the aim belongs to."},
         {"from": "path", "as": "target_id", "description": "The aim to remove."}
       ],
       "returns": [{"body": true}]
@@ -460,7 +460,7 @@
       "action": "forms.propagation.list",
       "title": "List what it reached",
       "description": "Every group one instrument reached, and how far each got with it.",
-      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose spread to read."}],
+      "args": [{"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument whose spread to read."}],
       "returns": [{"body": true}]
     },
     "rollup_form": {
@@ -470,7 +470,7 @@
       "action": "forms.propagation.rollup",
       "title": "How far it got",
       "description": "How many groups an instrument reached, how many took it up, and which of them never did.",
-      "args": [{"from": "path", "as": "form_id", "description": "The instrument to summarise."}],
+      "args": [{"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument to summarise."}],
       "returns": [{"body": true}]
     },
     "pick_up_form": {
@@ -481,7 +481,7 @@
       "title": "Take it up",
       "description": "Record a group taking up an instrument it was reached with. A group that was never reached is refused rather than recorded.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument being taken up."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument being taken up."},
         {"from": "body", "as": "chapter_id", "description": "The group taking it up."}
       ],
       "returns": [{"body": true}]
@@ -495,7 +495,7 @@
       "title": "Answer a form",
       "description": "Send every answer at once, as one group the instrument was aimed at that the caller belongs to. They are all checked before any is written, so one bad answer leaves nothing behind, and answering again as the same group edits what was already given as it rather than doubling it. A standing instrument keeps every send as its own record instead, and each answer returned carries that record's id as send_id.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument being answered."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument being answered."},
         {"from": "caller", "as": "member_id"},
         {"from": "query", "as": "as", "description": "The group being answered as. Absent picks the first group the instrument was aimed at that the caller belongs to."},
         {"from": "query", "as": "language", "description": "The language tag the caller answered in, recorded on the send. Absent records none."},
@@ -512,7 +512,7 @@
       "title": "Read my answers",
       "description": "What the caller answered on one instrument, in the order the prompts were asked. Nobody else's answers are reachable here.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument answered."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument answered."},
         {"from": "caller", "as": "member_id"}
       ],
       "returns": [{"body": true}]
@@ -525,7 +525,7 @@
       "title": "Read my previous period's answers",
       "description": "What the caller answered on a repeating instrument in the period before the current one, in the order the prompts were asked, for copying into this period. Empty when the instrument does not repeat or has no earlier period.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The repeating instrument answered."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The repeating instrument answered."},
         {"from": "caller", "as": "member_id"}
       ],
       "returns": [{"body": true}]
@@ -538,7 +538,7 @@
       "title": "Read everyone's answers",
       "description": "Every answer given on one instrument, grouped by who gave it and in the order the prompts were asked, optionally narrowed to one person. An operator's read, gated apart from a member's read of their own.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument answered."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument answered."},
         {"from": "query", "as": "member_id", "description": "Only this person's answers. Absent reads everyone's."},
         {"from": "query", "as": "period_key", "description": "Only the answers given in this period of a repeating instrument, keyed by the day it opened. Absent reads every period."}
       ],
@@ -552,7 +552,7 @@
       "title": "Have I sent this form",
       "description": "Whether the caller has sent their answers to one instrument, when they first sent and last sent again, and how many answers the send carried. A send with no answers still counts as sent. Never sent answers not found. Nobody else's send is reachable here.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument sent to."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument sent to."},
         {"from": "caller", "as": "member_id"}
       ],
       "returns": [{"body": true}]
@@ -565,7 +565,7 @@
       "title": "Read one of my sends",
       "description": "One send the caller made to one instrument, named by its id, with the answers it carried in the order the prompts were asked. For an instrument that keeps every send as its own record, this is how each one is read back; the ids are on the caller's list of what they answered. A send that is not the caller's answers exactly as one that does not exist.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument sent to."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument sent to."},
         {"from": "path", "as": "send_id", "description": "The send, as listed among what the caller answered."},
         {"from": "caller", "as": "member_id"}
       ],
@@ -579,7 +579,7 @@
       "title": "Who has sent this form",
       "description": "Everyone who has sent their answers to one instrument, first sender first, each with when they sent and how many answers the send carried, so somebody who sent nothing still shows as having responded. Optionally narrowed to one person. An operator's read, gated like everyone's answers.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument sent to."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument sent to."},
         {"from": "query", "as": "member_id", "description": "Only this person's send. Absent reads everyone's."},
         {"from": "query", "as": "period_key", "description": "Only the sends made in this period of a repeating instrument, keyed by the day it opened. Absent reads every period."}
       ],
@@ -593,7 +593,7 @@
       "title": "Mark a send paid or not paid",
       "description": "The organiser records that the person who sent this instrument has paid, or that they have not. The mark is kept on the person's own send beside their answers, so sending again before the close does not clear it. Nothing here takes a payment: a person records it. Never sent answers not found.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument sent to."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument sent to."},
         {"from": "path", "as": "member_id", "description": "The person whose send is marked."},
         {"from": "body", "as": "paid", "description": "True marks the send paid, false marks it not paid."},
         {"from": "caller", "as": "marked_by"}
@@ -608,7 +608,7 @@
       "title": "Who missed a period",
       "description": "Everyone in a repeating instrument's audience who sent nothing in one period that has closed, each with the group that reached them. The audience is the members of the instrument's target groups, as the host lists them. An operator's read, gated like everyone's answers.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The repeating instrument."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The repeating instrument."},
         {"from": "path", "as": "period_key", "description": "The closed period, keyed by the day it opened."}
       ],
       "returns": [{"body": true}]
@@ -621,7 +621,7 @@
       "title": "Which groups respondents said they are in",
       "description": "Every group an anonymous respondent declared on one instrument through its shareable link, oldest first, each with the group picked from the list or the text typed where none fitted. An operator's read, gated like everyone's answers.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument declared on."}
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument declared on."}
       ],
       "returns": [{"body": true}]
     },
@@ -633,7 +633,7 @@
       "title": "How many respondents declared each group",
       "description": "How many anonymous respondents declared each group on one instrument through its shareable link, one count per group, in group order. Declarations made by typed text alone count under an empty group. An operator's read, gated like everyone's answers.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument declared on."}
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument declared on."}
       ],
       "returns": [{"body": true}]
     },
@@ -713,7 +713,7 @@
       "description": "Write one text of an instrument, of one of its prompts or of one of its choices in another language, or replace the one already held for that text and language. A text sent unreviewed is not served until it is put again marked reviewed. A text held by another instrument or another kind of object is refused.",
       "args": [
         {"from": "body", "whole": true},
-        {"from": "path", "as": "form_id", "into": "FormID", "description": "The instrument the text belongs to."}
+        {"from": "path", "as": "form_id", "refers": "forms.form", "into": "FormID", "description": "The instrument the text belongs to."}
       ],
       "returns": [{"body": true}]
     },
@@ -724,7 +724,7 @@
       "action": "forms.translation.list",
       "title": "List translations",
       "description": "Every text of one instrument in every other language, reviewed or not, for review.",
-      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose texts to read."}],
+      "args": [{"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument whose texts to read."}],
       "returns": [{"body": true}]
     },
     "list_reviewed_translations": {
@@ -735,7 +735,7 @@
       "title": "Reviewed translations",
       "description": "The reviewed texts of one instrument in one language: what a read in that language shows in place of the original.",
       "args": [
-        {"from": "path", "as": "form_id", "description": "The instrument whose texts to read."},
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument whose texts to read."},
         {"from": "query", "as": "language", "description": "The language tag to read."}
       ],
       "returns": [{"body": true}]
@@ -747,7 +747,7 @@
       "action": "forms.translation.languages",
       "title": "Languages available",
       "description": "The languages one instrument has at least one reviewed text in, sorted.",
-      "args": [{"from": "path", "as": "form_id", "description": "The instrument whose languages to read."}],
+      "args": [{"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument whose languages to read."}],
       "returns": [{"body": true}]
     }
   }
