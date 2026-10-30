@@ -39,7 +39,7 @@ func (m *formManager) PublishResults(ctx context.Context, formID, gitPath, gitCo
 	}
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var held int64
-		if err := tx.Table(m.table(roleResultReport)).Where("form_id = ?", formID).Count(&held).Error; err != nil {
+		if err := m.from(tx, roleResultReport).Where("form_id = ?", formID).Count(&held).Error; err != nil {
 			return err
 		}
 		report.Version = int(held) + 1

@@ -228,7 +228,7 @@ func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publish
 		if err != nil {
 			return err
 		}
-		if err := tx.Table(m.table(roleForm)).Where("id = ?", id).Updates(row).Error; err != nil {
+		if err := m.from(tx, roleForm).Where("id = ?", id).Updates(row).Error; err != nil {
 			return err
 		}
 		if f.Audience == models.AudiencePublic {
@@ -248,7 +248,7 @@ func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publish
 
 func (m *formManager) mintLink(tx *gorm.DB, f models.Form, key, now string) (models.PublicLink, error) {
 	var taken int64
-	if err := tx.Table(m.table(rolePublicLink)).Where("key = ?", key).Count(&taken).Error; err != nil {
+	if err := m.from(tx, rolePublicLink).Where("key = ?", key).Count(&taken).Error; err != nil {
 		return models.PublicLink{}, err
 	}
 	if taken > 0 {
@@ -262,7 +262,7 @@ func (m *formManager) mintLink(tx *gorm.DB, f models.Form, key, now string) (mod
 }
 
 func (m *formManager) spreadToTargets(tx *gorm.DB, formID, now string) error {
-	targets, err := listOf[models.Target](m, tx.Table(m.table(roleTarget)).Where("form_id = ?", formID), roleTarget)
+	targets, err := listOf[models.Target](m, m.from(tx, roleTarget).Where("form_id = ?", formID), roleTarget)
 	if err != nil {
 		return err
 	}
@@ -308,7 +308,7 @@ func (m *formManager) Delete(ctx context.Context, id string) error {
 
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var questionIDs []string
-		if err := tx.Table(m.table(roleQuestion)).Where("form_id = ?", id).Pluck("id", &questionIDs).Error; err != nil {
+		if err := m.from(tx, roleQuestion).Where("form_id = ?", id).Pluck("id", &questionIDs).Error; err != nil {
 			return err
 		}
 		if len(questionIDs) > 0 {
@@ -330,5 +330,5 @@ func (m *formManager) Delete(ctx context.Context, id string) error {
 }
 
 func (m *formManager) deleteWhere(tx *gorm.DB, role, where string, args ...any) error {
-	return tx.Table(m.table(role)).Where(where, args...).Delete(nil).Error
+	return m.from(tx, role).Where(where, args...).Delete(nil).Error
 }

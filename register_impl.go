@@ -38,7 +38,7 @@ func (m *formManager) respondentCount(ctx context.Context, f models.Form, named 
 
 func (m *formManager) currentQuestionCount(ctx context.Context, formID string) (int, error) {
 	var count int64
-	superseded := m.db.Table(m.table(roleQuestion)).
+	superseded := m.from(m.db, roleQuestion).
 		Select("supersedes_question_id").Where("supersedes_question_id <> ''")
 	err := m.q(ctx, roleQuestion).
 		Where("form_id = ? AND id NOT IN (?)", formID, superseded).

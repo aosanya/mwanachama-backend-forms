@@ -261,7 +261,7 @@ func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now 
 	a.FormID, a.MemberID = formID, memberID
 
 	var held models.Answer
-	q := tx.Table(m.table(roleAnswer)).Where("question_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", a.QuestionID, memberID, chapterID, a.PeriodKey)
+	q := m.from(tx, roleAnswer).Where("question_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", a.QuestionID, memberID, chapterID, a.PeriodKey)
 	err := m.take(q, roleAnswer, &held, errNoAnswer)
 	switch {
 	case err == nil:

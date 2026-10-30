@@ -79,13 +79,13 @@ func (m *formManager) MoveQuestion(ctx context.Context, formID, questionID strin
 
 func (m *formManager) orderedQuestionIDs(tx *gorm.DB, formID string) ([]string, error) {
 	var ids []string
-	err := tx.Table(m.table(roleQuestion)).Where("form_id = ?", formID).Order("ordinal").Order("id").Pluck("id", &ids).Error
+	err := m.from(tx, roleQuestion).Where("form_id = ?", formID).Order("ordinal").Order("id").Pluck("id", &ids).Error
 	return ids, err
 }
 
 func (m *formManager) renumber(tx *gorm.DB, ids []string) error {
 	for i, id := range ids {
-		if err := tx.Table(m.table(roleQuestion)).Where("id = ?", id).Update("ordinal", i+1).Error; err != nil {
+		if err := m.from(tx, roleQuestion).Where("id = ?", id).Update("ordinal", i+1).Error; err != nil {
 			return err
 		}
 	}

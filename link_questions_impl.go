@@ -30,7 +30,7 @@ func (m *formManager) PublicLinkQuestions(ctx context.Context, key string) ([]mo
 }
 
 func (m *formManager) currentQuestions(ctx context.Context, formID string) ([]models.Question, error) {
-	superseded := m.db.Table(m.table(roleQuestion)).
+	superseded := m.from(m.db, roleQuestion).
 		Select("supersedes_question_id").Where("supersedes_question_id <> ''")
 	return listOf[models.Question](m,
 		m.q(ctx, roleQuestion).Where("form_id = ? AND id NOT IN (?)", formID, superseded).Order("ordinal"),

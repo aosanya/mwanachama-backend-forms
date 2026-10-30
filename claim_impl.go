@@ -98,7 +98,7 @@ func (m *formManager) claimedMeanwhile(ctx context.Context, publicKey, memberID,
 }
 
 func (m *formManager) cameByLink(ctx context.Context, callerID, formID string) (bool, error) {
-	claimed := m.db.Table(m.table(roleRespondent)).Select("id").Where("claimed_by_member_id = ?", callerID)
+	claimed := m.from(m.db, roleRespondent).Select("id").Where("claimed_by_member_id = ?", callerID)
 	for _, role := range []string{roleClaim, roleDeclaration} {
 		var held int64
 		err := m.q(ctx, role).

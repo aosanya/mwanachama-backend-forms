@@ -14,7 +14,7 @@ import (
 
 func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, period, channel, language, now string) (string, error) {
 	var held models.Submission
-	q := tx.Table(m.table(roleSubmission)).Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", formID, memberID, chapterID, period)
+	q := m.from(tx, roleSubmission).Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", formID, memberID, chapterID, period)
 	err := m.take(q, roleSubmission, &held, ErrSubmissionNotFound)
 	switch {
 	case err == nil:

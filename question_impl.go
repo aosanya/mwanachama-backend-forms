@@ -115,7 +115,7 @@ func (m *formManager) UpdateQuestion(ctx context.Context, formID, questionID str
 		if err != nil {
 			return err
 		}
-		if err := tx.Table(m.table(roleQuestion)).Where("id = ?", questionID).Updates(row).Error; err != nil {
+		if err := m.from(tx, roleQuestion).Where("id = ?", questionID).Updates(row).Error; err != nil {
 			return err
 		}
 		if err := m.deleteWhere(tx, roleQuestionOption, "question_id = ?", questionID); err != nil {

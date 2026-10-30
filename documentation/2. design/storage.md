@@ -75,3 +75,18 @@ them — but nothing here will produce one:
 
 Confirmed against the source module's own logic before the extraction: no
 method there transitioned a row into those states either.
+
+## A manager for one test run (HS280)
+
+`ForRun(runID)` returns a form manager that reads and writes only the `_test`
+copy of each table under that run id. Every row it inserts carries the run id,
+and every read, update and delete it makes (including the ones inside a
+transaction and the sub-queries) is filtered to that run id, so two runs that use
+the same key, such as a public link key, never meet and no row reaches a live
+table. The parent is not changed. An empty run id is refused with
+`specstore.ErrRunIDEmpty`.
+
+The hooks (groups, names, members, standing audience, declarable, default file
+limit, approval flag and form types) are copied when `ForRun` is called, so a
+host sets them first. The host removes a run's rows with the shared engine's
+`RemoveRun`.

@@ -250,6 +250,8 @@ type FormManager interface {
 
 	ListDeclarations(ctx context.Context, formID string) ([]models.Declaration, error)
 
+	ForRun(runID string) (FormManager, error)
+
 	CountDeclarations(ctx context.Context, formID string) ([]models.DeclarationCount, error)
 }
 
@@ -303,7 +305,15 @@ func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {
 }
 
 func (m *formManager) q(ctx context.Context, role string) *gorm.DB {
-	return m.db.WithContext(ctx).Table(m.st.Table(role))
+	return m.st.Query(ctx, role)
+}
+
+func (m *formManager) from(tx *gorm.DB, role string) *gorm.DB {
+	q := tx.Table(m.table(role))
+	if id := m.st.RunID(); id != "" {
+		q = q.Where(spec.RunIDColumn+" = ?", id)
+	}
+	return q
 }
 
 func (m *formManager) table(role string) string { return m.st.Table(role) }
@@ -345,7 +355,7 @@ func (m *formManager) insert(ctx context.Context, role string, v any) error {
 }
 
 func (m *formManager) insertTx(tx *gorm.DB, role string, v any) error {
-	row, err := encode(m.st.Object(role), v)
+	row, err := m.st.Row(role, v)
 	if err != nil {
 		return err
 	}
@@ -361,5 +371,5 @@ func (m *formManager) replaceTx(tx *gorm.DB, role, id string, v any) error {
 	if err != nil {
 		return err
 	}
-	return tx.Table(m.table(role)).Where("id = ?", id).Updates(row).Error
+	return m.from(tx, role).Where("id = ?", id).Updates(row).Error
 }
