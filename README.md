@@ -2,8 +2,9 @@
 
 Forms and surveys: build a form, target and approve it, publish it by link, and collect declarations and answers.
 
-A Go library backed by Postgres through GORM. It is imported directly by the
-Mwanachama API gateway; there is no separate service to run.
+A Go library whose objects are declared in `forms.blueprint.json` and stored through
+`mwanachama-backend-shared/specstore`. It is imported directly by whatever
+mounts it (`mwanachama-wakala-api`); there is no separate service to run.
 
 ## Use
 
@@ -11,9 +12,10 @@ Mwanachama API gateway; there is no separate service to run.
 go get github.com/aosanya/mwanachama-backend-forms
 ```
 
-`Migrate(db, tables)` creates the tables, and `NewFormManager(db, tables)` returns the manager
-that the rest of your code calls. The `routes/` package builds the HTTP
-handlers for the surface that needs no gateway-specific wiring.
+`SpecFor(instance)` returns the default domain (`forms.forms.json`) for a host's
+instance, `Provision(db, s)` creates its tables, and `NewFormManager(db, s)`
+returns the manager that the rest of your code calls. The `routes/` package
+builds the REST routes and MCP tools from `forms.operations.json`.
 
 ## Test
 
