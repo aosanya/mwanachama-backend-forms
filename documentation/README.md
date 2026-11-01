@@ -25,7 +25,7 @@ onto GORM-backed relational storage — domain logic and storage both live in
 this package, imported directly by
 [mwanachama-backend-api-gateway](../mwanachama-backend-api-gateway) — no
 gRPC, no sub-service shape. Structured exactly like
-[mwanachama-backend-actor](../mwanachama-backend-actor), the org's other
+[mwanachama-backend-actor](../../mwanachama-backend-actor), the org's other
 gateway-domain extraction. Built 2026-09-04, at the user's request; see this
 repo's [CLAUDE.md](../CLAUDE.md) for the naming decision and every deviation
 from a literal file-for-file copy of actor.
