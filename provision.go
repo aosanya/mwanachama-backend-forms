@@ -265,7 +265,7 @@ $$ LANGUAGE plpgsql`, lockFn, questions, forms),
 	(CASE WHEN value_bool IS NOT NULL THEN 1 ELSE 0 END) = 1
 )`, answers, answers),
 
-		fmt.Sprintf(`CREATE UNIQUE INDEX IF NOT EXISTS %s_one_open_idx ON %s (form_id) WHERE decided_at = ''`,
+		fmt.Sprintf(`CREATE UNIQUE INDEX IF NOT EXISTS %s_one_open_idx ON %s (form_id) WHERE decided_at = '' AND form_id <> ''`,
 			approvals, approvals),
 	}
 	for _, sql := range stmts {
