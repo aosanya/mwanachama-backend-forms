@@ -23,7 +23,7 @@ Four folders, in SDLC order, and everything lives under one of them.
 Extracts `mwanachama-backend-api-gateway`'s `survey` domain (renamed `Form`)
 onto GORM-backed relational storage — domain logic and storage both live in
 this package, imported directly by
-[mwanachama-backend-api-gateway](../mwanachama-backend-api-gateway) — no
+mwanachama-backend-api-gateway — no
 gRPC, no sub-service shape. Structured exactly like
 [mwanachama-backend-actor](../../mwanachama-backend-actor), the org's other
 gateway-domain extraction. Built 2026-09-04, at the user's request; see this
