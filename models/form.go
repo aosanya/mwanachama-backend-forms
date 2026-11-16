@@ -194,3 +194,50 @@ func ShortenPublisherName(name string) string {
 	}
 	return name
 }
+
+type FormRead interface{ formRead() }
+
+func (Form) formRead() {}
+
+func (FormRespondentView) formRead() {}
+
+type FormRespondentView struct {
+	ID                  string `json:"id"`
+	Title               string `json:"title"`
+	OriginatorChapterID string `json:"originator_chapter_id"`
+	Status              Status `json:"status"`
+
+	OpensAt            string   `json:"opens_at,omitempty"`
+	ClosesAt           string   `json:"closes_at"`
+	Language           string   `json:"language,omitempty"`
+	WindowAdvisory     bool     `json:"window_advisory"`
+	LockedAfterSend    bool     `json:"locked_after_send"`
+	Standing           bool     `json:"standing"`
+	OneVoice           OneVoice `json:"one_voice,omitempty"`
+	Landing            Landing  `json:"landing,omitempty"`
+	PublishedAt        string   `json:"published_at,omitempty"`
+	ClosedAt           string   `json:"closed_at,omitempty"`
+	ResultsPublishedAt string   `json:"results_published_at,omitempty"`
+
+	PublisherName       string `json:"publisher_name,omitempty"`
+	PublishingAuthority string `json:"publishing_authority,omitempty"`
+
+	Audience       Audience       `json:"audience"`
+	CollectionMode CollectionMode `json:"collection_mode"`
+	Schedule       FormSchedule   `json:"schedule,omitzero"`
+
+	CreatedAt   string `json:"created_at"`
+	LastUpdated string `json:"last_updated"`
+}
+
+func (f Form) RespondentView() FormRespondentView {
+	return FormRespondentView{
+		ID: f.ID, Title: f.Title, OriginatorChapterID: f.OriginatorChapterID, Status: f.Status,
+		OpensAt: f.OpensAt, ClosesAt: f.ClosesAt, Language: f.Language, WindowAdvisory: f.WindowAdvisory,
+		LockedAfterSend: f.LockedAfterSend, Standing: f.Standing, OneVoice: f.OneVoice, Landing: f.Landing,
+		PublishedAt: f.PublishedAt, ClosedAt: f.ClosedAt, ResultsPublishedAt: f.ResultsPublishedAt,
+		PublisherName: f.PublisherName, PublishingAuthority: f.PublishingAuthority,
+		Audience: f.Audience, CollectionMode: f.CollectionMode, Schedule: f.Schedule,
+		CreatedAt: f.CreatedAt, LastUpdated: f.LastUpdated,
+	}
+}

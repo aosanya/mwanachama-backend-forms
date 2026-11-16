@@ -57,7 +57,7 @@ func TestAnsweredListsEveryFormTheCallerAnsweredOpenOrClosedNewestSentFirst(t *t
 	}
 	n, o := rows[0], rows[1]
 	if !n.Open || n.Status != mwanachamaforms.StatusOpen || n.PublishedAt != newest.PublishedAt ||
-		n.OriginatorChapterID != "council" || n.PublishedBy != "sender-1" || n.ClosesAt != newest.ClosesAt ||
+		n.OriginatorChapterID != "council" || n.ClosesAt != newest.ClosesAt ||
 		n.AnsweredAt == "" || n.EditedAt != "" {
 		t.Fatalf("Newest row = %+v", n)
 	}

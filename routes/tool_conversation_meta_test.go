@@ -20,11 +20,11 @@ type conversationRecorder struct {
 	seen []string
 }
 
-func (r *conversationRecorder) GetIn(ctx context.Context, formID, language string) (models.Form, error) {
+func (r *conversationRecorder) ShowIn(ctx context.Context, formID, language string) (models.FormRead, error) {
 	r.mu.Lock()
 	r.seen = append(r.seen, dispatch.ConversationOf(ctx))
 	r.mu.Unlock()
-	return r.FormManager.GetIn(ctx, formID, language)
+	return r.FormManager.ShowIn(ctx, formID, language)
 }
 
 func readFormTool(t *testing.T, recorder *conversationRecorder, mount routes.Mount) routes.Tool {

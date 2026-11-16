@@ -114,10 +114,10 @@
     "get_form": {
       "method": "GET",
       "path": "/forms/{form_id}",
-      "call": "GetIn",
+      "call": "ShowIn",
       "action": "forms.form.read",
       "title": "Read form",
-      "description": "Read one instrument: its title, its window, its audience and where it has got to.",
+      "description": "Read one instrument: its title, its window, its audience and where it has got to. A resident reads it as a respondent does, without the members who made, published, closed, sent or approved it.",
       "args": [
         {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument to read."},
         {"from": "query", "as": "language", "description": "A language tag to read the texts in. Each text with a reviewed translation in that language is served in it; an unknown or unreviewed language, or none, serves the original text."}

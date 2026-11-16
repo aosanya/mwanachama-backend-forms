@@ -136,7 +136,7 @@ func TestWaitingListsOnlyOpenFormsThatReachedTheCallersGroups(t *testing.T) {
 	}
 
 	m := got["Mine"]
-	if m.OriginatorChapterID != "council" || m.PublishedBy != "sender-1" || m.Questions != 3 ||
+	if m.OriginatorChapterID != "council" || m.Questions != 3 ||
 		m.ClosesAt != mine.ClosesAt || m.Answered {
 		t.Fatalf("Mine row = %+v", m)
 	}

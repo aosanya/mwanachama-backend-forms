@@ -9,6 +9,7 @@ import (
 
 type TranslatedReader interface {
 	GetIn(ctx context.Context, formID, language string) (models.Form, error)
+	ShowIn(ctx context.Context, formID, language string) (models.FormRead, error)
 	ListQuestionsIn(ctx context.Context, formID, language string) ([]models.Question, error)
 	ListOptionsIn(ctx context.Context, questionID, language string) ([]models.QuestionOption, error)
 	PublicLinkQuestionsIn(ctx context.Context, key, language string) ([]models.LinkedQuestion, error)

@@ -43,7 +43,6 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 				FormID:              f.ID,
 				Title:               f.Title,
 				OriginatorChapterID: f.OriginatorChapterID,
-				PublishedBy:         f.PublishedBy,
 				PublisherName:       f.PublisherName,
 				PublishingAuthority: f.PublishingAuthority,
 				PublishedAt:         f.PublishedAt,
