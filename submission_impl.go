@@ -12,24 +12,34 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, period, repeatOf, channel, language, now string) (string, error) {
+func (m *formManager) writeSubmission(tx *gorm.DB, s sendToKeep, repeatOf, now string) (string, error) {
 	var held models.Submission
-	q := m.from(tx, roleSubmission).Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND repeat_of = ? AND withdrawn_at = ''", formID, memberID, chapterID, period, repeatOf)
+	q := m.from(tx, roleSubmission).Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND repeat_of = ? AND withdrawn_at = ''", s.form.ID, s.memberID, s.chapterID, s.period, repeatOf)
 	err := m.take(q, roleSubmission, &held, ErrSubmissionNotFound)
 	switch {
+	case err == nil && s.form.LockedAfterSend:
+		return "", ErrLockedAfterSend
 	case err == nil:
 		held.EditedAt = now
-		held.Collector, held.CollectedAt, held.Channel, held.Language = memberID, now, channel, language
+		held.Collector, held.CollectedAt, held.Channel, held.Language = s.memberID, now, s.channel, s.language
 		return held.ID, m.replaceTx(tx, roleSubmission, held.ID, held)
 	case errors.Is(err, ErrSubmissionNotFound):
 		sent := models.Submission{
-			ID: newID(), FormID: formID, MemberID: memberID, ChapterID: chapterID, PeriodKey: period, RepeatOf: repeatOf, SubmittedAt: now,
-			Collector: memberID, CollectedAt: now, Channel: channel, Language: language,
+			ID: newID(), FormID: s.form.ID, MemberID: s.memberID, ChapterID: s.chapterID, PeriodKey: s.period, RepeatOf: repeatOf, SubmittedAt: now,
+			Collector: s.memberID, CollectedAt: now, Channel: s.channel, Language: s.language,
+			VoiceKey: voiceKeyOf(s, repeatOf),
 		}
 		return sent.ID, m.insertTx(tx, roleSubmission, sent)
 	default:
 		return "", err
 	}
+}
+
+func voiceKeyOf(s sendToKeep, repeatOf string) string {
+	if s.form.OneVoice == models.OneVoiceOff || repeatOf != "" {
+		return ""
+	}
+	return s.form.ID + "|" + s.memberID + "|" + s.period
 }
 
 func (m *formManager) GetSubmission(ctx context.Context, formID, memberID string) (models.Submission, error) {

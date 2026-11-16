@@ -63,7 +63,7 @@ func (m *formManager) keepSendOnce(ctx context.Context, s sendToKeep) (sendKept,
 			return err
 		}
 		var err error
-		kept.sendID, err = m.writeSubmission(tx, s.form.ID, s.memberID, s.chapterID, s.period, repeatOf, s.channel, s.language, now)
+		kept.sendID, err = m.writeSubmission(tx, s, repeatOf, now)
 		return err
 	})
 	if err != nil {

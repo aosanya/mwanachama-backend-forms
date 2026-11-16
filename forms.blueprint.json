@@ -255,10 +255,12 @@
         {"name": "paid_at", "type": "timestamp", "description": "When the organiser marked this send paid. Empty means not paid. A resend leaves it alone, because the mark sits beside the answers and not in them."},
         {"name": "paid_by", "type": "string", "description": "Who marked it paid, taken from the session. Empty when it is not paid."},
         {"name": "repeat_of", "type": "string", "description": "The send this one repeats, when the form allows one voice per person and the member sent again. Empty means it is the person's own voice. A repeat is kept and never counted."},
-        {"name": "withdrawn_at", "type": "timestamp", "description": "When the member withdrew their consent. Empty means they have not. The send is kept and no longer listed, counted or marked paid, and a later send to the same instrument is kept beside it."}
+        {"name": "withdrawn_at", "type": "timestamp", "description": "When the member withdrew their consent. Empty means they have not. The send is kept and no longer listed, counted or marked paid, and a later send to the same instrument is kept beside it."},
+        {"name": "voice_key", "type": "string", "description": "Names the one voice a person holds on an instrument that allows one voice per person, in one period, whichever group they sent as. Written only on a person's own voice, never on a repeat, and empty on an instrument that allows several voices and on every send kept from before the key existed."}
       ],
       "indexes": [
         {"name": "send_slot", "description": "Reads one person's send to one instrument as one group, and keeps it to one so a resend as that group edits rather than doubles, within one period. A repeat, and a send a withdrawal hid, each sit in a slot of their own.", "fields": ["form_id", "member_id", "chapter_id", "period_key", "repeat_of", "withdrawn_at"], "unique": true},
+        {"name": "one_voice_slot", "description": "Keeps a person to one voice on an instrument that allows one voice per person, so two sends racing as two different groups cannot both become the voice. A send a withdrawal hid frees the voice, and sends with no key, which include every send kept from before the key existed, are left out.", "fields": ["voice_key", "withdrawn_at"], "unique": true, "where": [{"field": "voice_key", "op": "not_empty"}]},
         {"name": "member", "description": "Lists every instrument one person has sent to.", "fields": ["member_id"]}
       ]
     },

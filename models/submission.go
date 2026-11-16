@@ -16,6 +16,7 @@ type Submission struct {
 	PaidBy      string `json:"paid_by,omitempty"`
 	RepeatOf    string `json:"repeat_of,omitempty"`
 	WithdrawnAt string `json:"withdrawn_at,omitempty"`
+	VoiceKey    string `json:"-"`
 	Paid        bool   `json:"paid" spec:"-"`
 	Answers     int    `json:"answers" spec:"-"`
 }
