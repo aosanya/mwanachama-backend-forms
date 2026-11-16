@@ -8,7 +8,11 @@ import (
 	"github.com/aosanya/mwanachama-backend-shared/spec"
 )
 
-func Provision(db *gorm.DB, s *spec.Spec) error {
+func Provision(db *gorm.DB, s *spec.Spec, opts ...ProvisionOption) error {
+	var options provisionOptions
+	for _, apply := range opts {
+		apply(&options)
+	}
 	if err := renameLegacy(db, s); err != nil {
 		return err
 	}
@@ -19,6 +23,9 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 		return err
 	}
 	if err := addMissingColumns(db, s); err != nil {
+		return err
+	}
+	if err := giveBackAgencyApprovals(db, s, options.agencyApprovals); err != nil {
 		return err
 	}
 	if err := recordEarlierSends(db, s); err != nil {
@@ -119,6 +126,15 @@ func renameLegacy(db *gorm.DB, s *spec.Spec) error {
 		for _, legacy := range legacyTables(s, o) {
 			if legacy == declared || !m.HasTable(legacy) {
 				continue
+			}
+			if o.Role == roleApproval {
+				agencyShaped, err := holdsAgencyApprovals(db, legacy)
+				if err != nil {
+					return err
+				}
+				if agencyShaped {
+					continue
+				}
 			}
 			if m.HasTable(declared) {
 				stranded, err := rowCount(db, legacy)
@@ -284,6 +300,7 @@ var retiredIndexes = []struct{ role, name string }{
 	{roleSubmission, "form_member"},
 	{roleAnswer, "question_group"},
 	{roleSubmission, "form_member_group"},
+	{roleSubmission, "form_member_slot"},
 }
 
 func dropOnePerPersonIndexes(db *gorm.DB, s *spec.Spec) error {
