@@ -24,6 +24,9 @@ func Provision(db *gorm.DB, s *spec.Spec) error {
 	if err := recordEarlierSends(db, s); err != nil {
 		return err
 	}
+	if err := backfillRegistrationsOnce(db, s); err != nil {
+		return err
+	}
 	if err := keepStandingFormsAdvisory(db, s); err != nil {
 		return err
 	}
