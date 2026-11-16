@@ -73,7 +73,7 @@ func ValidateAnswerWithin(q Question, options []QuestionOption, a Answer, defaul
 		}
 		return checkDateBounds(q, a.ValueDate)
 	case AnswerTime:
-		if _, err := time.Parse("15:04", a.ValueTime); err != nil {
+		if err := checkClockTime(a.ValueTime); err != nil {
 			return fmt.Errorf("time answer requires value_time as HH:MM: %w", err)
 		}
 	case AnswerNumber, AnswerCurrency:

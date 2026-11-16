@@ -46,6 +46,12 @@ Not carried: 4df627b4, waiting on the owner. When it is carried, `approvals_apar
 
 Commits that changed several modules were replayed for the forms folder alone. Files a commit touched lost their comments (the repository rule is no comments in code). Where a hub commit changed what the backend's own tests asserted (public registration, the latest-results read), those tests were updated in the same commit.
 
+## Changes made here that the hub copy does not have
+
+| Backend change | Hub copy until replayed |
+|---|---|
+| A time answer must be `HH:MM` with two digits ([time-answers.md](time-answers.md), hub issue MUN700): `models/answer.go`, `models/validators.go` | `models/answer.go` still parses with `time.Parse("15:04")` and accepts `7:05` |
+
 ## Clean export run
 
 `go build ./...`, `go vet ./...` and `go test -race -p 2 -timeout 40m ./...` run green on a `git archive` export of this repository's HEAD, with the shared repository's HEAD exported beside it and a `replace` of `mwanachama-backend-shared` pointing at that export, in the scratch copy only. The Postgres cases skip without `POSTGRES_URL`.

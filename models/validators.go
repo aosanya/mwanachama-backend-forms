@@ -5,7 +5,21 @@ import (
 	"time"
 )
 
-const DateLayout = "2006-01-02"
+const (
+	DateLayout  = "2006-01-02"
+	ClockLayout = "15:04"
+)
+
+func checkClockTime(v string) error {
+	parsed, err := time.Parse(ClockLayout, v)
+	if err != nil {
+		return err
+	}
+	if parsed.Format(ClockLayout) != v {
+		return fmt.Errorf("%q is not written with two digits for the hour", v)
+	}
+	return nil
+}
 
 func ValidateValidators(q Question) error {
 	if err := boundsOnlyFor(q, q.MinValue != nil || q.MaxValue != nil, "min_value and max_value", AnswerNumber, AnswerCurrency); err != nil {
