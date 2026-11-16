@@ -151,6 +151,7 @@ type FormManager interface {
 	UseGroups(g Groups)
 	UseConsentGate(g consent.Gate)
 	ReleaseMember(ctx context.Context, memberID string) error
+	HideMemberAnswers(ctx context.Context, memberID string) error
 
 	UseStandingAudience(a StandingAudience)
 

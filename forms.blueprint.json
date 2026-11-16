@@ -213,7 +213,8 @@
         {"name": "value_time", "type": "string", "description": "The time of day given, as HH:MM."},
         {"name": "value_bool", "type": "bool", "description": "Which way they answered a yes-or-no. Absent means unanswered, which is not the same as no.", "nullable": true},
         {"name": "answered_at", "type": "timestamp", "description": "When it was first answered. An edit leaves this alone."},
-        {"name": "edited_at", "type": "timestamp", "description": "When it was last changed. Empty means never."}
+        {"name": "edited_at", "type": "timestamp", "description": "When it was last changed. Empty means never."},
+        {"name": "withdrawn_at", "type": "timestamp", "description": "When the member withdrew their consent. Empty means they have not. The answer is kept and no longer listed."}
       ],
       "indexes": [
         {"name": "form", "description": "Counts how many people have answered one instrument.", "fields": ["form_id"]},

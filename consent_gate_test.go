@@ -3,6 +3,7 @@ package mwanachamaforms_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/glebarez/sqlite"
@@ -10,6 +11,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	forms "github.com/aosanya/mwanachama-backend-forms"
+	"github.com/aosanya/mwanachama-backend-forms/models"
 	"github.com/aosanya/mwanachama-backend-shared/consent"
 	"github.com/aosanya/mwanachama-backend-shared/spec"
 )
@@ -56,5 +58,25 @@ func TestAnAnswerNeedsALiveConsent(t *testing.T) {
 	}
 	if _, err := m.SubmitAnswers(ctx, "f-1", "mem-1", nil); errors.Is(err, forms.ErrConsentRequired) || errors.Is(err, forms.ErrConsentWithdrawn) {
 		t.Fatalf("consenting answer refused for consent: %v", err)
+	}
+}
+
+func TestADeclarationFromAClaimedRespondentNeedsALiveConsent(t *testing.T) {
+	ctx := context.Background()
+	m, db, s := gatedManagerOn(t, gateFor{"mem-2": consent.ErrWithdrawn})
+	o, _ := s.Object("respondent")
+	insert := fmt.Sprintf("insert into %s (id, public_key, first_seen_at, claimed_by_member_id, claimed_at) values (?, ?, '2026-01-01T00:00:00Z', ?, '2026-01-02T00:00:00Z')", s.TableFor(o))
+	for _, row := range [][]string{{"r-1", "k-1", "mem-1"}, {"r-2", "k-2", "mem-2"}, {"r-3", "k-3", ""}} {
+		if err := db.Exec(insert, row[0], row[1], row[2]).Error; err != nil {
+			t.Fatalf("seed respondent: %v", err)
+		}
+	}
+	if _, err := m.Declare(ctx, models.Declaration{RespondentID: "r-2", FormID: "f-1", DeclaredChapterID: "g-1"}); !errors.Is(err, forms.ErrConsentWithdrawn) {
+		t.Fatalf("declaration after withdrawal = %v, want ErrConsentWithdrawn", err)
+	}
+	for _, id := range []string{"r-1", "r-3"} {
+		if _, err := m.Declare(ctx, models.Declaration{RespondentID: id, FormID: "f-1", DeclaredChapterID: "g-1"}); err != nil {
+			t.Fatalf("declaration by %s = %v", id, err)
+		}
 	}
 }

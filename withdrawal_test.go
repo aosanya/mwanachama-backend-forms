@@ -50,3 +50,36 @@ func TestReleasingNobodyIsRefused(t *testing.T) {
 		t.Fatalf("ReleaseMember empty = %v, want ErrInvalidAnswer", err)
 	}
 }
+
+func TestWithdrawalHidesTheMembersAnswersWithoutDeletingThem(t *testing.T) {
+	ctx := context.Background()
+	m, db, s := gatedManagerOn(t, nil)
+	o, _ := s.Object("answer")
+	table := s.TableFor(o)
+	insert := fmt.Sprintf("insert into %s (id, form_id, question_id, member_id, value_text, answered_at) values (?, 'f-1', 'q-1', ?, 'yes', '2026-01-01T00:00:00Z')", table)
+	for _, row := range [][]string{{"a-1", "mem-1"}, {"a-2", "mem-2"}} {
+		if err := db.Exec(insert, row[0], row[1]).Error; err != nil {
+			t.Fatalf("seed answer: %v", err)
+		}
+	}
+	if err := m.HideMemberAnswers(ctx, "mem-1"); err != nil {
+		t.Fatalf("HideMemberAnswers: %v", err)
+	}
+	listed, err := m.ListAllAnswers(ctx, "f-1", "", "")
+	if err != nil {
+		t.Fatalf("ListAllAnswers: %v", err)
+	}
+	if len(listed) != 1 || listed[0].MemberID != "mem-2" {
+		t.Fatalf("listed answers = %+v, want only mem-2's", listed)
+	}
+	var kept int64
+	if err := db.Raw("select count(*) from " + table + " where member_id = 'mem-1' and withdrawn_at <> ''").Scan(&kept).Error; err != nil || kept != 1 {
+		t.Fatalf("withdrawn rows kept = %d (%v), want 1", kept, err)
+	}
+}
+
+func TestHidingAnswersOfNobodyIsRefused(t *testing.T) {
+	if err := gatedManager(t, nil).HideMemberAnswers(context.Background(), ""); !errors.Is(err, forms.ErrInvalidAnswer) {
+		t.Fatalf("HideMemberAnswers empty = %v, want ErrInvalidAnswer", err)
+	}
+}

@@ -27,6 +27,8 @@ type Answer struct {
 
 	AnsweredAt string `json:"answered_at"`
 	EditedAt   string `json:"edited_at,omitempty"`
+
+	WithdrawnAt string `json:"withdrawn_at,omitempty"`
 }
 
 func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {

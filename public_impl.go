@@ -321,11 +321,11 @@ func (m *formManager) ListPreviousAnswers(ctx context.Context, formID, memberID 
 
 func (m *formManager) answersInPeriod(ctx context.Context, formID, memberID, period string) ([]models.Answer, error) {
 	return m.answersInPromptOrder(ctx,
-		m.q(ctx, roleAnswer).Where("form_id = ? AND member_id = ? AND period_key = ?", formID, memberID, period))
+		m.q(ctx, roleAnswer).Where("form_id = ? AND member_id = ? AND period_key = ? AND withdrawn_at = ''", formID, memberID, period))
 }
 
 func (m *formManager) ListAllAnswers(ctx context.Context, formID, memberID, periodKey string) ([]models.Answer, error) {
-	q := m.q(ctx, roleAnswer).Where("form_id = ?", formID)
+	q := m.q(ctx, roleAnswer).Where("form_id = ? AND withdrawn_at = ''", formID)
 	if memberID != "" {
 		q = q.Where("member_id = ?", memberID)
 	}
@@ -364,12 +364,17 @@ func (m *formManager) answersInPromptOrder(ctx context.Context, q *gorm.DB) ([]m
 }
 
 func (m *formManager) Declare(ctx context.Context, in models.Declaration) (models.Declaration, error) {
-	var respondents int64
-	if err := m.q(ctx, roleRespondent).Where("id = ?", in.RespondentID).Count(&respondents).Error; err != nil {
+	var who models.Respondent
+	switch err := m.take(m.q(ctx, roleRespondent).Where("id = ?", in.RespondentID), roleRespondent, &who, errNoRespondent); {
+	case errors.Is(err, errNoRespondent):
+		return models.Declaration{}, fmt.Errorf("%w: respondent %q", ErrInvalidReference, in.RespondentID)
+	case err != nil:
 		return models.Declaration{}, fmt.Errorf("Declare: %w", err)
 	}
-	if respondents == 0 {
-		return models.Declaration{}, fmt.Errorf("%w: respondent %q", ErrInvalidReference, in.RespondentID)
+	if who.ClaimedByMemberID != "" {
+		if err := consent.Require(ctx, m.consent, who.ClaimedByMemberID); err != nil {
+			return models.Declaration{}, err
+		}
 	}
 
 	var held models.Declaration

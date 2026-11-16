@@ -74,7 +74,7 @@ func (m *formManager) GetSend(ctx context.Context, formID, sendID, memberID stri
 		return models.Send{}, err
 	}
 	answers, err := m.answersInPromptOrder(ctx, m.q(ctx, roleAnswer).Where(
-		"form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?",
+		"form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND withdrawn_at = ''",
 		formID, memberID, held.ChapterID, held.PeriodKey))
 	if err != nil {
 		return models.Send{}, fmt.Errorf("GetSend: %w", err)
