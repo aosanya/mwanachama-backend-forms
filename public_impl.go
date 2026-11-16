@@ -247,41 +247,17 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 	if err != nil {
 		return nil, err
 	}
-	if f.LockedAfterSend {
-		if err := m.refuseResend(ctx, formID, memberID, chapterID, period); err != nil {
-			return nil, err
-		}
-	}
-	repeatOf, err := m.repeatOfFor(ctx, f, memberID, period)
-	if err != nil {
-		return nil, err
-	}
 	channel, err := m.sendChannel(ctx, memberID, formID)
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
 	}
-	out := make([]models.Answer, 0, len(in))
-	sendID := ""
-	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		now := models.NowRFC3339()
-		for _, a := range in {
-			a.PeriodKey, a.RepeatOf = period, repeatOf
-			written, err := m.writeAnswer(tx, formID, memberID, chapterID, now, a)
-			if err != nil {
-				return err
-			}
-			out = append(out, written)
-		}
-		if err := m.dropAnswersNotCarried(tx, formID, memberID, chapterID, period, repeatOf, in); err != nil {
-			return err
-		}
-		var err error
-		sendID, err = m.writeSubmission(tx, formID, memberID, chapterID, period, repeatOf, channel, language, now)
-		return err
+	kept, err := m.keepSend(ctx, sendToKeep{
+		form: f, memberID: memberID, chapterID: chapterID, period: period, channel: channel, language: language, answers: in,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("SubmitAnswers: %w", err)
+		return nil, err
 	}
+	out, sendID := kept.answers, kept.sendID
 	for i := range out {
 		out[i].SendID = sendID
 	}
@@ -337,13 +313,15 @@ func (m *formManager) questionsAnswered(ctx context.Context, formID string, in [
 	return questions, options, nil
 }
 
-func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now string, a models.Answer) (models.Answer, error) {
+func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now string, locked bool, a models.Answer) (models.Answer, error) {
 	a.FormID, a.MemberID = formID, memberID
 
 	var held models.Answer
 	q := m.from(tx, roleAnswer).Where("question_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND repeat_of = ? AND withdrawn_at = ''", a.QuestionID, memberID, chapterID, a.PeriodKey, a.RepeatOf)
 	err := m.take(q, roleAnswer, &held, errNoAnswer)
 	switch {
+	case err == nil && locked:
+		return models.Answer{}, ErrLockedAfterSend
 	case err == nil:
 		a.ID = held.ID
 		a.AnsweredAt, a.ChapterID, a.EditedAt = held.AnsweredAt, held.ChapterID, now
