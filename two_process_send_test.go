@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 
@@ -89,7 +90,7 @@ func voicesHeld(t *testing.T, m forms.FormManager, formID string) int {
 	return held
 }
 
-func twoProcessVoiceRace(t *testing.T, first, second *gorm.DB, instance string, voice models.OneVoice) {
+func twoProcessVoiceRace(t *testing.T, first, second *gorm.DB, instance string, voice models.OneVoice, busyIsAnAnswer bool) {
 	t.Helper()
 	s := testSpec(t, instance)
 	if err := forms.Provision(first, s); err != nil {
@@ -117,6 +118,7 @@ func twoProcessVoiceRace(t *testing.T, first, second *gorm.DB, instance string, 
 			case err == nil:
 				kept++
 			case errors.Is(err, forms.ErrSecondVoice) && voice == models.OneVoiceRefuse:
+			case busyIsAnAnswer && strings.Contains(err.Error(), "SQLITE_BUSY"):
 			default:
 				t.Fatalf("round %d: split over two processes a send answered %v", round, err)
 			}
@@ -138,18 +140,18 @@ func sqliteFilePair(t *testing.T) (*gorm.DB, *gorm.DB) {
 
 func TestUnderRefuseTwoProcessesSharingASqliteFileKeepOneVoice(t *testing.T) {
 	first, second := sqliteFilePair(t)
-	twoProcessVoiceRace(t, first, second, "twoprocs", models.OneVoiceRefuse)
+	twoProcessVoiceRace(t, first, second, "twoprocs", models.OneVoiceRefuse, true)
 }
 
 func TestUnderFlagTwoProcessesSharingASqliteFileCountOneVoice(t *testing.T) {
 	first, second := sqliteFilePair(t)
-	twoProcessVoiceRace(t, first, second, "twoprocs", models.OneVoiceFlag)
+	twoProcessVoiceRace(t, first, second, "twoprocs", models.OneVoiceFlag, true)
 }
 
 func TestUnderRefuseTwoProcessesSharingAPostgresKeepOneVoice(t *testing.T) {
-	twoProcessVoiceRace(t, postgresDBOrSkip(t), postgresDBOrSkip(t), "twoprocr", models.OneVoiceRefuse)
+	twoProcessVoiceRace(t, postgresDBOrSkip(t), postgresDBOrSkip(t), "twoprocr", models.OneVoiceRefuse, false)
 }
 
 func TestUnderFlagTwoProcessesSharingAPostgresCountOneVoice(t *testing.T) {
-	twoProcessVoiceRace(t, postgresDBOrSkip(t), postgresDBOrSkip(t), "twoprocf", models.OneVoiceFlag)
+	twoProcessVoiceRace(t, postgresDBOrSkip(t), postgresDBOrSkip(t), "twoprocf", models.OneVoiceFlag, false)
 }
