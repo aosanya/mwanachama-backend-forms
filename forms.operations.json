@@ -649,10 +649,10 @@
     "open_public_link": {
       "method": "GET",
       "path": "/public-links/{key}",
-      "call": "OpenPublicLink",
+      "call": "ShowPublicLink",
       "action": "forms.public_link.open",
       "title": "Open a shared link",
-      "description": "Follow a shareable link to the instrument it opens. An unknown token, a retired link and an instrument that is not open all answer the same way, so nothing can be learned by trying tokens.",
+      "description": "Follow a shareable link to the instrument it opens, as a respondent sees it: the title, window, status and publisher, and none of the members who made or published it. An unknown token, a retired link and an instrument that is not open all answer the same way, so nothing can be learned by trying tokens.",
       "args": [{"from": "path", "as": "key", "description": "The token the link carries."}],
       "returns": [{"body": true}]
     },

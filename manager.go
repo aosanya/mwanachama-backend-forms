@@ -48,6 +48,7 @@ type (
 	ResultReport          = models.ResultReport
 	QuestionDraft         = models.QuestionDraft
 	ResolvedLink          = models.ResolvedLink
+	ResolvedLinkView      = models.ResolvedLinkView
 	LinkedQuestion        = models.LinkedQuestion
 	RespondentPublicView  = models.RespondentPublicView
 	AnswerType            = models.AnswerType
@@ -249,6 +250,8 @@ type FormManager interface {
 	Declare(ctx context.Context, d models.Declaration) (models.Declaration, error)
 
 	OpenPublicLink(ctx context.Context, key string) (models.ResolvedLink, error)
+
+	ShowPublicLink(ctx context.Context, key string) (models.ResolvedLinkView, error)
 
 	PublicLinkQuestions(ctx context.Context, key string) ([]models.LinkedQuestion, error)
 
