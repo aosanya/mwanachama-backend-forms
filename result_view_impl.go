@@ -6,10 +6,10 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-func (m *formManager) ShowLatestResults(ctx context.Context, formID, callerID string) (models.ResultReportView, error) {
+func (m *formManager) ShowLatestResults(ctx context.Context, formID, callerID string) (models.ResultReportRead, error) {
 	report, err := m.LatestResults(ctx, formID, callerID)
 	if err != nil {
-		return models.ResultReportView{}, err
+		return nil, err
 	}
-	return report.RespondentView(), nil
+	return report.ReadAs(IsNarrowed(ctx)), nil
 }

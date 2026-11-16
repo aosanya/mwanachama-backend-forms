@@ -19,7 +19,7 @@ func TestAResidentReadingTheLatestResultsReadsNoStaffMemberId(t *testing.T) {
 	if rec := callAs(t, h, http.MethodPost, path, "clerk", `{"git_path":"r/water.md","git_commit":"abc"}`); rec.Code != http.StatusCreated {
 		t.Fatalf("publish: status = %d, body = %s", rec.Code, rec.Body.String())
 	}
-	rec := callAs(t, h, http.MethodGet, path+"/latest", "alice", "")
+	rec := doAs(t, mountReachedOnly(t, fm, true), "alice", http.MethodGet, path+"/latest", "")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("alice reads: status = %d, body = %s", rec.Code, rec.Body.String())
 	}

@@ -22,6 +22,11 @@ func narrowedTo(ctx context.Context) (string, bool) {
 	return callerID, narrowed
 }
 
+func IsNarrowed(ctx context.Context) bool {
+	_, narrowed := narrowedTo(ctx)
+	return narrowed
+}
+
 func (m *formManager) hiddenFromCaller(ctx context.Context, f models.Form) (bool, error) {
 	unreached, err := m.unreachedByCaller(ctx, f)
 	if err != nil || !unreached {

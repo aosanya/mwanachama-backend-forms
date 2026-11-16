@@ -23,6 +23,19 @@ type ResultReportView struct {
 	PublishedAt string   `json:"published_at"`
 }
 
+type ResultReportRead interface{ resultReportRead() }
+
+func (ResultReport) resultReportRead() {}
+
+func (ResultReportView) resultReportRead() {}
+
+func (r ResultReport) ReadAs(narrowed bool) ResultReportRead {
+	if narrowed {
+		return r.RespondentView()
+	}
+	return r
+}
+
 func (r ResultReport) RespondentView() ResultReportView {
 	return ResultReportView{
 		ID: r.ID, FormID: r.FormID, ChapterID: r.ChapterID, ChapterIDs: r.ChapterIDs, Version: r.Version,

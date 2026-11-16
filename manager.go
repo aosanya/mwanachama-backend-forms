@@ -199,7 +199,7 @@ type FormManager interface {
 
 	LatestResults(ctx context.Context, formID, callerID string) (models.ResultReport, error)
 
-	ShowLatestResults(ctx context.Context, formID, callerID string) (models.ResultReportView, error)
+	ShowLatestResults(ctx context.Context, formID, callerID string) (models.ResultReportRead, error)
 
 	AddQuestion(ctx context.Context, in models.QuestionDraft) (models.Question, []models.QuestionOption, error)
 
