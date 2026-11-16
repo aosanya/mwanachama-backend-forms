@@ -555,7 +555,7 @@
     "get_my_submission": {
       "method": "GET",
       "path": "/forms/{form_id}/submissions/mine",
-      "call": "GetSubmission",
+      "call": "ShowMySubmission",
       "action": "forms.submission.read_mine",
       "title": "Have I sent this form",
       "description": "Whether the caller has sent their answers to one instrument, when they first sent and last sent again, and how many answers the send carried. A send with no answers still counts as sent. Never sent answers not found. Nobody else's send is reachable here.",

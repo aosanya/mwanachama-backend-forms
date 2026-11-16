@@ -244,6 +244,7 @@ type FormManager interface {
 	ListAllAnswers(ctx context.Context, formID, memberID, periodKey string) ([]models.Answer, error)
 
 	GetSubmission(ctx context.Context, formID, memberID string) (models.Submission, error)
+	ShowMySubmission(ctx context.Context, formID, memberID string) (models.Submission, error)
 
 	ListSubmissions(ctx context.Context, formID, memberID, periodKey string) ([]models.Submission, error)
 
