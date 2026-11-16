@@ -263,3 +263,19 @@ func TestATestRunStillRefusesAModuleWithNoWriter(t *testing.T) {
 		t.Fatalf("Publish in a run = %v, want ErrNoRecordWriter", err)
 	}
 }
+
+func TestAFormStoredBeforeLandsInExistedStillReads(t *testing.T) {
+	m, db, s := gatedManagerOn(t, nil)
+	r := openableRound(t, m, models.LandsIn{})
+	o, _ := s.Object("form")
+	if err := db.Exec("update "+s.TableFor(o)+" set lands_in = null where id = ?", r.form.ID).Error; err != nil {
+		t.Fatalf("clear lands_in: %v", err)
+	}
+	got, err := m.Get(context.Background(), r.form.ID)
+	if err != nil {
+		t.Fatalf("Get = %v", err)
+	}
+	if got.LandsIn.Declared() {
+		t.Fatalf("lands_in = %+v, want none", got.LandsIn)
+	}
+}
