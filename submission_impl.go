@@ -138,8 +138,27 @@ func (m *formManager) refuseResend(ctx context.Context, formID, memberID, chapte
 	if err != nil {
 		return fmt.Errorf("SubmitAnswers: %w", err)
 	}
-	if sent > 0 {
-		return ErrLockedAfterSend
+	if sent == 0 {
+		return nil
 	}
-	return nil
+	withdrawn, err := m.sendWithdrawn(ctx, formID, memberID, chapterID, period)
+	if err != nil {
+		return err
+	}
+	if withdrawn {
+		return nil
+	}
+	return ErrLockedAfterSend
+}
+
+func (m *formManager) sendWithdrawn(ctx context.Context, formID, memberID, chapterID, period string) (bool, error) {
+	var live, hidden int64
+	slot := "form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND repeat_of = ''"
+	if err := m.q(ctx, roleAnswer).Where(slot+" AND withdrawn_at = ''", formID, memberID, chapterID, period).Count(&live).Error; err != nil {
+		return false, fmt.Errorf("SubmitAnswers: %w", err)
+	}
+	if err := m.q(ctx, roleAnswer).Where(slot+" AND withdrawn_at <> ''", formID, memberID, chapterID, period).Count(&hidden).Error; err != nil {
+		return false, fmt.Errorf("SubmitAnswers: %w", err)
+	}
+	return live == 0 && hidden > 0, nil
 }
