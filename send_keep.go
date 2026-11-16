@@ -3,6 +3,7 @@ package mwanachamaforms
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/aosanya/mwanachama-backend-shared/gormutil"
 )
 
-const sendAttempts = 5
+const sendAttempts = 8
 
 type sendToKeep struct {
 	form      models.Form
@@ -28,11 +29,19 @@ type sendKept struct {
 }
 
 func (m *formManager) keepSend(ctx context.Context, s sendToKeep) (sendKept, error) {
+	var last error
 	for attempt := 0; attempt < sendAttempts; attempt++ {
 		kept, err := m.keepSendOnce(ctx, s)
-		if !gormutil.IsUniqueViolation(err) {
+		if !gormutil.IsUniqueViolation(err) && !isBusy(err) {
 			return kept, err
 		}
+		last = err
+		if isBusy(err) {
+			time.Sleep(busyBackoff * time.Duration(attempt+1))
+		}
+	}
+	if isBusy(last) {
+		return sendKept{}, last
 	}
 	return sendKept{}, ErrSecondVoice
 }
