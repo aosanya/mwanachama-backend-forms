@@ -14,6 +14,23 @@ import (
 
 func (m *formManager) UseApprovalRequired(required bool) { m.approvalRequired.Store(required) }
 
+type ApprovalLimits func(ctx context.Context, approverID string, amount int) error
+
+func (m *formManager) UseApprovalLimits(l ApprovalLimits) { m.approvalLimits = l }
+
+func (m *formManager) authoriseAmount(ctx context.Context, f models.Form, approverID string) error {
+	if f.Amount <= 0 {
+		return nil
+	}
+	if m.approvalLimits == nil {
+		return ErrOverApprovalLimit
+	}
+	if err := m.approvalLimits(ctx, approverID, f.Amount); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (m *formManager) UseDefaultMaxFiles(n int) { m.defaultMaxFiles = n }
 
 func (m *formManager) isAuthor(f models.Form, actorID string) bool {
@@ -117,6 +134,11 @@ func (m *formManager) decide(ctx context.Context, id, approverID, note string, d
 	if decision == models.DecisionApproved && len(f.ApprovalRoles) > 0 {
 		return models.Form{}, ErrSlotRequired
 	}
+	if decision == models.DecisionApproved {
+		if err := m.authoriseAmount(ctx, f, approverID); err != nil {
+			return models.Form{}, err
+		}
+	}
 	submittedBy := f.SubmittedBy
 
 	round, found, err := m.openApproval(ctx, id)
@@ -171,6 +193,9 @@ func (m *formManager) ApproveSlot(ctx context.Context, id, approverID, slot, not
 	}
 	if !declaresSlot(f.ApprovalRoles, slot) {
 		return models.Form{}, ErrUnknownSlot
+	}
+	if err := m.authoriseAmount(ctx, f, approverID); err != nil {
+		return models.Form{}, err
 	}
 	round, found, err := m.openApproval(ctx, id)
 	if err != nil {

@@ -49,6 +49,8 @@ var (
 	ErrNotApproved         = errors.New("mwanachamaforms: form has not been cleared to publish")
 	ErrApprovalNotRequired = errors.New("mwanachamaforms: this agency publishes without approval; there is nothing to submit")
 	ErrSelfApproval        = errors.New("mwanachamaforms: a form cannot be cleared by its own author")
+	ErrOverApprovalLimit   = errors.New("mwanachamaforms: no seat this approver holds may approve an amount this large")
+	ErrInvalidAmount       = errors.New("mwanachamaforms: a form's amount cannot be negative")
 	ErrSlotRequired        = errors.New("mwanachamaforms: this form is cleared slot by slot; name the approval slot")
 	ErrUnknownSlot         = errors.New("mwanachamaforms: the form declares no such approval slot")
 	ErrSlotGranted         = errors.New("mwanachamaforms: that approval slot is already granted in this round")

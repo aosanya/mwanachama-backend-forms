@@ -36,6 +36,8 @@ var sentinels = map[string]error{
 	"ErrNotApproved":         forms.ErrNotApproved,
 	"ErrApprovalNotRequired": forms.ErrApprovalNotRequired,
 	"ErrSelfApproval":        forms.ErrSelfApproval,
+	"ErrOverApprovalLimit":   forms.ErrOverApprovalLimit,
+	"ErrInvalidAmount":       forms.ErrInvalidAmount,
 	"ErrSlotRequired":        forms.ErrSlotRequired,
 	"ErrUnknownSlot":         forms.ErrUnknownSlot,
 	"ErrSlotGranted":         forms.ErrSlotGranted,

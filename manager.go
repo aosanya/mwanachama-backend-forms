@@ -163,6 +163,7 @@ type FormManager interface {
 
 	UseApprovalRequired(required bool)
 	FormTypes() []models.FormType
+	UseApprovalLimits(l ApprovalLimits)
 	UseDefaultMaxFiles(n int)
 
 	Submit(ctx context.Context, id, submittedBy string) (models.Form, error)
@@ -271,6 +272,7 @@ type formManager struct {
 	declarable Declarable
 
 	approvalRequired atomic.Bool
+	approvalLimits   ApprovalLimits
 	defaultMaxFiles  int
 	formTypes        []models.FormType
 }

@@ -62,6 +62,7 @@ type Form struct {
 	ApprovedAt         string   `json:"approved_at,omitempty"`
 	ApprovedBy         string   `json:"approved_by,omitempty"`
 	ApprovalRoles      []string `json:"approval_roles,omitempty"`
+	Amount             int      `json:"amount,omitempty"`
 	ResultsPublishedAt string   `json:"results_published_at,omitempty"`
 
 	PublisherName       string `json:"publisher_name,omitempty"`

@@ -17,6 +17,9 @@ func validateFrame(f models.Form) error {
 	if f.Title == "" {
 		return ErrMissingTitle
 	}
+	if f.Amount < 0 {
+		return ErrInvalidAmount
+	}
 	if f.ClosesAt == "" {
 		return ErrMissingClosesAt
 	}
@@ -112,6 +115,7 @@ func (m *formManager) Update(ctx context.Context, f models.Form) (models.Form, e
 	cur.Title, cur.ClosesAt, cur.OpensAt = f.Title, f.ClosesAt, f.OpensAt
 	cur.Audience, cur.CollectionMode = f.Audience, f.CollectionMode
 	cur.Schedule = f.Schedule
+	cur.Amount = f.Amount
 	cur.LastUpdated = models.NowRFC3339()
 	if err := m.checks(roleForm, cur); err != nil {
 		return models.Form{}, err

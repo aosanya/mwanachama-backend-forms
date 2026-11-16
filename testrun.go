@@ -14,6 +14,7 @@ func (m *formManager) ForRun(runID string) (FormManager, error) {
 		members:          m.members,
 		declarable:       m.declarable,
 		defaultMaxFiles:  m.defaultMaxFiles,
+		approvalLimits:   m.approvalLimits,
 		formTypes:        m.formTypes,
 	}
 	run.approvalRequired.Store(m.approvalRequired.Load())
