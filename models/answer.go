@@ -29,6 +29,7 @@ type Answer struct {
 	EditedAt   string `json:"edited_at,omitempty"`
 
 	WithdrawnAt string `json:"withdrawn_at,omitempty"`
+	RepeatOf    string `json:"repeat_of,omitempty"`
 }
 
 func ValidateAnswer(q Question, options []QuestionOption, a Answer) error {

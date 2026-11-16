@@ -184,6 +184,10 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 			return nil, err
 		}
 	}
+	repeatOf, err := m.repeatOfFor(ctx, f, memberID, period)
+	if err != nil {
+		return nil, err
+	}
 	channel, err := m.sendChannel(ctx, memberID, formID)
 	if err != nil {
 		return nil, fmt.Errorf("SubmitAnswers: %w", err)
@@ -193,18 +197,18 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		now := models.NowRFC3339()
 		for _, a := range in {
-			a.PeriodKey = period
+			a.PeriodKey, a.RepeatOf = period, repeatOf
 			written, err := m.writeAnswer(tx, formID, memberID, chapterID, now, a)
 			if err != nil {
 				return err
 			}
 			out = append(out, written)
 		}
-		if err := m.dropAnswersNotCarried(tx, formID, memberID, chapterID, period, in); err != nil {
+		if err := m.dropAnswersNotCarried(tx, formID, memberID, chapterID, period, repeatOf, in); err != nil {
 			return err
 		}
 		var err error
-		sendID, err = m.writeSubmission(tx, formID, memberID, chapterID, period, channel, language, now)
+		sendID, err = m.writeSubmission(tx, formID, memberID, chapterID, period, repeatOf, channel, language, now)
 		return err
 	})
 	if err != nil {
@@ -269,7 +273,7 @@ func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now 
 	a.FormID, a.MemberID = formID, memberID
 
 	var held models.Answer
-	q := m.from(tx, roleAnswer).Where("question_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", a.QuestionID, memberID, chapterID, a.PeriodKey)
+	q := m.from(tx, roleAnswer).Where("question_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND repeat_of = ? AND withdrawn_at = ''", a.QuestionID, memberID, chapterID, a.PeriodKey, a.RepeatOf)
 	err := m.take(q, roleAnswer, &held, errNoAnswer)
 	switch {
 	case err == nil:
@@ -285,15 +289,16 @@ func (m *formManager) writeAnswer(tx *gorm.DB, formID, memberID, chapterID, now 
 	}
 }
 
-func (m *formManager) dropAnswersNotCarried(tx *gorm.DB, formID, memberID, chapterID, period string, carried []models.Answer) error {
+func (m *formManager) dropAnswersNotCarried(tx *gorm.DB, formID, memberID, chapterID, period, repeatOf string, carried []models.Answer) error {
+	const slot = "form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND repeat_of = ? AND withdrawn_at = ''"
 	if len(carried) == 0 {
-		return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", formID, memberID, chapterID, period)
+		return m.deleteWhere(tx, roleAnswer, slot, formID, memberID, chapterID, period, repeatOf)
 	}
 	kept := make([]string, 0, len(carried))
 	for _, a := range carried {
 		kept = append(kept, a.QuestionID)
 	}
-	return m.deleteWhere(tx, roleAnswer, "form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND question_id NOT IN ?", formID, memberID, chapterID, period, kept)
+	return m.deleteWhere(tx, roleAnswer, slot+" AND question_id NOT IN ?", formID, memberID, chapterID, period, repeatOf, kept)
 }
 
 func (m *formManager) ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error) {
@@ -325,11 +330,11 @@ func (m *formManager) ListPreviousAnswers(ctx context.Context, formID, memberID 
 
 func (m *formManager) answersInPeriod(ctx context.Context, formID, memberID, period string) ([]models.Answer, error) {
 	return m.answersInPromptOrder(ctx,
-		m.q(ctx, roleAnswer).Where("form_id = ? AND member_id = ? AND period_key = ? AND withdrawn_at = ''", formID, memberID, period))
+		m.q(ctx, roleAnswer).Where("form_id = ? AND member_id = ? AND period_key = ? AND repeat_of = '' AND withdrawn_at = ''", formID, memberID, period))
 }
 
 func (m *formManager) ListAllAnswers(ctx context.Context, formID, memberID, periodKey string) ([]models.Answer, error) {
-	q := m.q(ctx, roleAnswer).Where("form_id = ? AND withdrawn_at = ''", formID)
+	q := m.q(ctx, roleAnswer).Where("form_id = ? AND repeat_of = '' AND withdrawn_at = ''", formID)
 	if memberID != "" {
 		q = q.Where("member_id = ?", memberID)
 	}

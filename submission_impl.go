@@ -12,9 +12,9 @@ import (
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
-func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, period, channel, language, now string) (string, error) {
+func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, period, repeatOf, channel, language, now string) (string, error) {
 	var held models.Submission
-	q := m.from(tx, roleSubmission).Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", formID, memberID, chapterID, period)
+	q := m.from(tx, roleSubmission).Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND repeat_of = ?", formID, memberID, chapterID, period, repeatOf)
 	err := m.take(q, roleSubmission, &held, ErrSubmissionNotFound)
 	switch {
 	case err == nil:
@@ -23,7 +23,7 @@ func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, 
 		return held.ID, m.replaceTx(tx, roleSubmission, held.ID, held)
 	case errors.Is(err, ErrSubmissionNotFound):
 		sent := models.Submission{
-			ID: newID(), FormID: formID, MemberID: memberID, ChapterID: chapterID, PeriodKey: period, SubmittedAt: now,
+			ID: newID(), FormID: formID, MemberID: memberID, ChapterID: chapterID, PeriodKey: period, RepeatOf: repeatOf, SubmittedAt: now,
 			Collector: memberID, CollectedAt: now, Channel: channel, Language: language,
 		}
 		return sent.ID, m.insertTx(tx, roleSubmission, sent)
@@ -73,7 +73,7 @@ func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID, per
 		return nil, fmt.Errorf("ListSubmissions: %w", err)
 	}
 	for i := range out {
-		out[i].Answers = counts[sentAs{out[i].MemberID, out[i].ChapterID, out[i].PeriodKey}]
+		out[i].Answers = counts[sentAs{out[i].MemberID, out[i].ChapterID, out[i].PeriodKey, out[i].RepeatOf}]
 		out[i].Paid = out[i].PaidAt != ""
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -92,6 +92,7 @@ type sentAs struct {
 	MemberID  string
 	ChapterID string
 	PeriodKey string
+	RepeatOf  string
 }
 
 func (m *formManager) answerCounts(ctx context.Context, formID, memberID string) (map[sentAs]int, error) {
@@ -99,19 +100,20 @@ func (m *formManager) answerCounts(ctx context.Context, formID, memberID string)
 		MemberID  string
 		ChapterID string
 		PeriodKey string
+		RepeatOf  string
 		Given     int
 	}
-	q := m.q(ctx, roleAnswer).Select("member_id, chapter_id, period_key, count(*) as given").Where("form_id = ? AND withdrawn_at = ''", formID)
+	q := m.q(ctx, roleAnswer).Select("member_id, chapter_id, period_key, repeat_of, count(*) as given").Where("form_id = ? AND withdrawn_at = ''", formID)
 	if memberID != "" {
 		q = q.Where("member_id = ?", memberID)
 	}
 	var rows []tally
-	if err := q.Group("member_id, chapter_id, period_key").Scan(&rows).Error; err != nil {
+	if err := q.Group("member_id, chapter_id, period_key, repeat_of").Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 	out := make(map[sentAs]int, len(rows))
 	for _, r := range rows {
-		out[sentAs{r.MemberID, r.ChapterID, r.PeriodKey}] = r.Given
+		out[sentAs{r.MemberID, r.ChapterID, r.PeriodKey, r.RepeatOf}] = r.Given
 	}
 	return out, nil
 }

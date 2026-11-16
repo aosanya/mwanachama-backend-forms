@@ -40,6 +40,14 @@ const (
 	LandingCase   Landing = "case"
 )
 
+type OneVoice string
+
+const (
+	OneVoiceOff    OneVoice = ""
+	OneVoiceRefuse OneVoice = "refuse"
+	OneVoiceFlag   OneVoice = "flag"
+)
+
 type Form struct {
 	ID                  string `json:"id"`
 	Title               string `json:"title"`
@@ -52,6 +60,7 @@ type Form struct {
 	WindowAdvisory     bool     `json:"window_advisory"`
 	LockedAfterSend    bool     `json:"locked_after_send"`
 	Standing           bool     `json:"standing"`
+	OneVoice           OneVoice `json:"one_voice,omitempty"`
 	Landing            Landing  `json:"landing,omitempty"`
 	LandsIn            LandsIn  `json:"lands_in,omitzero"`
 	PublishedAt        string   `json:"published_at,omitempty"`
@@ -128,6 +137,23 @@ func (f Form) PastClosing(now time.Time) bool {
 func ValidateLanding(standing bool, l Landing) error {
 	if l != LandingNone && !standing {
 		return fmt.Errorf("landing %q needs a standing form", l)
+	}
+	return nil
+}
+
+func ValidateOneVoice(v OneVoice, standing bool, a Audience) error {
+	switch v {
+	case OneVoiceOff:
+		return nil
+	case OneVoiceRefuse, OneVoiceFlag:
+	default:
+		return fmt.Errorf("one_voice %q is neither refuse nor flag", v)
+	}
+	if standing {
+		return fmt.Errorf("one_voice needs a form that is not standing")
+	}
+	if a != AudienceMember {
+		return fmt.Errorf("one_voice needs a member-audience form")
 	}
 	return nil
 }

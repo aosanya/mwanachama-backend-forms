@@ -55,6 +55,9 @@ func (m *formManager) Create(ctx context.Context, f models.Form) (models.Form, e
 	if err := models.ValidateLanding(f.Standing, f.Landing); err != nil {
 		return models.Form{}, fmt.Errorf("%w: %v", ErrInvalidForm, err)
 	}
+	if err := models.ValidateOneVoice(f.OneVoice, f.Standing, f.Audience); err != nil {
+		return models.Form{}, fmt.Errorf("%w: %v", ErrInvalidForm, err)
+	}
 	if err := checkLandsIn(f.LandsIn); err != nil {
 		return models.Form{}, err
 	}

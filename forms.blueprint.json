@@ -15,6 +15,7 @@
         {"name": "locked_after_send", "type": "bool", "description": "Whether a send can no longer be edited once it is made. False, the default, means a member may resend until the form closes. True means the first send stands and a resend is refused. Chosen when it is composed and never changed after."},
         {"name": "window_advisory", "type": "bool", "description": "Whether opens_at and closes_at are only shown rather than kept. False, the default, means they are kept: it is not listed as waiting and takes no answers outside them. True means its status alone decides. Chosen when it is composed and never changed after."},
         {"name": "standing", "type": "bool", "description": "Whether this instrument is a standing one, which a person fills in unprompted as often as they like. True means every send is its own record, kept beside the earlier ones rather than replacing them. False, the default, means a resend as the same group in the same period edits the one before. A standing instrument never keeps its opening and closing times: they are shown and nothing more. Chosen when it is composed and never changed after."},
+        {"name": "one_voice", "type": "enum", "description": "What happens to a second send from the same person in the same round, whichever group they send as. Empty, the default, means nothing: a resend as the same group edits the one before. refuse means the first send stands and a second is refused. flag means a second is accepted and kept beside the first, marked as a repeat, and left out of every count and listing of answers. Only a form for members that is not standing may name one. Chosen when it is composed and never changed after.", "values": ["", "refuse", "flag"]},
         {"name": "landing", "type": "enum", "description": "Where each send of a standing instrument lands beyond its own record: a chat thread with the agent, or a case on the board. Empty, the default, means nowhere. Only a standing instrument may name one. This module only records the choice; the host that mounts it opens the thread or the case. Chosen when it is composed and never changed after.", "values": ["", "thread", "case"]},
         {"name": "lands_in", "type": "json", "description": "Where each send is written beyond the instrument's own record: the record to create or update in the module that owns the data, written <module>.<record>, the parts of the answer that identify it, and which field each question fills. Empty means nowhere. Opening is refused while any current question has no field here, or while no writer is wired for the module."},
         {"name": "published_at", "type": "timestamp", "description": "When it was opened for answers."},
@@ -215,11 +216,12 @@
         {"name": "value_bool", "type": "bool", "description": "Which way they answered a yes-or-no. Absent means unanswered, which is not the same as no.", "nullable": true},
         {"name": "answered_at", "type": "timestamp", "description": "When it was first answered. An edit leaves this alone."},
         {"name": "edited_at", "type": "timestamp", "description": "When it was last changed. Empty means never."},
-        {"name": "withdrawn_at", "type": "timestamp", "description": "When the member withdrew their consent. Empty means they have not. The answer is kept and no longer listed."}
+        {"name": "withdrawn_at", "type": "timestamp", "description": "When the member withdrew their consent. Empty means they have not. The answer is kept and no longer listed, and a later answer to the same prompt is kept beside it."},
+        {"name": "repeat_of", "type": "string", "description": "The send this answer repeats, when the form allows one voice per person and the member sent again. Empty means it is the person's own voice. A repeat is kept and never listed or counted."}
       ],
       "indexes": [
         {"name": "form", "description": "Counts how many people have answered one instrument.", "fields": ["form_id"]},
-        {"name": "question_group", "description": "Reads one person's answer to one prompt as one group, and keeps it to one so a resubmission as that group edits rather than doubles, within one period.", "fields": ["question_id", "member_id", "chapter_id", "period_key"], "unique": true}
+        {"name": "question_slot", "description": "Reads one person's answer to one prompt as one group, and keeps it to one so a resubmission as that group edits rather than doubles, within one period. A repeat, and an answer a withdrawal hid, each sit in a slot of their own.", "fields": ["question_id", "member_id", "chapter_id", "period_key", "repeat_of", "withdrawn_at"], "unique": true}
       ]
     },
     {
@@ -238,10 +240,11 @@
         {"name": "channel", "type": "enum", "values": ["app", "link", "field", "paper"], "description": "How the answers reached the instrument: answered in the app, through a public link, collected in the field, or typed in from paper."},
         {"name": "language", "type": "string", "description": "The language tag the sender answered in, as the send named it. A resend records its own. Empty when the send named none."},
         {"name": "paid_at", "type": "timestamp", "description": "When the organiser marked this send paid. Empty means not paid. A resend leaves it alone, because the mark sits beside the answers and not in them."},
-        {"name": "paid_by", "type": "string", "description": "Who marked it paid, taken from the session. Empty when it is not paid."}
+        {"name": "paid_by", "type": "string", "description": "Who marked it paid, taken from the session. Empty when it is not paid."},
+        {"name": "repeat_of", "type": "string", "description": "The send this one repeats, when the form allows one voice per person and the member sent again. Empty means it is the person's own voice. A repeat is kept and never counted."}
       ],
       "indexes": [
-        {"name": "form_member_group", "description": "Reads one person's send to one instrument as one group, and keeps it to one so a resend as that group edits rather than doubles, within one period.", "fields": ["form_id", "member_id", "chapter_id", "period_key"], "unique": true},
+        {"name": "form_member_slot", "description": "Reads one person's send to one instrument as one group, and keeps it to one so a resend as that group edits rather than doubles, within one period. A repeat sits in a slot of its own.", "fields": ["form_id", "member_id", "chapter_id", "period_key", "repeat_of"], "unique": true},
         {"name": "member", "description": "Lists every instrument one person has sent to.", "fields": ["member_id"]}
       ]
     },

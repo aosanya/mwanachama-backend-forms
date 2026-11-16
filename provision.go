@@ -276,14 +276,20 @@ $$ LANGUAGE plpgsql`, lockFn, questions, forms),
 	return nil
 }
 
+var retiredIndexes = []struct{ role, name string }{
+	{roleAnswer, "question_member"},
+	{roleSubmission, "form_member"},
+	{roleAnswer, "question_group"},
+	{roleSubmission, "form_member_group"},
+}
+
 func dropOnePerPersonIndexes(db *gorm.DB, s *spec.Spec) error {
-	retired := map[string]string{roleAnswer: "question_member", roleSubmission: "form_member"}
-	for role, name := range retired {
-		table := tableFor(s, role)
+	for _, retired := range retiredIndexes {
+		table := tableFor(s, retired.role)
 		if table == "" {
 			continue
 		}
-		if err := db.Exec("drop index if exists " + table + "_" + name + "_idx").Error; err != nil {
+		if err := db.Exec("drop index if exists " + table + "_" + retired.name + "_idx").Error; err != nil {
 			return fmt.Errorf("forms: drop %s's one-per-person index: %w", table, err)
 		}
 	}

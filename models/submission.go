@@ -14,6 +14,7 @@ type Submission struct {
 	Language    string `json:"language,omitempty"`
 	PaidAt      string `json:"paid_at,omitempty"`
 	PaidBy      string `json:"paid_by,omitempty"`
+	RepeatOf    string `json:"repeat_of,omitempty"`
 	Paid        bool   `json:"paid" spec:"-"`
 	Answers     int    `json:"answers" spec:"-"`
 }
