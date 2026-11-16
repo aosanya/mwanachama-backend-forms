@@ -226,7 +226,7 @@
     "read_latest_results": {
       "method": "GET",
       "path": "/forms/{form_id}/results/latest",
-      "call": "LatestResults",
+      "call": "ShowLatestResults",
       "action": "forms.results.read",
       "title": "Read a form's report",
       "description": "Where the newest report on an instrument sits, for a caller in a group it was published to or a group inside one, as the host names the caller's groups. A form with no report, and one whose report went to none of the caller's groups, answer exactly as a missing one.",
