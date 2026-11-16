@@ -20,6 +20,8 @@ type (
 	Audience              = models.Audience
 	CollectionMode        = models.CollectionMode
 	Landing               = models.Landing
+	LandsIn               = models.LandsIn
+	LandedRecord          = models.LandedRecord
 	Question              = models.Question
 	QuestionOption        = models.QuestionOption
 	AddOptionResult       = models.AddOptionResult
@@ -162,6 +164,7 @@ type FormManager interface {
 	ListMissed(ctx context.Context, formID, periodKey string) ([]models.MissedMember, error)
 
 	UseDeclarable(d Declarable)
+	UseRecordWriters(w RecordWriters)
 
 	UseApprovalRequired(required bool)
 	UseApprovalLimits(l ApprovalLimits)
@@ -272,6 +275,8 @@ type formManager struct {
 	members Members
 
 	declarable Declarable
+
+	recordWriters RecordWriters
 
 	approvalLimits   ApprovalLimits
 	approvalRequired atomic.Bool

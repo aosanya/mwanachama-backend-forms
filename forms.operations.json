@@ -14,6 +14,9 @@
     "ErrNotSubmitted": 409,
     "ErrAwaitingApproval": 409,
     "ErrNotApproved": 409,
+    "ErrUnmappedQuestions": 409,
+    "ErrNoRecordWriter": 409,
+    "ErrLandingFailed": 502,
     "ErrApprovalNotRequired": 409,
     "ErrSelfApproval": 403,
     "ErrOverApprovalLimit": 403,
@@ -176,7 +179,7 @@
       "call": "Publish",
       "action": "forms.form.publish",
       "title": "Open for answers",
-      "description": "Start taking answers. A public instrument gets its shareable link here; a member one reaches every group it was aimed at. Publishing twice changes nothing.",
+      "description": "Start taking answers. A public instrument gets its shareable link here; a member one reaches every group it was aimed at. Publishing twice changes nothing. An instrument that lands its answers in a record is refused while any question has no field in its lands_in, naming the questions, or while no writer is wired for the module that owns the record.",
       "args": [
         {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument to open."},
         {"from": "body", "as": "candidate_link_key", "description": "The token the shareable link should carry, for a public instrument. Refused if another link already holds it."},

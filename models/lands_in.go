@@ -24,6 +24,26 @@ type LandingSource struct {
 	Answer   Answer
 }
 
+func (l LandsIn) Declared() bool {
+	return l.Record != "" || len(l.KeyedBy) > 0 || len(l.FieldMap) > 0
+}
+
+func (l LandsIn) Target() (module, name string, err error) {
+	return splitRecord(l.Record)
+}
+
+func (r LandedRecord) Target() (module, name string, err error) {
+	return splitRecord(r.Record)
+}
+
+func splitRecord(record string) (module, name string, err error) {
+	module, name, found := strings.Cut(strings.TrimSpace(record), ".")
+	if !found || module == "" || name == "" || strings.Contains(name, ".") {
+		return "", "", fmt.Errorf("lands_in record %q must be named <module>.<record>", record)
+	}
+	return module, name, nil
+}
+
 func (l LandsIn) Validate() error {
 	if strings.TrimSpace(l.Record) == "" {
 		return fmt.Errorf("lands_in needs a record")

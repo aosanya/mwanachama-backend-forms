@@ -26,6 +26,12 @@ var (
 )
 
 var (
+	ErrUnmappedQuestions = errors.New("mwanachamaforms: questions with no field in lands_in")
+	ErrNoRecordWriter    = errors.New("mwanachamaforms: no writer for module")
+	ErrLandingFailed     = errors.New("mwanachamaforms: the answers are kept but could not be written to their record")
+)
+
+var (
 	ErrInvalidForm     = errors.New("mwanachamaforms: invalid form")
 	ErrInvalidQuestion = errors.New("mwanachamaforms: invalid question")
 	ErrInvalidAnswer   = errors.New("mwanachamaforms: invalid answer")

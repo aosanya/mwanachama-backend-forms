@@ -216,6 +216,10 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 	sort.Slice(out, func(i, j int) bool {
 		return questions[out[i].QuestionID].Ordinal < questions[out[j].QuestionID].Ordinal
 	})
+	sent := sentAnswers{answers: out, questions: questions, options: options, memberID: memberID, sendID: sendID, period: period}
+	if err := m.land(ctx, f, sent); err != nil {
+		return out, err
+	}
 	return out, nil
 }
 

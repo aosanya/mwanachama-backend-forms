@@ -53,6 +53,7 @@ type Form struct {
 	LockedAfterSend    bool     `json:"locked_after_send"`
 	Standing           bool     `json:"standing"`
 	Landing            Landing  `json:"landing,omitempty"`
+	LandsIn            LandsIn  `json:"lands_in,omitzero"`
 	PublishedAt        string   `json:"published_at,omitempty"`
 	PublishedBy        string   `json:"published_by,omitempty"`
 	ClosedAt           string   `json:"closed_at,omitempty"`

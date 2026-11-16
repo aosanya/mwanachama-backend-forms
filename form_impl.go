@@ -55,6 +55,9 @@ func (m *formManager) Create(ctx context.Context, f models.Form) (models.Form, e
 	if err := models.ValidateLanding(f.Standing, f.Landing); err != nil {
 		return models.Form{}, fmt.Errorf("%w: %v", ErrInvalidForm, err)
 	}
+	if err := checkLandsIn(f.LandsIn); err != nil {
+		return models.Form{}, err
+	}
 	if f.Standing {
 		f.WindowAdvisory = true
 	}
@@ -112,10 +115,15 @@ func (m *formManager) Update(ctx context.Context, f models.Form) (models.Form, e
 		return models.Form{}, fmt.Errorf("%w: %v", ErrAudienceConflict, err)
 	}
 
+	if err := checkLandsIn(f.LandsIn); err != nil {
+		return models.Form{}, err
+	}
+
 	cur.Title, cur.ClosesAt, cur.OpensAt = f.Title, f.ClosesAt, f.OpensAt
 	cur.Audience, cur.CollectionMode = f.Audience, f.CollectionMode
 	cur.Schedule = f.Schedule
 	cur.Amount = f.Amount
+	cur.LandsIn = f.LandsIn
 	cur.LastUpdated = models.NowRFC3339()
 	if err := m.checks(roleForm, cur); err != nil {
 		return models.Form{}, err
@@ -208,6 +216,10 @@ func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publish
 	}
 	if !closesAt.After(time.Now()) {
 		return models.Form{}, models.PublicLink{}, ErrClosesInPast
+	}
+
+	if err := m.refuseUnlandable(ctx, f); err != nil {
+		return models.Form{}, models.PublicLink{}, err
 	}
 
 	authority := strings.TrimSpace(publishingAuthority)

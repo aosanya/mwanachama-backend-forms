@@ -13,6 +13,7 @@ func (m *formManager) ForRun(runID string) (FormManager, error) {
 		standingAudience: m.standingAudience,
 		members:          m.members,
 		declarable:       m.declarable,
+		recordWriters:    m.recordWriters.Discarding(),
 		defaultMaxFiles:  m.defaultMaxFiles,
 		approvalLimits:   m.approvalLimits,
 		formTypes:        m.formTypes,
