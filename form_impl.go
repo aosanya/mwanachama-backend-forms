@@ -126,7 +126,9 @@ func (m *formManager) Update(ctx context.Context, f models.Form) (models.Form, e
 	cur.Audience, cur.CollectionMode = f.Audience, f.CollectionMode
 	cur.Schedule = f.Schedule
 	cur.Amount = f.Amount
-	cur.LandsIn = f.LandsIn
+	if f.LandsIn.Declared() {
+		cur.LandsIn = f.LandsIn
+	}
 	cur.LastUpdated = models.NowRFC3339()
 	if err := m.checks(roleForm, cur); err != nil {
 		return models.Form{}, err

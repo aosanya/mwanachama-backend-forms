@@ -62,6 +62,19 @@ func (l LandsIn) Validate() error {
 	return nil
 }
 
+func (l LandsIn) Fields() []string {
+	seen := make(map[string]bool, len(l.FieldMap))
+	out := make([]string, 0, len(l.FieldMap))
+	for _, field := range l.FieldMap {
+		if !seen[field] {
+			seen[field] = true
+			out = append(out, field)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
 func (l LandsIn) fieldFor(prompt string) (string, bool) {
 	want := strings.ToLower(strings.TrimSpace(prompt))
 	for question, field := range l.FieldMap {

@@ -48,8 +48,14 @@ func (m *formManager) refuseUnlandable(ctx context.Context, f models.Form) error
 	if missing := f.LandsIn.UnmappedQuestions(questions); len(missing) > 0 {
 		return fmt.Errorf("%w: %s", ErrUnmappedQuestions, strings.Join(missing, ", "))
 	}
-	_, err = m.writerFor(f.LandsIn)
-	return err
+	writer, err := m.writerFor(f.LandsIn)
+	if err != nil {
+		return err
+	}
+	if err := checkWriterFields(writer, f.LandsIn.Record, f.LandsIn.Fields()); err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidForm, err)
+	}
+	return nil
 }
 
 func (m *formManager) land(ctx context.Context, f models.Form, sent sentAnswers) error {
