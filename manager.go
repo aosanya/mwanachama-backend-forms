@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync/atomic"
+	"github.com/aosanya/mwanachama-backend-shared/consent"
 
 	"gorm.io/gorm"
 
@@ -148,6 +149,7 @@ type FormManager interface {
 	ListAnswered(ctx context.Context, callerID string) ([]models.AnsweredForm, error)
 
 	UseGroups(g Groups)
+	UseConsentGate(g consent.Gate)
 
 	UseStandingAudience(a StandingAudience)
 
@@ -256,10 +258,11 @@ type FormManager interface {
 }
 
 type formManager struct {
-	db     *gorm.DB
-	st     *store
-	groups Groups
-	names  Names
+	db      *gorm.DB
+	st      *store
+	groups  Groups
+	names   Names
+	consent consent.Gate
 
 	standingAudience StandingAudience
 

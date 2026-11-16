@@ -1,8 +1,14 @@
 package mwanachamaforms
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/aosanya/mwanachama-backend-shared/consent"
+)
 
 var (
+	ErrConsentRequired    = consent.ErrRequired
+	ErrConsentWithdrawn   = consent.ErrWithdrawn
 	ErrFormNotFound       = errors.New("mwanachamaforms: form not found")
 	ErrQuestionNotFound   = errors.New("mwanachamaforms: question not found")
 	ErrTargetNotFound     = errors.New("mwanachamaforms: target not found")

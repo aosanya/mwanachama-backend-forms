@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sort"
 	"time"
+	"github.com/aosanya/mwanachama-backend-shared/consent"
 
 	"gorm.io/gorm"
 
@@ -136,6 +137,9 @@ func (m *formManager) SubmitAnswersIn(ctx context.Context, formID, memberID, ans
 func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, answeringAs, language, periodKey string, in []models.Answer) ([]models.Answer, error) {
 	if memberID == "" {
 		return nil, fmt.Errorf("%w: nobody is answering", ErrInvalidAnswer)
+	}
+	if err := consent.Require(ctx, m.consent, memberID); err != nil {
+		return nil, err
 	}
 	f, err := m.Get(ctx, formID)
 	if err != nil {
@@ -383,3 +387,5 @@ func (m *formManager) Declare(ctx context.Context, in models.Declaration) (model
 		return models.Declaration{}, fmt.Errorf("Declare: %w", err)
 	}
 }
+
+func (m *formManager) UseConsentGate(g consent.Gate) { m.consent = g }

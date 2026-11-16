@@ -1,5 +1,7 @@
 {
   "errors": {
+    "ErrConsentRequired": 403,
+    "ErrConsentWithdrawn": 403,
     "ErrFormNotFound": 404,
     "ErrQuestionNotFound": 404,
     "ErrTargetNotFound": 404,

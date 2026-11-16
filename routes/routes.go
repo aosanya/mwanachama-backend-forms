@@ -19,6 +19,8 @@ var operations = sync.OnceValues(func() (*dispatch.Spec, error) {
 
 var sentinels = map[string]error{
 	"ErrFormNotFound":        forms.ErrFormNotFound,
+	"ErrConsentRequired":     forms.ErrConsentRequired,
+	"ErrConsentWithdrawn":    forms.ErrConsentWithdrawn,
 	"ErrQuestionNotFound":    forms.ErrQuestionNotFound,
 	"ErrTargetNotFound":      forms.ErrTargetNotFound,
 	"ErrLinkNotFound":        forms.ErrLinkNotFound,
