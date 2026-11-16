@@ -17,6 +17,12 @@ func (m *formManager) PublishResults(ctx context.Context, formID, gitPath, gitCo
 	if gitPath == "" || gitCommit == "" || publishedBy == "" {
 		return models.ResultReport{}, ErrInvalidReport
 	}
+	if err := plainText(ErrInvalidReport, "git_path", gitPath); err != nil {
+		return models.ResultReport{}, err
+	}
+	if err := plainText(ErrInvalidReport, "git_commit", gitCommit); err != nil {
+		return models.ResultReport{}, err
+	}
 	f, err := m.Get(unnarrowed(ctx), formID)
 	if err != nil {
 		return models.ResultReport{}, err

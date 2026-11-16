@@ -24,6 +24,9 @@ func (m *formManager) PutTranslation(ctx context.Context, t models.Translation) 
 	if err := translationShape(t); err != nil {
 		return models.Translation{}, err
 	}
+	if err := plainTextFields(ErrInvalidForm, t); err != nil {
+		return models.Translation{}, err
+	}
 	var f models.Form
 	if err := m.find(ctx, roleForm, t.FormID, &f, ErrFormNotFound); err != nil {
 		return models.Translation{}, err

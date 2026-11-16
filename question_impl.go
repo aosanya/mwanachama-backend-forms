@@ -53,6 +53,9 @@ func (m *formManager) AddQuestion(ctx context.Context, in models.QuestionDraft) 
 func (m *formManager) writeOptions(tx *gorm.DB, questionID string, options []models.QuestionOption) ([]models.QuestionOption, error) {
 	out := make([]models.QuestionOption, 0, len(options))
 	for i, o := range options {
+		if err := plainTextFields(ErrInvalidQuestion, o); err != nil {
+			return nil, err
+		}
 		o.ID = newID()
 		o.QuestionID = questionID
 		o.Ordinal = i + 1
@@ -186,6 +189,9 @@ func (m *formManager) ListOptions(ctx context.Context, questionID string) ([]mod
 func (m *formManager) AddOption(ctx context.Context, questionID, label, actorID string) (models.AddOptionResult, error) {
 	if strings.TrimSpace(label) == "" {
 		return models.AddOptionResult{}, ErrMissingOptionLabel
+	}
+	if err := plainText(ErrInvalidQuestion, "label", label); err != nil {
+		return models.AddOptionResult{}, err
 	}
 	if strings.TrimSpace(questionID) == "" {
 		return models.AddOptionResult{}, ErrQuestionNotFound

@@ -121,6 +121,9 @@ func (m *formManager) Withdraw(ctx context.Context, id, actorID string) (models.
 }
 
 func (m *formManager) decide(ctx context.Context, id, approverID, note string, decision models.Decision) (models.Form, error) {
+	if err := plainText(ErrInvalidForm, "note", note); err != nil {
+		return models.Form{}, err
+	}
 	f, err := m.Get(ctx, id)
 	if err != nil {
 		return models.Form{}, err
@@ -178,6 +181,9 @@ func (m *formManager) Approve(ctx context.Context, id, approverID, note string) 
 }
 
 func (m *formManager) ApproveSlot(ctx context.Context, id, approverID, slot, note string) (models.Form, error) {
+	if err := plainText(ErrInvalidForm, "note", note); err != nil {
+		return models.Form{}, err
+	}
 	f, err := m.Get(ctx, id)
 	if err != nil {
 		return models.Form{}, err

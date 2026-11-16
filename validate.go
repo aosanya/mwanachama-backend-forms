@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/aosanya/mwanachama-backend-shared/plaintext"
 	"github.com/aosanya/mwanachama-backend-shared/spec"
 )
 
@@ -49,6 +50,9 @@ func check(o spec.Object, v any) error {
 		}
 		s := fv.String()
 
+		if err := plaintext.CheckText(f.Name, s); err != nil {
+			return fmt.Errorf("%s: %w", o.Name, err)
+		}
 		if f.Required && strings.TrimSpace(s) == "" {
 			return fmt.Errorf("%s: %s is required", o.Name, f.Name)
 		}

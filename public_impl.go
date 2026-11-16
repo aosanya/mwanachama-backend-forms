@@ -61,6 +61,9 @@ func (m *formManager) OpenPublicLink(ctx context.Context, key string) (models.Re
 }
 
 func (m *formManager) RegisterRespondent(ctx context.Context, key, publicKey string) (models.RespondentPublicView, error) {
+	if err := plainText(ErrInvalidReference, "public_key", publicKey); err != nil {
+		return models.RespondentPublicView{}, err
+	}
 	opened, err := m.OpenPublicLink(ctx, key)
 	if err != nil {
 		return models.RespondentPublicView{}, err
@@ -123,6 +126,14 @@ func (m *formManager) checkHoldsRespondent(ctx context.Context, respondentID, pu
 }
 
 func (m *formManager) DeclareChapter(ctx context.Context, key, respondentID, publicKey, declaredChapterID, declaredText string) (models.Declaration, error) {
+	for label, text := range map[string]string{"respondent_id": respondentID, "public_key": publicKey, "declared_chapter_id": declaredChapterID} {
+		if err := plainText(ErrInvalidReference, label, text); err != nil {
+			return models.Declaration{}, err
+		}
+	}
+	if err := plainText(ErrInvalidForm, "declared_text", declaredText); err != nil {
+		return models.Declaration{}, err
+	}
 	opened, err := m.OpenPublicLink(ctx, key)
 	if err != nil {
 		return models.Declaration{}, err
@@ -221,6 +232,9 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 		return nil, err
 	}
 	for _, a := range in {
+		if err := plainTextFields(ErrInvalidAnswer, a); err != nil {
+			return nil, err
+		}
 		if err := models.ValidateAnswerWithin(questions[a.QuestionID], options[a.QuestionID], a, m.defaultMaxFiles); err != nil {
 			return nil, fmt.Errorf("%w: question %s: %v", ErrInvalidAnswer, a.QuestionID, err)
 		}
@@ -427,6 +441,9 @@ func (m *formManager) answersInPromptOrder(ctx context.Context, q *gorm.DB) ([]m
 }
 
 func (m *formManager) Declare(ctx context.Context, in models.Declaration) (models.Declaration, error) {
+	if err := plainTextFields(ErrInvalidForm, in); err != nil {
+		return models.Declaration{}, err
+	}
 	var who models.Respondent
 	switch err := m.take(m.q(ctx, roleRespondent).Where("id = ?", in.RespondentID), roleRespondent, &who, errNoRespondent); {
 	case errors.Is(err, errNoRespondent):

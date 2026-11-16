@@ -12,6 +12,9 @@ func (m *formManager) ClaimRespondent(ctx context.Context, key, publicKey, membe
 	if memberID == "" {
 		return models.RespondentPublicView{}, fmt.Errorf("%w: nobody is signed in to claim it", ErrInvalidReference)
 	}
+	if err := plainText(ErrInvalidReference, "public_key", publicKey); err != nil {
+		return models.RespondentPublicView{}, err
+	}
 	opened, err := m.OpenPublicLink(unnarrowed(ctx), key)
 	if err != nil {
 		return models.RespondentPublicView{}, err
