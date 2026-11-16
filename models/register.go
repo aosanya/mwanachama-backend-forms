@@ -4,8 +4,8 @@ type RegisterQuery struct {
 	Search    string `query:"q"`
 	ChapterID string `query:"chapter_id"`
 	Status    Status `query:"status"`
-	Limit     *int   `query:"limit"`
-	Offset    int    `query:"offset"`
+	Limit     *int   `query:"limit,min=1"`
+	Offset    int    `query:"offset,min=0"`
 	PeriodKey string `query:"period_key"`
 }
 
