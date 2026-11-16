@@ -101,7 +101,7 @@ func (m *formManager) answerCounts(ctx context.Context, formID, memberID string)
 		PeriodKey string
 		Given     int
 	}
-	q := m.q(ctx, roleAnswer).Select("member_id, chapter_id, period_key, count(*) as given").Where("form_id = ?", formID)
+	q := m.q(ctx, roleAnswer).Select("member_id, chapter_id, period_key, count(*) as given").Where("form_id = ? AND withdrawn_at = ''", formID)
 	if memberID != "" {
 		q = q.Where("member_id = ?", memberID)
 	}
