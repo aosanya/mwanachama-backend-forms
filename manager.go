@@ -150,6 +150,7 @@ type FormManager interface {
 
 	UseGroups(g Groups)
 	UseConsentGate(g consent.Gate)
+	ReleaseMember(ctx context.Context, memberID string) error
 
 	UseStandingAudience(a StandingAudience)
 
@@ -162,8 +163,8 @@ type FormManager interface {
 	UseDeclarable(d Declarable)
 
 	UseApprovalRequired(required bool)
-	FormTypes() []models.FormType
 	UseApprovalLimits(l ApprovalLimits)
+	FormTypes() []models.FormType
 	UseDefaultMaxFiles(n int)
 
 	Submit(ctx context.Context, id, submittedBy string) (models.Form, error)
@@ -271,8 +272,8 @@ type formManager struct {
 
 	declarable Declarable
 
-	approvalRequired atomic.Bool
 	approvalLimits   ApprovalLimits
+	approvalRequired atomic.Bool
 	defaultMaxFiles  int
 	formTypes        []models.FormType
 }

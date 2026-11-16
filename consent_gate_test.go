@@ -11,6 +11,7 @@ import (
 
 	forms "github.com/aosanya/mwanachama-backend-forms"
 	"github.com/aosanya/mwanachama-backend-shared/consent"
+	"github.com/aosanya/mwanachama-backend-shared/spec"
 )
 
 type gateFor map[string]error
@@ -18,6 +19,12 @@ type gateFor map[string]error
 func (g gateFor) Check(_ context.Context, actorID string) error { return g[actorID] }
 
 func gatedManager(t *testing.T, g consent.Gate) forms.FormManager {
+	t.Helper()
+	m, _, _ := gatedManagerOn(t, g)
+	return m
+}
+
+func gatedManagerOn(t *testing.T, g consent.Gate) (forms.FormManager, *gorm.DB, *spec.Spec) {
 	t.Helper()
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	if err != nil {
@@ -35,7 +42,7 @@ func gatedManager(t *testing.T, g consent.Gate) forms.FormManager {
 		t.Fatalf("NewFormManager: %v", err)
 	}
 	m.UseConsentGate(g)
-	return m
+	return m, db, s
 }
 
 func TestAnAnswerNeedsALiveConsent(t *testing.T) {
