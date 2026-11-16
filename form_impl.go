@@ -257,7 +257,13 @@ func (m *formManager) Publish(ctx context.Context, id, candidateLinkKey, publish
 			return err
 		}
 		if f.Audience == models.AudiencePublic {
-			link, err = m.mintLink(tx, f, candidateLinkKey, now)
+			key := strings.TrimSpace(candidateLinkKey)
+			if key == "" {
+				if key, err = mintRespondentKey(); err != nil {
+					return err
+				}
+			}
+			link, err = m.mintLink(tx, f, key, now)
 			return err
 		}
 		return m.spreadToTargets(tx, id, now)
