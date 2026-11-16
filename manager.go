@@ -154,6 +154,8 @@ type FormManager interface {
 	UseConsentGate(g consent.Gate)
 	ReleaseMember(ctx context.Context, memberID string) error
 	HideMemberAnswers(ctx context.Context, memberID string) error
+	RestoreMemberAnswers(ctx context.Context, memberID string) error
+	ListHiddenAnswers(ctx context.Context, memberID string) ([]models.Answer, error)
 
 	UseStandingAudience(a StandingAudience)
 

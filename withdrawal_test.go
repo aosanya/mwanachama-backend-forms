@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 
+	"gorm.io/gorm"
+
 	forms "github.com/aosanya/mwanachama-backend-forms"
 )
 
@@ -136,5 +138,58 @@ func TestAWithdrawnMembersAnswersLeaveTheReportCountButStayStoredAndRestorable(t
 	listed, err := m.ListAllAnswers(ctx, "f-1", "mem-1", "")
 	if err != nil || len(listed) != 2 || listed[0].ValueText != "yes" {
 		t.Fatalf("restored answers = %+v (%v), want both back with their text", listed, err)
+	}
+}
+
+func seedAnswersOfTwoMembers(t *testing.T, db *gorm.DB, table string) {
+	t.Helper()
+	insert := fmt.Sprintf("insert into %s (id, form_id, question_id, member_id, value_text, answered_at) values (?, 'f-1', 'q-1', ?, ?, '2026-01-01T00:00:00Z')", table)
+	for _, row := range [][]string{{"a-1", "mem-1", "yes"}, {"a-2", "mem-2", "no"}} {
+		if err := db.Exec(insert, row[0], row[1], row[2]).Error; err != nil {
+			t.Fatalf("seed answer: %v", err)
+		}
+	}
+}
+
+func TestRestoringAMembersAnswersListsThemAgain(t *testing.T) {
+	ctx := context.Background()
+	m, db, s := gatedManagerOn(t, nil)
+	o, _ := s.Object("answer")
+	seedAnswersOfTwoMembers(t, db, s.TableFor(o))
+	if err := m.HideMemberAnswers(ctx, "mem-1"); err != nil {
+		t.Fatalf("HideMemberAnswers: %v", err)
+	}
+	if err := m.RestoreMemberAnswers(ctx, "mem-1"); err != nil {
+		t.Fatalf("RestoreMemberAnswers: %v", err)
+	}
+	listed, err := m.ListAllAnswers(ctx, "f-1", "mem-1", "")
+	if err != nil || len(listed) != 1 || listed[0].ValueText != "yes" || listed[0].WithdrawnAt != "" {
+		t.Fatalf("answers after restore = %+v (%v), want mem-1's answer back and unmarked", listed, err)
+	}
+	if err := m.RestoreMemberAnswers(ctx, ""); !errors.Is(err, forms.ErrInvalidAnswer) {
+		t.Fatalf("RestoreMemberAnswers empty = %v, want ErrInvalidAnswer", err)
+	}
+}
+
+func TestListingHiddenAnswersNamesOnlyThatMembersWithdrawnOnes(t *testing.T) {
+	ctx := context.Background()
+	m, db, s := gatedManagerOn(t, nil)
+	o, _ := s.Object("answer")
+	seedAnswersOfTwoMembers(t, db, s.TableFor(o))
+	if hidden, err := m.ListHiddenAnswers(ctx, "mem-1"); err != nil || len(hidden) != 0 {
+		t.Fatalf("hidden before withdrawal = %+v (%v), want none", hidden, err)
+	}
+	if err := m.HideMemberAnswers(ctx, "mem-1"); err != nil {
+		t.Fatalf("HideMemberAnswers: %v", err)
+	}
+	hidden, err := m.ListHiddenAnswers(ctx, "mem-1")
+	if err != nil || len(hidden) != 1 || hidden[0].MemberID != "mem-1" || hidden[0].ValueText != "yes" || hidden[0].WithdrawnAt == "" {
+		t.Fatalf("hidden answers = %+v (%v), want mem-1's answer with its text and a stamp", hidden, err)
+	}
+	if other, err := m.ListHiddenAnswers(ctx, "mem-2"); err != nil || len(other) != 0 {
+		t.Fatalf("hidden answers of a member who did not withdraw = %+v (%v), want none", other, err)
+	}
+	if _, err := m.ListHiddenAnswers(ctx, ""); !errors.Is(err, forms.ErrInvalidAnswer) {
+		t.Fatalf("ListHiddenAnswers empty = %v, want ErrInvalidAnswer", err)
 	}
 }
