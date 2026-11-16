@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 
+	"gorm.io/gorm"
+
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
 
@@ -38,31 +40,45 @@ func (m *formManager) RestoreMemberAnswers(ctx context.Context, memberID string)
 	if memberID == "" {
 		return fmt.Errorf("%w: nobody is withdrawing", ErrInvalidAnswer)
 	}
-	held, err := listOf[models.Answer](m, m.q(ctx, roleAnswer).Where("member_id = ?", memberID), roleAnswer)
+	answers, err := listOf[models.Answer](m, m.q(ctx, roleAnswer).Where("member_id = ?", memberID), roleAnswer)
 	if err != nil {
 		return fmt.Errorf("RestoreMemberAnswers: %w", err)
 	}
-	for _, id := range answersToRestore(held) {
-		err := m.q(ctx, roleAnswer).Where("id = ?", id).Updates(map[string]any{"withdrawn_at": ""}).Error
-		if err != nil {
-			return fmt.Errorf("RestoreMemberAnswers: %w", err)
-		}
+	sends, err := listOf[models.Submission](m, m.q(ctx, roleSubmission).Where("member_id = ?", memberID), roleSubmission)
+	if err != nil {
+		return fmt.Errorf("RestoreMemberAnswers: %w", err)
 	}
-	return m.restoreMemberSends(ctx, memberID)
+	sendIDs, heldBack := sendsToRestore(sends)
+	answerIDs := answersToRestore(answers, heldBack)
+	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := m.unhide(tx, roleAnswer, answerIDs); err != nil {
+			return err
+		}
+		return m.unhide(tx, roleSubmission, sendIDs)
+	})
+	if err != nil {
+		return fmt.Errorf("RestoreMemberAnswers: %w", err)
+	}
+	return nil
 }
 
-func (m *formManager) restoreMemberSends(ctx context.Context, memberID string) error {
-	held, err := listOf[models.Submission](m, m.q(ctx, roleSubmission).Where("member_id = ?", memberID), roleSubmission)
-	if err != nil {
-		return fmt.Errorf("RestoreMemberAnswers: %w", err)
-	}
-	for _, id := range sendsToRestore(held) {
-		err := m.q(ctx, roleSubmission).Where("id = ?", id).Updates(map[string]any{"withdrawn_at": ""}).Error
-		if err != nil {
-			return fmt.Errorf("RestoreMemberAnswers: %w", err)
+func (m *formManager) unhide(tx *gorm.DB, role string, ids []string) error {
+	for _, id := range ids {
+		if err := m.from(tx, role).Where("id = ?", id).Updates(map[string]any{"withdrawn_at": ""}).Error; err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+type restoreSlot struct{ formID, memberID, chapterID, periodKey, repeatOf string }
+
+func answerSlotOf(a models.Answer) restoreSlot {
+	return restoreSlot{a.FormID, a.MemberID, a.ChapterID, a.PeriodKey, a.RepeatOf}
+}
+
+func sendSlotOf(s models.Submission) restoreSlot {
+	return restoreSlot{s.FormID, s.MemberID, s.ChapterID, s.PeriodKey, s.RepeatOf}
 }
 
 type answerSlot struct{ questionID, chapterID, periodKey, repeatOf string }
@@ -71,7 +87,7 @@ func slotOf(a models.Answer) answerSlot {
 	return answerSlot{a.QuestionID, a.ChapterID, a.PeriodKey, a.RepeatOf}
 }
 
-func answersToRestore(held []models.Answer) []string {
+func answersToRestore(held []models.Answer, heldBack map[restoreSlot]bool) []string {
 	live := map[answerSlot]bool{}
 	latestHidden := map[answerSlot]models.Answer{}
 	for _, a := range held {
@@ -86,33 +102,51 @@ func answersToRestore(held []models.Answer) []string {
 	}
 	var ids []string
 	for slot, a := range latestHidden {
-		if !live[slot] {
+		if !live[slot] && !heldBack[answerSlotOf(a)] {
 			ids = append(ids, a.ID)
 		}
 	}
 	return ids
 }
 
-func sendsToRestore(held []models.Submission) []string {
-	live := map[sentAs]bool{}
-	latestHidden := map[sentAs]models.Submission{}
+func sendsToRestore(held []models.Submission) ([]string, map[restoreSlot]bool) {
+	live := map[restoreSlot]bool{}
+	liveVoices := map[string]bool{}
+	latestHidden := map[restoreSlot]models.Submission{}
 	for _, s := range held {
-		slot := sentAs{s.MemberID, s.ChapterID, s.PeriodKey, s.RepeatOf}
+		slot := sendSlotOf(s)
 		if s.WithdrawnAt == "" {
 			live[slot] = true
+			if s.VoiceKey != "" {
+				liveVoices[s.VoiceKey] = true
+			}
 			continue
 		}
 		if best, seen := latestHidden[slot]; !seen || s.WithdrawnAt > best.WithdrawnAt {
 			latestHidden[slot] = s
 		}
 	}
-	var ids []string
+	newestOfVoice := map[string]models.Submission{}
 	for slot, s := range latestHidden {
-		if !live[slot] {
+		if live[slot] || s.VoiceKey == "" {
+			continue
+		}
+		if best, seen := newestOfVoice[s.VoiceKey]; !seen || s.WithdrawnAt > best.WithdrawnAt {
+			newestOfVoice[s.VoiceKey] = s
+		}
+	}
+	var ids []string
+	heldBack := map[restoreSlot]bool{}
+	for slot, s := range latestHidden {
+		switch {
+		case live[slot]:
+		case s.VoiceKey != "" && (liveVoices[s.VoiceKey] || newestOfVoice[s.VoiceKey].ID != s.ID):
+			heldBack[slot] = true
+		default:
 			ids = append(ids, s.ID)
 		}
 	}
-	return ids
+	return ids, heldBack
 }
 
 func (m *formManager) ListHiddenSends(ctx context.Context, memberID string) ([]models.Submission, error) {
