@@ -27,12 +27,13 @@ func TestDeclarationsAreListedAndCountedPerGroupThroughTheirOwnAddresses(t *test
 		t.Fatalf("Publish: %v", err)
 	}
 	for i, ward := range []string{"ward-7", "ward-3", "ward-7"} {
-		r, err := fm.UpsertRespondent(t.Context(), mwanachamaforms.Respondent{PublicKey: "anon-" + string(rune('a'+i))})
+		device := "anon-" + string(rune('a'+i))
+		r, err := fm.RegisterRespondent(t.Context(), link.Key, device)
 		if err != nil {
-			t.Fatalf("UpsertRespondent: %v", err)
+			t.Fatalf("RegisterRespondent: %v", err)
 		}
 		if rec := doAs(t, mux, "", http.MethodPost, "/public-links/"+link.Key+"/declarations",
-			`{"respondent_id":"`+r.ID+`","declared_chapter_id":"`+ward+`"}`); rec.Code != http.StatusCreated {
+			`{"respondent_id":"`+r.ID+`","public_key":"`+device+`","declared_chapter_id":"`+ward+`"}`); rec.Code != http.StatusCreated {
 			t.Fatalf("declare = %d %s", rec.Code, rec.Body.String())
 		}
 	}

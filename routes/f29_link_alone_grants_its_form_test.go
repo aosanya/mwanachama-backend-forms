@@ -86,7 +86,7 @@ func TestF29ADeclarationIsStillRecordedBesideTheClaim(t *testing.T) {
 		t.Fatalf("claim_respondent = %d, want 200", res.StatusCode)
 	}
 	rec := doAs(t, x.mux, "", http.MethodPost, "/public-links/"+x.linked.key+"/declarations",
-		`{"respondent_id":"`+respondentID+`","declared_chapter_id":"ward-7"}`)
+		`{"respondent_id":"`+respondentID+`","public_key":"token-c1","declared_chapter_id":"ward-7"}`)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("declare_chapter after the claim = %d %s, want 201", rec.Code, rec.Body.String())
 	}

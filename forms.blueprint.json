@@ -184,6 +184,19 @@
       ]
     },
     {
+      "role": "registration",
+      "description": "One instrument a respondent's token registered through. A declaration is accepted only through a link the respondent registered on.",
+      "fields": [
+        {"name": "id", "type": "string", "description": "Storage key, opaque to callers.", "primary": true},
+        {"name": "respondent_id", "type": "string", "description": "The respondent whose token registered.", "required": true},
+        {"name": "form_id", "type": "string", "description": "The instrument whose link the token registered through.", "required": true},
+        {"name": "registered_at", "type": "timestamp", "description": "When the token first registered through this instrument's link.", "immutable": true}
+      ],
+      "indexes": [
+        {"name": "respondent_form", "description": "Reads whether a respondent registered through one instrument, and keeps it to one.", "fields": ["respondent_id", "form_id"], "unique": true}
+      ]
+    },
+    {
       "role": "claim",
       "description": "One instrument a respondent's token was claimed through. The member who claimed it may read and answer that instrument, whether or not anybody declared a group on it.",
       "fields": [

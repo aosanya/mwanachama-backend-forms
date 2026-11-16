@@ -29,23 +29,23 @@ func TestDeclareChapter_RejectsPhantomRespondentID(t *testing.T) {
 		t.Fatalf("Publish form: %v", err)
 	}
 
-	declare := func(respondentID string) *httptest.ResponseRecorder {
-		body, _ := json.Marshal(map[string]string{"respondent_id": respondentID, "declared_chapter_id": "chapter-99"})
+	declare := func(respondentID, publicKey string) *httptest.ResponseRecorder {
+		body, _ := json.Marshal(map[string]string{"respondent_id": respondentID, "public_key": publicKey, "declared_chapter_id": "chapter-99"})
 		req := httptest.NewRequest(http.MethodPost, "/public-links/"+link.Key+"/declarations", bytes.NewReader(body))
 		rec := httptest.NewRecorder()
 		m.ServeHTTP(rec, req)
 		return rec
 	}
 
-	if rec := declare("phantom-respondent-id"); rec.Code != http.StatusBadRequest {
+	if rec := declare("phantom-respondent-id", "anon-key"); rec.Code != http.StatusBadRequest {
 		t.Fatalf("phantom respondent: got %d (body %s), want 400", rec.Code, rec.Body.String())
 	}
 
-	resp, err := fm.UpsertRespondent(t.Context(), mwanachamaforms.Respondent{PublicKey: "anon-key"})
+	resp, err := fm.RegisterRespondent(t.Context(), link.Key, "anon-key")
 	if err != nil {
-		t.Fatalf("UpsertRespondent: %v", err)
+		t.Fatalf("RegisterRespondent: %v", err)
 	}
-	if rec := declare(resp.ID); rec.Code != http.StatusCreated {
+	if rec := declare(resp.ID, "anon-key"); rec.Code != http.StatusCreated {
 		t.Fatalf("real respondent: got %d (body %s), want 201", rec.Code, rec.Body.String())
 	}
 }

@@ -28,15 +28,15 @@ func TestF35ADeclarationOutsideTheOfferedGroupsIsRefusedAndTheRestAreCounted(t *
 	}
 	a, b, c, d := respond("pk-a"), respond("pk-b"), respond("pk-c"), respond("pk-d")
 
-	if _, err := um.DeclareChapter(ctx, "ward-key", a, "ward-9", ""); !errors.Is(err, mwanachamaforms.ErrInvalidReference) {
+	if _, err := um.DeclareChapter(ctx, "ward-key", a, "pk-a", "ward-9", ""); !errors.Is(err, mwanachamaforms.ErrInvalidReference) {
 		t.Fatalf("a group the form does not offer: err = %v, want ErrInvalidReference", err)
 	}
-	for _, step := range []struct{ who, group, text string }{{a, "ward-1", ""}, {b, "ward-1", ""}, {c, "ward-2", ""}, {d, "", "my street"}} {
-		if _, err := um.DeclareChapter(ctx, "ward-key", step.who, step.group, step.text); err != nil {
+	for _, step := range []struct{ who, key, group, text string }{{a, "pk-a", "ward-1", ""}, {b, "pk-b", "ward-1", ""}, {c, "pk-c", "ward-2", ""}, {d, "pk-d", "", "my street"}} {
+		if _, err := um.DeclareChapter(ctx, "ward-key", step.who, step.key, step.group, step.text); err != nil {
 			t.Fatalf("DeclareChapter(%q): %v", step.group, err)
 		}
 	}
-	if _, err := um.DeclareChapter(ctx, "no-such-key", a, "ward-9", ""); !errors.Is(err, mwanachamaforms.ErrLinkNotFound) {
+	if _, err := um.DeclareChapter(ctx, "no-such-key", a, "pk-a", "ward-9", ""); !errors.Is(err, mwanachamaforms.ErrLinkNotFound) {
 		t.Fatalf("an unknown key still answers as not found before any group is checked: %v", err)
 	}
 
@@ -67,7 +67,7 @@ func TestF35WithNoDeclarableResolverAnyGroupIsRecorded(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RegisterRespondent: %v", err)
 	}
-	if _, err := um.DeclareChapter(ctx, "open-key", r.ID, "ward-9", ""); err != nil {
+	if _, err := um.DeclareChapter(ctx, "open-key", r.ID, "pk", "ward-9", ""); err != nil {
 		t.Fatalf("DeclareChapter with no resolver: %v", err)
 	}
 }

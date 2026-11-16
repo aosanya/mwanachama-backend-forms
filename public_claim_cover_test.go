@@ -116,16 +116,18 @@ func TestADeclarationIsOnePerRespondentSoDeclaringAgainMovesIt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RegisterRespondent: %v", err)
 	}
-	respondentID := func(view models.RespondentPublicView) string { return view.ID }
-	for _, d := range []struct{ who, group string }{
-		{respondentID(one), "g-east"}, {respondentID(two), "g-east"}, {respondentID(two), "g-west"},
+	for _, d := range []struct {
+		who   models.RespondentPublicView
+		group string
+	}{
+		{one, "g-east"}, {two, "g-east"}, {two, "g-west"},
 	} {
-		if _, err := m.DeclareChapter(ctx, key, d.who, d.group, ""); err != nil {
+		if _, err := m.DeclareChapter(ctx, key, d.who.ID, d.who.PublicKey, d.group, ""); err != nil {
 			t.Fatalf("DeclareChapter %s: %v", d.group, err)
 		}
 	}
 
-	if _, err := m.DeclareChapter(ctx, key, respondentID(one), "g-north", ""); !errors.Is(err, forms.ErrInvalidReference) {
+	if _, err := m.DeclareChapter(ctx, key, one.ID, one.PublicKey, "g-north", ""); !errors.Is(err, forms.ErrInvalidReference) {
 		t.Fatalf("a group the form does not offer = %v, want ErrInvalidReference", err)
 	}
 

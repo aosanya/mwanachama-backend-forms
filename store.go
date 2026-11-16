@@ -18,6 +18,7 @@ const (
 	roleRespondent     = "respondent"
 	roleDeclaration    = "declaration"
 	roleClaim          = "claim"
+	roleRegistration   = "registration"
 	roleAnswer         = "answer"
 	roleSubmission     = "submission"
 	roleResultReport   = "result_report"

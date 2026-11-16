@@ -50,6 +50,13 @@ type Declaration struct {
 	CreatedAt         string `json:"created_at"`
 }
 
+type Registration struct {
+	ID           string `json:"id"`
+	RespondentID string `json:"respondent_id"`
+	FormID       string `json:"form_id"`
+	RegisteredAt string `json:"registered_at"`
+}
+
 type Claim struct {
 	ID           string `json:"id"`
 	RespondentID string `json:"respondent_id"`

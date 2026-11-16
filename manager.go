@@ -254,7 +254,7 @@ type FormManager interface {
 
 	RegisterRespondent(ctx context.Context, key, publicKey string) (models.RespondentPublicView, error)
 
-	DeclareChapter(ctx context.Context, key, respondentID, declaredChapterID, declaredText string) (models.Declaration, error)
+	DeclareChapter(ctx context.Context, key, respondentID, publicKey, declaredChapterID, declaredText string) (models.Declaration, error)
 
 	ClaimRespondent(ctx context.Context, key, publicKey, memberID string) (models.RespondentPublicView, error)
 
@@ -301,6 +301,7 @@ func NewFormManager(db *gorm.DB, s *spec.Spec) (FormManager, error) {
 		roleRespondent:     models.Respondent{},
 		roleDeclaration:    models.Declaration{},
 		roleClaim:          models.Claim{},
+		roleRegistration:   models.Registration{},
 		roleAnswer:         models.Answer{},
 		roleSubmission:     models.Submission{},
 		roleResultReport:   models.ResultReport{},

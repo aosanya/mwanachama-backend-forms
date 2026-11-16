@@ -689,10 +689,11 @@
       "action": "forms.declaration.create",
       "status": 201,
       "title": "Say which group you are in",
-      "description": "Record which group an anonymous respondent says they belong to, for the instrument this link opens. Saying it again replaces what was said before.",
+      "description": "Record which group an anonymous respondent says they belong to, for the instrument this link opens. Only the device holding the respondent's token, through a link the respondent registered on, may say it. Saying it again replaces what was said before.",
       "args": [
         {"from": "path", "as": "key", "description": "The token the link carries."},
         {"from": "body", "as": "respondent_id", "description": "Who is saying it."},
+        {"from": "body", "as": "public_key", "description": "The token this device holds for that respondent, as registration returned it."},
         {"from": "body", "as": "declared_chapter_id", "description": "The group they picked from the list."},
         {"from": "body", "as": "declared_text", "description": "What they typed instead, where no group on the list fitted."}
       ],

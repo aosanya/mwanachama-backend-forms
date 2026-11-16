@@ -56,7 +56,7 @@ func TestARunThroughEveryObjectLeavesNoRowInAnyLiveTableAndEveryRowCarriesTheRun
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := run.DeclareChapter(ctx, "open-key", respondent.ID, "", "my street"); err != nil {
+	if _, err := run.DeclareChapter(ctx, "open-key", respondent.ID, "pk-1", "", "my street"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := run.ClaimRespondent(ctx, "open-key", "pk-1", "alice"); err != nil {

@@ -90,7 +90,7 @@ func (x linkFixture) answerThroughLink(t *testing.T, key, device, group string) 
 		t.Fatalf("decode respondent: %v", err)
 	}
 	rec = doAs(t, x.mux, "", http.MethodPost, "/public-links/"+key+"/declarations",
-		`{"respondent_id":"`+r.ID+`","declared_chapter_id":"`+group+`"}`)
+		`{"respondent_id":"`+r.ID+`","public_key":"`+device+`","declared_chapter_id":"`+group+`"}`)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("declare_chapter = %d %s", rec.Code, rec.Body.String())
 	}

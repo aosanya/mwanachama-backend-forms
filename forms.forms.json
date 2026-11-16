@@ -58,6 +58,12 @@
       "description": "Which chapter a public respondent says they belong to."
     },
     {
+      "role": "registration",
+      "name": "registration",
+      "table": "registrations",
+      "description": "A public link a respondent's token registered through."
+    },
+    {
       "role": "claim",
       "name": "claim",
       "table": "claims",

@@ -3,6 +3,7 @@ package mwanachamaforms
 import (
 	"context"
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -60,19 +61,73 @@ func (m *formManager) OpenPublicLink(ctx context.Context, key string) (models.Re
 }
 
 func (m *formManager) RegisterRespondent(ctx context.Context, key, publicKey string) (models.RespondentPublicView, error) {
-	if _, err := m.OpenPublicLink(ctx, key); err != nil {
+	opened, err := m.OpenPublicLink(ctx, key)
+	if err != nil {
 		return models.RespondentPublicView{}, err
 	}
 	r, err := m.UpsertRespondent(ctx, models.Respondent{PublicKey: publicKey})
 	if err != nil {
 		return models.RespondentPublicView{}, err
 	}
+	if err := m.recordRegistration(ctx, r.ID, opened.Form.ID); err != nil {
+		return models.RespondentPublicView{}, err
+	}
 	return r.PublicView(), nil
 }
 
-func (m *formManager) DeclareChapter(ctx context.Context, key, respondentID, declaredChapterID, declaredText string) (models.Declaration, error) {
+func (m *formManager) recordRegistration(ctx context.Context, respondentID, formID string) error {
+	registered, err := m.registeredOn(ctx, respondentID, formID)
+	if err != nil {
+		return fmt.Errorf("RegisterRespondent: %w", err)
+	}
+	if registered {
+		return nil
+	}
+	err = m.insert(ctx, roleRegistration, models.Registration{
+		ID: newID(), RespondentID: respondentID, FormID: formID, RegisteredAt: models.NowRFC3339(),
+	})
+	if err != nil {
+		if again, _ := m.registeredOn(ctx, respondentID, formID); again {
+			return nil
+		}
+		return fmt.Errorf("RegisterRespondent: %w", err)
+	}
+	return nil
+}
+
+func (m *formManager) registeredOn(ctx context.Context, respondentID, formID string) (bool, error) {
+	var count int64
+	err := m.q(ctx, roleRegistration).Where("respondent_id = ? AND form_id = ?", respondentID, formID).Count(&count).Error
+	return count > 0, err
+}
+
+func (m *formManager) checkHoldsRespondent(ctx context.Context, respondentID, publicKey, formID string) error {
+	var who models.Respondent
+	switch err := m.take(m.q(ctx, roleRespondent).Where("id = ?", respondentID), roleRespondent, &who, errNoRespondent); {
+	case errors.Is(err, errNoRespondent):
+		return fmt.Errorf("%w: respondent %q", ErrInvalidReference, respondentID)
+	case err != nil:
+		return fmt.Errorf("DeclareChapter: %w", err)
+	}
+	if publicKey == "" || subtle.ConstantTimeCompare([]byte(who.PublicKey), []byte(publicKey)) != 1 {
+		return fmt.Errorf("%w: respondent %q", ErrInvalidReference, respondentID)
+	}
+	registered, err := m.registeredOn(ctx, respondentID, formID)
+	if err != nil {
+		return fmt.Errorf("DeclareChapter: %w", err)
+	}
+	if !registered {
+		return fmt.Errorf("%w: respondent %q", ErrInvalidReference, respondentID)
+	}
+	return nil
+}
+
+func (m *formManager) DeclareChapter(ctx context.Context, key, respondentID, publicKey, declaredChapterID, declaredText string) (models.Declaration, error) {
 	opened, err := m.OpenPublicLink(ctx, key)
 	if err != nil {
+		return models.Declaration{}, err
+	}
+	if err := m.checkHoldsRespondent(ctx, respondentID, publicKey, opened.Form.ID); err != nil {
 		return models.Declaration{}, err
 	}
 	if err := m.checkDeclarable(ctx, opened.Form.ID, declaredChapterID); err != nil {
