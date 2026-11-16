@@ -11,11 +11,15 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/aosanya/mwanachama-backend-forms/models"
+	"github.com/aosanya/mwanachama-backend-shared/plaintext"
 )
 
 func validateFrame(f models.Form) error {
 	if f.Title == "" {
 		return ErrMissingTitle
+	}
+	if err := plaintext.CheckLine("title", f.Title); err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidForm, err)
 	}
 	if f.Amount < 0 {
 		return ErrInvalidAmount
