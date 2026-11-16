@@ -157,7 +157,7 @@
       "description": "Hand a draft to whoever clears it, opening a round that waits for an answer.",
       "args": [
         {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument being sent."},
-        {"from": "body", "as": "submitted_by", "description": "Who is sending it."}
+        {"from": "caller", "as": "submitted_by", "description": "Who is sending it, resolved from the session rather than the request."}
       ],
       "returns": [{"body": true}]
     },
@@ -170,7 +170,7 @@
       "description": "Pull an instrument back to draft before or after it was cleared, closing the round that was waiting.",
       "args": [
         {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument being pulled back."},
-        {"from": "body", "as": "actor_id", "description": "Who is pulling it back."}
+        {"from": "caller", "as": "actor_id", "description": "Who is pulling it back, resolved from the session rather than the request."}
       ],
       "returns": [{"body": true}]
     },
@@ -201,7 +201,7 @@
       "description": "Close an open instrument. Closing twice changes nothing.",
       "args": [
         {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument to close."},
-        {"from": "body", "as": "closed_by", "description": "Who is closing it."}
+        {"from": "caller", "as": "closed_by", "description": "Who is closing it, resolved from the session rather than the request."}
       ],
       "returns": [{"body": true}]
     },
