@@ -121,16 +121,16 @@ func TestAWithdrawnMembersAnswersLeaveTheReportCountButStayStoredAndRestorable(t
 	if err := m.HideMemberAnswers(ctx, "mem-1"); err != nil {
 		t.Fatalf("HideMemberAnswers: %v", err)
 	}
-	if got := reported(); got["mem-1"] != 0 || got["mem-2"] != 2 {
-		t.Fatalf("counts after withdrawal = %v, want 0 and 2", got)
+	if got := reported(); len(got) != 1 || got["mem-2"] != 2 {
+		t.Fatalf("counts after withdrawal = %v, want mem-2's 2 alone", got)
 	}
 	var stored int64
 	db.Raw("select count(*) from " + answers + " where member_id = 'mem-1'").Scan(&stored)
 	if stored != 2 {
 		t.Fatalf("stored answers of the withdrawn member = %d, want 2", stored)
 	}
-	if err := db.Exec("update " + answers + " set withdrawn_at = '' where member_id = 'mem-1'").Error; err != nil {
-		t.Fatalf("restore: %v", err)
+	if err := m.RestoreMemberAnswers(ctx, "mem-1"); err != nil {
+		t.Fatalf("RestoreMemberAnswers: %v", err)
 	}
 	if got := reported(); got["mem-1"] != 2 {
 		t.Fatalf("count after restore = %v, want 2", got)

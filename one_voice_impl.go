@@ -13,7 +13,7 @@ func (m *formManager) repeatOfFor(ctx context.Context, f models.Form, memberID, 
 		return "", nil
 	}
 	var voice models.Submission
-	q := m.q(ctx, roleSubmission).Where("form_id = ? AND member_id = ? AND period_key = ? AND repeat_of = ''", f.ID, memberID, period)
+	q := m.q(ctx, roleSubmission).Where("form_id = ? AND member_id = ? AND period_key = ? AND repeat_of = '' AND withdrawn_at = ''", f.ID, memberID, period)
 	err := m.take(q, roleSubmission, &voice, ErrSubmissionNotFound)
 	switch {
 	case errors.Is(err, ErrSubmissionNotFound):

@@ -158,6 +158,7 @@ type FormManager interface {
 	HideMemberAnswers(ctx context.Context, memberID string) error
 	RestoreMemberAnswers(ctx context.Context, memberID string) error
 	ListHiddenAnswers(ctx context.Context, memberID string) ([]models.Answer, error)
+	ListHiddenSends(ctx context.Context, memberID string) ([]models.Submission, error)
 
 	UseStandingAudience(a StandingAudience)
 

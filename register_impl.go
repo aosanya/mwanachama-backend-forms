@@ -32,7 +32,7 @@ func (m *formManager) respondentCount(ctx context.Context, f models.Form, named 
 		return 0, err
 	}
 	var count int64
-	err = m.q(ctx, roleSubmission).Where("form_id = ? AND period_key = ? AND repeat_of = ''", f.ID, period).Count(&count).Error
+	err = m.q(ctx, roleSubmission).Where("form_id = ? AND period_key = ? AND repeat_of = '' AND withdrawn_at = ''", f.ID, period).Count(&count).Error
 	return int(count), err
 }
 

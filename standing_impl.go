@@ -69,7 +69,7 @@ func (m *formManager) GetSend(ctx context.Context, formID, sendID, memberID stri
 		return models.Send{}, ErrSubmissionNotFound
 	}
 	var held models.Submission
-	q := m.q(ctx, roleSubmission).Where("id = ? AND form_id = ? AND member_id = ?", sendID, formID, memberID)
+	q := m.q(ctx, roleSubmission).Where("id = ? AND form_id = ? AND member_id = ? AND withdrawn_at = ''", sendID, formID, memberID)
 	if err := m.take(q, roleSubmission, &held, ErrSubmissionNotFound); err != nil {
 		return models.Send{}, err
 	}

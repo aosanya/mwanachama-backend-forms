@@ -14,7 +14,7 @@ import (
 
 func (m *formManager) writeSubmission(tx *gorm.DB, formID, memberID, chapterID, period, repeatOf, channel, language, now string) (string, error) {
 	var held models.Submission
-	q := m.from(tx, roleSubmission).Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND repeat_of = ?", formID, memberID, chapterID, period, repeatOf)
+	q := m.from(tx, roleSubmission).Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND repeat_of = ? AND withdrawn_at = ''", formID, memberID, chapterID, period, repeatOf)
 	err := m.take(q, roleSubmission, &held, ErrSubmissionNotFound)
 	switch {
 	case err == nil:
@@ -57,7 +57,7 @@ func (m *formManager) GetSubmission(ctx context.Context, formID, memberID string
 }
 
 func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID, periodKey string) ([]models.Submission, error) {
-	q := m.q(ctx, roleSubmission).Where("form_id = ?", formID)
+	q := m.q(ctx, roleSubmission).Where("form_id = ? AND withdrawn_at = ''", formID)
 	if memberID != "" {
 		q = q.Where("member_id = ?", memberID)
 	}
@@ -119,7 +119,7 @@ func (m *formManager) answerCounts(ctx context.Context, formID, memberID string)
 }
 
 func (m *formManager) submissionsBy(ctx context.Context, memberID string) ([]models.Submission, error) {
-	return listOf[models.Submission](m, m.q(ctx, roleSubmission).Where("member_id = ?", memberID), roleSubmission)
+	return listOf[models.Submission](m, m.q(ctx, roleSubmission).Where("member_id = ? AND withdrawn_at = ''", memberID), roleSubmission)
 }
 
 func (m *formManager) sendChannel(ctx context.Context, memberID, formID string) (string, error) {
@@ -133,7 +133,7 @@ func (m *formManager) sendChannel(ctx context.Context, memberID, formID string) 
 func (m *formManager) refuseResend(ctx context.Context, formID, memberID, chapterID, period string) error {
 	var sent int64
 	err := m.q(ctx, roleSubmission).
-		Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ?", formID, memberID, chapterID, period).
+		Where("form_id = ? AND member_id = ? AND chapter_id = ? AND period_key = ? AND withdrawn_at = ''", formID, memberID, chapterID, period).
 		Count(&sent).Error
 	if err != nil {
 		return fmt.Errorf("SubmitAnswers: %w", err)

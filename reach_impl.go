@@ -53,7 +53,7 @@ func (m *formManager) unreachedByCaller(ctx context.Context, f models.Form) (boo
 
 func (m *formManager) hasSent(ctx context.Context, callerID, formID string) (bool, error) {
 	var held int64
-	err := m.q(ctx, roleSubmission).Where("form_id = ? AND member_id = ?", formID, callerID).Count(&held).Error
+	err := m.q(ctx, roleSubmission).Where("form_id = ? AND member_id = ? AND withdrawn_at = ''", formID, callerID).Count(&held).Error
 	return held > 0, err
 }
 

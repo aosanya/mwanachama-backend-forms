@@ -254,10 +254,11 @@
         {"name": "language", "type": "string", "description": "The language tag the sender answered in, as the send named it. A resend records its own. Empty when the send named none."},
         {"name": "paid_at", "type": "timestamp", "description": "When the organiser marked this send paid. Empty means not paid. A resend leaves it alone, because the mark sits beside the answers and not in them."},
         {"name": "paid_by", "type": "string", "description": "Who marked it paid, taken from the session. Empty when it is not paid."},
-        {"name": "repeat_of", "type": "string", "description": "The send this one repeats, when the form allows one voice per person and the member sent again. Empty means it is the person's own voice. A repeat is kept and never counted."}
+        {"name": "repeat_of", "type": "string", "description": "The send this one repeats, when the form allows one voice per person and the member sent again. Empty means it is the person's own voice. A repeat is kept and never counted."},
+        {"name": "withdrawn_at", "type": "timestamp", "description": "When the member withdrew their consent. Empty means they have not. The send is kept and no longer listed, counted or marked paid, and a later send to the same instrument is kept beside it."}
       ],
       "indexes": [
-        {"name": "form_member_slot", "description": "Reads one person's send to one instrument as one group, and keeps it to one so a resend as that group edits rather than doubles, within one period. A repeat sits in a slot of its own.", "fields": ["form_id", "member_id", "chapter_id", "period_key", "repeat_of"], "unique": true},
+        {"name": "send_slot", "description": "Reads one person's send to one instrument as one group, and keeps it to one so a resend as that group edits rather than doubles, within one period. A repeat, and a send a withdrawal hid, each sit in a slot of their own.", "fields": ["form_id", "member_id", "chapter_id", "period_key", "repeat_of", "withdrawn_at"], "unique": true},
         {"name": "member", "description": "Lists every instrument one person has sent to.", "fields": ["member_id"]}
       ]
     },
