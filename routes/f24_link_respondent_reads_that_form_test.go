@@ -2,7 +2,6 @@ package routes_test
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"strings"
 	"testing"
@@ -63,6 +62,7 @@ type linkFixture struct {
 	other     linkedForm
 	sent      choiceForm
 	elsewhere choiceForm
+	issued    map[string]string
 }
 
 func newLinkFixture(t *testing.T) linkFixture {
@@ -76,30 +76,31 @@ func newLinkFixture(t *testing.T) linkFixture {
 		other:     composePublicForm(t, fm, "link-b"),
 		sent:      composeChoiceForm(t, fm, "ward-1", true),
 		elsewhere: composeChoiceForm(t, fm, "ward-9", true),
+		issued:    map[string]string{},
 	}
+}
+
+func (x linkFixture) token(device string) string {
+	if issued, ok := x.issued[device]; ok {
+		return issued
+	}
+	return device
 }
 
 func (x linkFixture) answerThroughLink(t *testing.T, key, device, group string) string {
 	t.Helper()
-	rec := doAs(t, x.mux, "", http.MethodPost, "/public-links/"+key+"/respondents", `{"public_key":"`+device+`"}`)
-	if rec.Code != http.StatusOK {
-		t.Fatalf("register_respondent = %d %s", rec.Code, rec.Body.String())
-	}
-	var r mwanachamaforms.RespondentPublicView
-	if err := json.Unmarshal(rec.Body.Bytes(), &r); err != nil {
-		t.Fatalf("decode respondent: %v", err)
-	}
-	rec = doAs(t, x.mux, "", http.MethodPost, "/public-links/"+key+"/declarations",
-		`{"respondent_id":"`+r.ID+`","public_key":"`+device+`","declared_chapter_id":"`+group+`"}`)
+	id := x.registerThroughLink(t, key, device)
+	rec := doAs(t, x.mux, "", http.MethodPost, "/public-links/"+key+"/declarations",
+		`{"respondent_id":"`+id+`","public_key":"`+x.token(device)+`","declared_chapter_id":"`+group+`"}`)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("declare_chapter = %d %s", rec.Code, rec.Body.String())
 	}
-	return r.ID
+	return id
 }
 
 func (x linkFixture) claim(t *testing.T, caller, key, device string) *http.Response {
 	t.Helper()
-	return doAs(t, x.mux, caller, http.MethodPost, "/public-links/"+key+"/respondents/claim", `{"public_key":"`+device+`"}`).Result()
+	return doAs(t, x.mux, caller, http.MethodPost, "/public-links/"+key+"/respondents/claim", `{"public_key":"`+x.token(device)+`"}`).Result()
 }
 
 func formProbes(c choiceForm, missing string) []struct{ what, method, path, missingPath, body string } {
@@ -189,7 +190,7 @@ func TestF24ARespondentIsClaimedOnceAndByTheCallerOnly(t *testing.T) {
 	respondentID := x.answerThroughLink(t, x.linked.key, "token-c1", "ward-7")
 
 	rec := doAs(t, x.mux, "carol", http.MethodPost, "/public-links/"+x.linked.key+"/respondents/claim",
-		`{"public_key":"token-c1","member_id":"mallory"}`)
+		`{"public_key":"`+x.token("token-c1")+`","member_id":"mallory"}`)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("claim_respondent = %d %s, want 200", rec.Code, rec.Body.String())
 	}

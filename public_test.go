@@ -49,14 +49,14 @@ func TestResolveLinkKey_UnknownKey(t *testing.T) {
 
 func TestUpsertRespondent(t *testing.T) {
 	um := newTestManager(t)
-	first, err := um.UpsertRespondent(context.Background(), mwanachamaforms.Respondent{PublicKey: "pk-1"})
+	first, err := um.UpsertRespondent(context.Background(), mwanachamaforms.Respondent{})
 	if err != nil {
 		t.Fatalf("UpsertRespondent: %v", err)
 	}
 	if first.ID == "" || first.FirstSeenAt == "" {
 		t.Fatalf("unexpected respondent: %+v", first)
 	}
-	second, err := um.UpsertRespondent(context.Background(), mwanachamaforms.Respondent{PublicKey: "pk-1"})
+	second, err := um.UpsertRespondent(context.Background(), mwanachamaforms.Respondent{PublicKey: first.PublicKey})
 	if err != nil {
 		t.Fatalf("UpsertRespondent (repeat): %v", err)
 	}
@@ -138,7 +138,7 @@ func TestSubmitAnswers_InvalidShape(t *testing.T) {
 func TestDeclare(t *testing.T) {
 	um := newTestManager(t)
 	f := newOpenPublicForm(t, um, "declare-key")
-	r, err := um.UpsertRespondent(context.Background(), mwanachamaforms.Respondent{PublicKey: "pk-2"})
+	r, err := um.UpsertRespondent(context.Background(), mwanachamaforms.Respondent{})
 	if err != nil {
 		t.Fatalf("UpsertRespondent: %v", err)
 	}

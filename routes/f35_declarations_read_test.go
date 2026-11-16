@@ -26,14 +26,13 @@ func TestDeclarationsAreListedAndCountedPerGroupThroughTheirOwnAddresses(t *test
 	if err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
-	for i, ward := range []string{"ward-7", "ward-3", "ward-7"} {
-		device := "anon-" + string(rune('a'+i))
-		r, err := fm.RegisterRespondent(t.Context(), link.Key, device)
+	for _, ward := range []string{"ward-7", "ward-3", "ward-7"} {
+		r, err := fm.RegisterRespondent(t.Context(), link.Key, "")
 		if err != nil {
 			t.Fatalf("RegisterRespondent: %v", err)
 		}
 		if rec := doAs(t, mux, "", http.MethodPost, "/public-links/"+link.Key+"/declarations",
-			`{"respondent_id":"`+r.ID+`","public_key":"`+device+`","declared_chapter_id":"`+ward+`"}`); rec.Code != http.StatusCreated {
+			`{"respondent_id":"`+r.ID+`","public_key":"`+r.PublicKey+`","declared_chapter_id":"`+ward+`"}`); rec.Code != http.StatusCreated {
 			t.Fatalf("declare = %d %s", rec.Code, rec.Body.String())
 		}
 	}

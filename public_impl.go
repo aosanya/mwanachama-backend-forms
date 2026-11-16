@@ -7,9 +7,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/aosanya/mwanachama-backend-shared/consent"
 	"sort"
 	"time"
-	"github.com/aosanya/mwanachama-backend-shared/consent"
 
 	"gorm.io/gorm"
 
@@ -152,14 +152,13 @@ func (m *formManager) UpsertRespondent(ctx context.Context, in models.Respondent
 		if !errors.Is(err, errNoRespondent) {
 			return models.Respondent{}, fmt.Errorf("UpsertRespondent: %w", err)
 		}
+		return models.Respondent{}, fmt.Errorf("%w: no respondent was issued that public_key", ErrInvalidReference)
 	}
-	if in.PublicKey == "" {
-		key, err := mintRespondentKey()
-		if err != nil {
-			return models.Respondent{}, fmt.Errorf("UpsertRespondent: %w", err)
-		}
-		in.PublicKey = key
+	key, err := mintRespondentKey()
+	if err != nil {
+		return models.Respondent{}, fmt.Errorf("UpsertRespondent: %w", err)
 	}
+	in.PublicKey = key
 	in.ID = newID()
 	in.FirstSeenAt = models.NowRFC3339()
 	in.ClaimedByMemberID, in.ClaimedAt = "", ""

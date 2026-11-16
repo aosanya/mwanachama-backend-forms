@@ -675,10 +675,10 @@
       "call": "RegisterRespondent",
       "action": "forms.respondent.register",
       "title": "Start answering anonymously",
-      "description": "Claim or reclaim the token this device answers under. A token that already exists comes back as it stands rather than being rewritten.",
+      "description": "Claim or reclaim the token this device answers under. The server mints the token and returns it; a token that was issued comes back as it stands, and one nobody was issued is refused.",
       "args": [
         {"from": "path", "as": "key", "description": "The token the link carries."},
-        {"from": "body", "as": "public_key", "description": "The token this device holds. Absent mints a new one."}
+        {"from": "body", "as": "public_key", "description": "The token this device was issued. Absent mints a new one; a token nobody was issued is refused."}
       ],
       "returns": [{"body": true}]
     },

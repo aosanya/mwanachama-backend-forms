@@ -52,14 +52,14 @@ func TestARunThroughEveryObjectLeavesNoRowInAnyLiveTableAndEveryRowCarriesTheRun
 	}
 
 	newOpenPublicForm(t, run, "open-key")
-	respondent, err := run.RegisterRespondent(ctx, "open-key", "pk-1")
+	respondent, err := run.RegisterRespondent(ctx, "open-key", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := run.DeclareChapter(ctx, "open-key", respondent.ID, "pk-1", "", "my street"); err != nil {
+	if _, err := run.DeclareChapter(ctx, "open-key", respondent.ID, respondent.PublicKey, "", "my street"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := run.ClaimRespondent(ctx, "open-key", "pk-1", "alice"); err != nil {
+	if _, err := run.ClaimRespondent(ctx, "open-key", respondent.PublicKey, "alice"); err != nil {
 		t.Fatal(err)
 	}
 

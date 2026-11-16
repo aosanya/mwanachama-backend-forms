@@ -11,7 +11,11 @@ import (
 
 func (x linkFixture) registerThroughLink(t *testing.T, key, device string) string {
 	t.Helper()
-	rec := doAs(t, x.mux, "", http.MethodPost, "/public-links/"+key+"/respondents", `{"public_key":"`+device+`"}`)
+	held := ""
+	if issued, ok := x.issued[device]; ok {
+		held = issued
+	}
+	rec := doAs(t, x.mux, "", http.MethodPost, "/public-links/"+key+"/respondents", `{"public_key":"`+held+`"}`)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("register_respondent = %d %s", rec.Code, rec.Body.String())
 	}
@@ -19,6 +23,7 @@ func (x linkFixture) registerThroughLink(t *testing.T, key, device string) strin
 	if err := json.Unmarshal(rec.Body.Bytes(), &r); err != nil {
 		t.Fatalf("decode respondent: %v", err)
 	}
+	x.issued[device] = r.PublicKey
 	return r.ID
 }
 
@@ -86,7 +91,7 @@ func TestF29ADeclarationIsStillRecordedBesideTheClaim(t *testing.T) {
 		t.Fatalf("claim_respondent = %d, want 200", res.StatusCode)
 	}
 	rec := doAs(t, x.mux, "", http.MethodPost, "/public-links/"+x.linked.key+"/declarations",
-		`{"respondent_id":"`+respondentID+`","public_key":"token-c1","declared_chapter_id":"ward-7"}`)
+		`{"respondent_id":"`+respondentID+`","public_key":"`+x.token("token-c1")+`","declared_chapter_id":"ward-7"}`)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("declare_chapter after the claim = %d %s, want 201", rec.Code, rec.Body.String())
 	}

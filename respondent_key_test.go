@@ -33,16 +33,3 @@ func TestRegisteringWithoutAKeyMintsADistinctKeyEachTime(t *testing.T) {
 		t.Fatalf("a minted key did not come back as it stands: %+v vs %+v", again, first)
 	}
 }
-
-func TestRegisteringWithAKeyKeepsThatKey(t *testing.T) {
-	um := newTestManager(t)
-	newOpenPublicForm(t, um, "shared-link")
-
-	r, err := um.RegisterRespondent(context.Background(), "shared-link", "device-held-key")
-	if err != nil {
-		t.Fatalf("RegisterRespondent: %v", err)
-	}
-	if r.PublicKey != "device-held-key" {
-		t.Fatalf("a supplied key was replaced: %q", r.PublicKey)
-	}
-}

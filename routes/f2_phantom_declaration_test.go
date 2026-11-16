@@ -41,11 +41,11 @@ func TestDeclareChapter_RejectsPhantomRespondentID(t *testing.T) {
 		t.Fatalf("phantom respondent: got %d (body %s), want 400", rec.Code, rec.Body.String())
 	}
 
-	resp, err := fm.RegisterRespondent(t.Context(), link.Key, "anon-key")
+	resp, err := fm.RegisterRespondent(t.Context(), link.Key, "")
 	if err != nil {
 		t.Fatalf("RegisterRespondent: %v", err)
 	}
-	if rec := declare(resp.ID, "anon-key"); rec.Code != http.StatusCreated {
+	if rec := declare(resp.ID, resp.PublicKey); rec.Code != http.StatusCreated {
 		t.Fatalf("real respondent: got %d (body %s), want 201", rec.Code, rec.Body.String())
 	}
 }
