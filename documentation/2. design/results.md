@@ -63,3 +63,47 @@ Pinned by `routes/f32_publishing_results_test.go`, including
 `TestAReportOnAFormAimedAtSeveralGroupsIsReadInEveryOne`, and
 `routes/f39_report_to_chosen_groups_test.go`, including
 `TestAReportReachesAnInnerGroupTheHostNamesOnlyAsMembersWithin`.
+
+## Finding and reading a report as a resident (SW615)
+
+`forms.results.read` needs the form's id, and listing forms needs a manager
+permission, so a resident had no way to find a report. Two more reads close
+that, with no git permission involved.
+
+| Tool | Route | Action | Hub permission |
+| --- | --- | --- | --- |
+| `forms_results_list_mine` | `GET /forms/reports/mine` | `forms.results.list_mine` | `report.read` |
+| `forms_results_read_text` | `GET /forms/{form_id}/results/text` | `forms.results.read_text` | `report.read` |
+
+`report.read` is the hub catalogue's resident-style code, separate from
+`report.publish`. Forms declares only the action names; which role holds the
+permission is the host's.
+
+**List.** Each row is the form's id and title, the report's version, its
+`published_at` and its `git_path`, newest published first, equal times by
+form id. A form is listed once, by its **newest** version, and only when that
+version was published to a group the caller is in or a group inside one (the
+same reach as the read above). A newest version published to other groups
+hides the older ones: the form is not listed, and an older version that did
+reach the caller does not stand in for it. A caller in no group, a caller with
+no session and a mount with no `Groups` list `[]`.
+
+**Read text.** The same reach as `forms.results.read`, so a form with no
+report, a report published elsewhere and a missing form all answer
+`ErrReportNotFound` (404) with the same body. The text comes from the host's
+reader, `UseReportText(ReportTextReader)`; see
+`3. implementation/report-text-host-hook.md` for what the host provides.
+
+- The text is cut at `MaxReportTextBytes` (200000) on a character boundary,
+  never inside a multi-byte character. `size` is the whole file in bytes and
+  `truncated` is true when the cut dropped anything.
+- A mount with no reader, or a reader that returns an error, answers
+  `ErrReportTextUnavailable` (502). The body is the fixed sentence "the
+  report's text cannot be read now"; the host's reason is logged and never
+  sent, because it can carry paths and repository names.
+- A file that is not valid UTF-8 (a zip, a PDF) answers `ErrReportNotText`
+  (422) instead of a text with replacement characters.
+- The refusal for a caller outside the groups comes before the reader is
+  called, so the host reads nothing for them.
+
+Pinned by `routes/sw615_resident_finds_and_reads_a_report_test.go`.
