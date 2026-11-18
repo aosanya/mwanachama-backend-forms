@@ -50,6 +50,7 @@
     "ErrInvalidForm": 400,
     "ErrInvalidQuestion": 400,
     "ErrInvalidAnswer": 400,
+    "ErrInvalidChannel": 400,
     "ErrInvalidReport": 400,
     "ErrMissingTitle": 400,
     "ErrMissingClosesAt": 400,
@@ -536,6 +537,25 @@
         {"from": "query", "as": "language", "description": "The language tag the caller answered in, recorded on the send. Absent records none."},
         {"from": "query", "as": "period_key", "description": "The period of a repeating instrument this send was opened for, keyed by the day it opened. The send is refused when that period is no longer open, even because the next one opened. Absent sends to the period open now."},
         {"from": "body", "as": "answers", "description": "One answer per prompt being answered."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "file_submission": {
+      "method": "POST",
+      "path": "/forms/{form_id}/submissions/{member_id}/answers",
+      "call": "FileSubmission",
+      "action": "forms.submission.file",
+      "title": "File an application for a resident",
+      "description": "A clerk files the answers of a person who has no sign-in, taken on paper or in the field. Everything that applies to a person answering applies to the named person, not to the clerk: the instrument must be open, the person must belong to a group it was aimed at, every required prompt must be answered, all answers are checked before any is written, and the consent gate is asked about the person. The send is stamped with the channel and with the clerk as its collector. Filing again for the same person edits the send already kept rather than adding another. Answers the same body as answering a form, each carrying the send_id.",
+      "args": [
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument being filed."},
+        {"from": "path", "as": "member_id", "description": "The person the answers belong to."},
+        {"from": "query", "as": "as", "description": "The group the person is answered as. Absent picks the first group the instrument was aimed at that the person belongs to."},
+        {"from": "query", "as": "language", "description": "The language tag the person answered in, recorded on the send. Absent records none."},
+        {"from": "query", "as": "period_key", "description": "The period of a repeating instrument this send was opened for, keyed by the day it opened. Absent files to the period open now."},
+        {"from": "query", "as": "channel", "description": "How the answers were taken: paper or field. Absent is paper; any other is refused."},
+        {"from": "caller", "as": "filed_by", "description": "The clerk filing, resolved from the session rather than the request."},
+        {"from": "body", "as": "answers", "description": "One answer per prompt being filed."}
       ],
       "returns": [{"body": true}]
     },

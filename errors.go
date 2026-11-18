@@ -37,6 +37,7 @@ var (
 	ErrInvalidForm     = errors.New("mwanachamaforms: invalid form")
 	ErrInvalidQuestion = errors.New("mwanachamaforms: invalid question")
 	ErrInvalidAnswer   = errors.New("mwanachamaforms: invalid answer")
+	ErrInvalidChannel  = errors.New("mwanachamaforms: a clerk files on the paper or field channel")
 )
 
 var (

@@ -246,6 +246,8 @@ type FormManager interface {
 	SubmitAnswersIn(ctx context.Context, formID, memberID, answeringAs, language string, answers []models.Answer) ([]models.Answer, error)
 	SubmitAnswersFor(ctx context.Context, formID, memberID, answeringAs, language, periodKey string, answers []models.Answer) ([]models.Answer, error)
 
+	FileSubmission(ctx context.Context, formID, memberID, answeringAs, language, periodKey, channel, filedBy string, answers []models.Answer) ([]models.Answer, error)
+
 	ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 	ListPreviousAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 

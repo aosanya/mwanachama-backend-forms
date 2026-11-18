@@ -40,6 +40,9 @@ and
   behalf: the caller's directory name through the `Names` resolver, and the
   authority from the publish body; and who composed it, `created_by` bound
   from the caller.
+- [clerk-filing.md](clerk-filing.md) — a clerk files an application for a
+  resident who has no sign-in (MUN1373): the address, the paper and field
+  channels, the clerk as collector, and whose group and consent are checked.
 - [validators.md](validators.md) — what a question declares about the
   answers it accepts (required, number, date and selection bounds), why a
   bound is nullable, and how a submit is refused naming the question.

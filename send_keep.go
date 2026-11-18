@@ -16,6 +16,7 @@ const sendAttempts = 8
 type sendToKeep struct {
 	form      models.Form
 	memberID  string
+	collector string
 	chapterID string
 	period    string
 	channel   string

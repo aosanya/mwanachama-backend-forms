@@ -3,6 +3,7 @@ package mwanachamaforms
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/aosanya/mwanachama-backend-forms/models"
 )
@@ -115,4 +116,15 @@ func (m *formManager) questionHiddenFromCaller(ctx context.Context, questionID s
 		return false, err
 	}
 	return m.formHiddenFromCaller(ctx, q.FormID)
+}
+
+func (m *formManager) refuseUnreachedPerson(ctx context.Context, f models.Form, memberID string) error {
+	reaches, err := m.reaches(ctx, memberID, f)
+	if err != nil {
+		return fmt.Errorf("SubmitAnswers: %w", err)
+	}
+	if !reaches {
+		return fmt.Errorf("%w: the person is not in the audience of any group the form was sent to", ErrInvalidAnswer)
+	}
+	return nil
 }

@@ -1,6 +1,7 @@
 package mwanachamaforms
 
 import (
+	"cmp"
 	"context"
 	"crypto/rand"
 	"crypto/subtle"
@@ -187,6 +188,16 @@ func mintRespondentKey() (string, error) {
 	return hex.EncodeToString(raw), nil
 }
 
+type sending struct {
+	memberID    string
+	answeringAs string
+	language    string
+	periodKey   string
+	channel     string
+	collector   string
+	filed       bool
+}
+
 func (m *formManager) SubmitAnswers(ctx context.Context, formID, memberID string, in []models.Answer) ([]models.Answer, error) {
 	return m.SubmitAnswersAs(ctx, formID, memberID, "", in)
 }
@@ -200,6 +211,25 @@ func (m *formManager) SubmitAnswersIn(ctx context.Context, formID, memberID, ans
 }
 
 func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, answeringAs, language, periodKey string, in []models.Answer) ([]models.Answer, error) {
+	return m.submitAnswers(ctx, formID, sending{memberID: memberID, answeringAs: answeringAs, language: language, periodKey: periodKey}, in)
+}
+
+func (m *formManager) FileSubmission(ctx context.Context, formID, memberID, answeringAs, language, periodKey, channel, filedBy string, in []models.Answer) ([]models.Answer, error) {
+	if filedBy == "" {
+		return nil, fmt.Errorf("%w: nobody is filing", ErrInvalidAnswer)
+	}
+	channel = cmp.Or(channel, models.ChannelPaper)
+	if channel != models.ChannelPaper && channel != models.ChannelField {
+		return nil, ErrInvalidChannel
+	}
+	return m.submitAnswers(unnarrowed(ctx), formID, sending{
+		memberID: memberID, answeringAs: answeringAs, language: language, periodKey: periodKey,
+		channel: channel, collector: filedBy, filed: true,
+	}, in)
+}
+
+func (m *formManager) submitAnswers(ctx context.Context, formID string, who sending, in []models.Answer) ([]models.Answer, error) {
+	memberID, answeringAs, language, periodKey := who.memberID, who.answeringAs, who.language, who.periodKey
 	if memberID == "" {
 		return nil, fmt.Errorf("%w: nobody is answering", ErrInvalidAnswer)
 	}
@@ -221,6 +251,11 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 	}
 	if f.OutsideWindow(time.Now()) {
 		return nil, ErrOutsideWindow
+	}
+	if who.filed {
+		if err := m.refuseUnreachedPerson(ctx, f, memberID); err != nil {
+			return nil, err
+		}
 	}
 	period, err := sendPeriodFor(f, periodKey, time.Now())
 	if err != nil {
@@ -247,12 +282,15 @@ func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, an
 	if err != nil {
 		return nil, err
 	}
-	channel, err := m.sendChannel(ctx, memberID, formID)
-	if err != nil {
-		return nil, fmt.Errorf("SubmitAnswers: %w", err)
+	channel := who.channel
+	if channel == "" {
+		channel, err = m.sendChannel(ctx, memberID, formID)
+		if err != nil {
+			return nil, fmt.Errorf("SubmitAnswers: %w", err)
+		}
 	}
 	kept, err := m.keepSend(ctx, sendToKeep{
-		form: f, memberID: memberID, chapterID: chapterID, period: period, channel: channel, language: language, answers: in,
+		form: f, memberID: memberID, collector: cmp.Or(who.collector, memberID), chapterID: chapterID, period: period, channel: channel, language: language, answers: in,
 	})
 	if err != nil {
 		return nil, err
