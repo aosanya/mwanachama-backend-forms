@@ -47,6 +47,8 @@ type (
 	Send                  = models.Send
 	ResultReport          = models.ResultReport
 	ResultReportView      = models.ResultReportView
+	PublishedReport       = models.PublishedReport
+	ReportText            = models.ReportText
 	QuestionDraft         = models.QuestionDraft
 	ResolvedLink          = models.ResolvedLink
 	ResolvedLinkView      = models.ResolvedLinkView
@@ -201,6 +203,12 @@ type FormManager interface {
 
 	ShowLatestResults(ctx context.Context, formID, callerID string) (models.ResultReportRead, error)
 
+	ListMyResults(ctx context.Context, callerID string) ([]models.PublishedReport, error)
+
+	ReadResultText(ctx context.Context, formID, callerID string) (models.ReportText, error)
+
+	UseReportText(r ReportTextReader)
+
 	AddQuestion(ctx context.Context, in models.QuestionDraft) (models.Question, []models.QuestionOption, error)
 
 	UpdateQuestion(ctx context.Context, formID, questionID string, in models.QuestionDraft) (models.Question, []models.QuestionOption, error)
@@ -279,6 +287,8 @@ type formManager struct {
 	groups  Groups
 	names   Names
 	consent consent.Gate
+
+	reportText ReportTextReader
 
 	standingAudience StandingAudience
 

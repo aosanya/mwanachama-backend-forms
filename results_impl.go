@@ -77,20 +77,22 @@ func (m *formManager) LatestResults(ctx context.Context, formID, callerID string
 	if err != nil {
 		return models.ResultReport{}, fmt.Errorf("LatestResults: %w", err)
 	}
-	reaches, err := m.reportReaches(ctx, report, groups)
+	reaches, err := m.reportReachesCaller(ctx, report, callerID, groups)
 	if err != nil {
 		return models.ResultReport{}, fmt.Errorf("LatestResults: %w", err)
-	}
-	if !reaches {
-		reaches, err = m.reportReachesInnerGroup(ctx, report, callerID)
-		if err != nil {
-			return models.ResultReport{}, fmt.Errorf("LatestResults: %w", err)
-		}
 	}
 	if !reaches {
 		return models.ResultReport{}, ErrReportNotFound
 	}
 	return report, nil
+}
+
+func (m *formManager) reportReachesCaller(ctx context.Context, report models.ResultReport, callerID string, groups []string) (bool, error) {
+	reaches, err := m.reportReaches(ctx, report, groups)
+	if err != nil || reaches {
+		return reaches, err
+	}
+	return m.reportReachesInnerGroup(ctx, report, callerID)
 }
 
 func chosenGroups(chapterIDs []string, targets []models.Target) []string {

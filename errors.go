@@ -7,22 +7,23 @@ import (
 )
 
 var (
-	ErrConsentRequired    = consent.ErrRequired
-	ErrConsentWithdrawn   = consent.ErrWithdrawn
-	ErrFormNotFound       = errors.New("mwanachamaforms: form not found")
-	ErrQuestionNotFound   = errors.New("mwanachamaforms: question not found")
-	ErrTargetNotFound     = errors.New("mwanachamaforms: target not found")
-	ErrInvalidReference   = errors.New("mwanachamaforms: invalid reference")
-	ErrDuplicateTarget    = errors.New("mwanachamaforms: chapter is already targeted")
-	ErrFormHasTarget      = errors.New("mwanachamaforms: form is already aimed at a group")
-	ErrLinkKeyTaken       = errors.New("mwanachamaforms: public link key is already taken")
-	ErrLinkNotFound       = errors.New("not found")
-	ErrRespondentClaimed  = errors.New("mwanachamaforms: respondent is already claimed by another member")
-	ErrSubmissionNotFound = errors.New("mwanachamaforms: nothing has been sent to this form")
-	ErrReportNotFound     = errors.New("mwanachamaforms: no report is published for this form")
-	ErrNotClosed          = errors.New("mwanachamaforms: form is not closed")
-	ErrNoTarget           = errors.New("mwanachamaforms: form is aimed at no group")
-	ErrInvalidReport      = errors.New("mwanachamaforms: a report needs its path, its commit and who published it")
+	ErrConsentRequired       = consent.ErrRequired
+	ErrConsentWithdrawn      = consent.ErrWithdrawn
+	ErrFormNotFound          = errors.New("mwanachamaforms: form not found")
+	ErrQuestionNotFound      = errors.New("mwanachamaforms: question not found")
+	ErrTargetNotFound        = errors.New("mwanachamaforms: target not found")
+	ErrInvalidReference      = errors.New("mwanachamaforms: invalid reference")
+	ErrDuplicateTarget       = errors.New("mwanachamaforms: chapter is already targeted")
+	ErrFormHasTarget         = errors.New("mwanachamaforms: form is already aimed at a group")
+	ErrLinkKeyTaken          = errors.New("mwanachamaforms: public link key is already taken")
+	ErrLinkNotFound          = errors.New("not found")
+	ErrRespondentClaimed     = errors.New("mwanachamaforms: respondent is already claimed by another member")
+	ErrSubmissionNotFound    = errors.New("mwanachamaforms: nothing has been sent to this form")
+	ErrReportNotFound        = errors.New("mwanachamaforms: no report is published for this form")
+	ErrNotClosed             = errors.New("mwanachamaforms: form is not closed")
+	ErrNoTarget              = errors.New("mwanachamaforms: form is aimed at no group")
+	ErrInvalidReport         = errors.New("mwanachamaforms: a report needs its path, its commit and who published it")
+	ErrReportTextUnavailable = errors.New("mwanachamaforms: the report's text cannot be read now")
 )
 
 var (

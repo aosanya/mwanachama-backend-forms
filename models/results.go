@@ -42,3 +42,22 @@ func (r ResultReport) RespondentView() ResultReportView {
 		GitPath: r.GitPath, GitCommit: r.GitCommit, PublishedAt: r.PublishedAt,
 	}
 }
+
+type PublishedReport struct {
+	FormID      string `json:"form_id"`
+	FormTitle   string `json:"form_title"`
+	Version     int    `json:"version"`
+	PublishedAt string `json:"published_at"`
+	GitPath     string `json:"git_path"`
+}
+
+type ReportText struct {
+	FormID      string `json:"form_id"`
+	FormTitle   string `json:"form_title"`
+	Version     int    `json:"version"`
+	PublishedAt string `json:"published_at"`
+	GitPath     string `json:"git_path"`
+	Text        string `json:"text"`
+	Size        int    `json:"size"`
+	Truncated   bool   `json:"truncated"`
+}
