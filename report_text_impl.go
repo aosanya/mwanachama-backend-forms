@@ -2,7 +2,9 @@ package mwanachamaforms
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log/slog"
 	"sort"
 	"unicode/utf8"
 
@@ -42,15 +44,23 @@ func (m *formManager) ListMyResults(ctx context.Context, callerID string) ([]mod
 			continue
 		}
 		f, err := m.Get(unnarrowed(ctx), report.FormID)
-		if err != nil {
+		if errors.Is(err, ErrFormNotFound) {
 			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("ListMyResults: %w", err)
 		}
 		out = append(out, models.PublishedReport{
 			FormID: report.FormID, FormTitle: f.Title, Version: report.Version,
 			PublishedAt: report.PublishedAt, GitPath: report.GitPath,
 		})
 	}
-	sort.SliceStable(out, func(i, j int) bool { return out[i].PublishedAt > out[j].PublishedAt })
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].PublishedAt != out[j].PublishedAt {
+			return out[i].PublishedAt > out[j].PublishedAt
+		}
+		return out[i].FormID < out[j].FormID
+	})
 	return out, nil
 }
 
@@ -62,17 +72,24 @@ func (m *formManager) ReadResultText(ctx context.Context, formID, callerID strin
 	if m.reportText == nil {
 		return models.ReportText{}, ErrReportTextUnavailable
 	}
+	f, err := m.Get(unnarrowed(ctx), formID)
+	if errors.Is(err, ErrFormNotFound) {
+		return models.ReportText{}, ErrReportNotFound
+	}
+	if err != nil {
+		return models.ReportText{}, fmt.Errorf("ReadResultText: %w", err)
+	}
 	whole, err := m.reportText(ctx, report.GitPath, report.GitCommit)
 	if err != nil {
-		return models.ReportText{}, fmt.Errorf("%w: %v", ErrReportTextUnavailable, err)
+		slog.WarnContext(ctx, "a report's text could not be read", "form_id", formID, "git_path", report.GitPath, "error", err)
+		return models.ReportText{}, ErrReportTextUnavailable
 	}
-	title := ""
-	if f, err := m.Get(unnarrowed(ctx), formID); err == nil {
-		title = f.Title
+	if !utf8.ValidString(whole) {
+		return models.ReportText{}, ErrReportNotText
 	}
 	text := cutAtCharacter(whole, MaxReportTextBytes)
 	return models.ReportText{
-		FormID: formID, FormTitle: title, Version: report.Version, PublishedAt: report.PublishedAt,
+		FormID: formID, FormTitle: f.Title, Version: report.Version, PublishedAt: report.PublishedAt,
 		GitPath: report.GitPath, Text: text, Size: len(whole), Truncated: len(text) < len(whole),
 	}, nil
 }

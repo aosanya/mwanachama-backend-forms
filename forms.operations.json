@@ -18,6 +18,7 @@
     "ErrNoRecordWriter": 409,
     "ErrLandingFailed": 502,
     "ErrReportTextUnavailable": 502,
+    "ErrReportNotText": 422,
     "ErrApprovalNotRequired": 409,
     "ErrSelfApproval": 403,
     "ErrOverApprovalLimit": 403,
@@ -245,7 +246,7 @@
       "title": "Reports published to my groups",
       "description": "The newest report of each instrument whose newest report was published to a group the caller is in or a group inside one, as the host names the caller's groups, newest published first. Each carries the instrument's id and title, the report's version, when it was published and where it sits. A report published to none of the caller's groups is not listed, and a caller in no group lists nothing.",
       "args": [
-        {"from": "caller", "as": "caller_id", "description": "The caller, from the session."}
+        {"from": "caller", "as": "caller_id"}
       ],
       "returns": [{"body": true}]
     },
@@ -255,7 +256,7 @@
       "call": "ReadResultText",
       "action": "forms.results.read_text",
       "title": "Read a form's report text",
-      "description": "The text of the newest report on an instrument, for a caller in a group it was published to or a group inside one, so a resident needs no access to the repository that holds it. The host reads the file; the text is cut at 200000 bytes on a character boundary, with truncated set and the whole size given. A form with no report, and one whose report went to none of the caller's groups, answer exactly as a missing one; a host that cannot read the file answers 502.",
+      "description": "The text of the newest report on an instrument, for a caller in a group it was published to or a group inside one, so a resident needs no access to the repository that holds it. The host reads the file; the text is cut at 200000 bytes on a character boundary, with truncated set and the whole size given. A form with no report, and one whose report went to none of the caller's groups, answer exactly as a missing one; a host that cannot read the file answers 502 and a file that is not valid UTF-8 text answers 422, neither carrying the host's reason.",
       "args": [
         {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument whose report text to read."},
         {"from": "caller", "as": "caller_id"}

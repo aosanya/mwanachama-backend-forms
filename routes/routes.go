@@ -38,6 +38,7 @@ var sentinels = map[string]error{
 	"ErrNoRecordWriter":        forms.ErrNoRecordWriter,
 	"ErrLandingFailed":         forms.ErrLandingFailed,
 	"ErrReportTextUnavailable": forms.ErrReportTextUnavailable,
+	"ErrReportNotText":         forms.ErrReportNotText,
 	"ErrApprovalNotRequired":   forms.ErrApprovalNotRequired,
 	"ErrSelfApproval":          forms.ErrSelfApproval,
 	"ErrOverApprovalLimit":     forms.ErrOverApprovalLimit,

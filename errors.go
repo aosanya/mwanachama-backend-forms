@@ -23,6 +23,7 @@ var (
 	ErrNotClosed             = errors.New("mwanachamaforms: form is not closed")
 	ErrNoTarget              = errors.New("mwanachamaforms: form is aimed at no group")
 	ErrInvalidReport         = errors.New("mwanachamaforms: a report needs its path, its commit and who published it")
+	ErrReportNotText         = errors.New("mwanachamaforms: the report is not text")
 	ErrReportTextUnavailable = errors.New("mwanachamaforms: the report's text cannot be read now")
 )
 
