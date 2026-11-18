@@ -143,25 +143,41 @@ func TestAFormWithoutAReportIsNotListedAndHasNoText(t *testing.T) {
 	}
 }
 
-func TestAReportTextIsCutAtTheBoundAndSaysSo(t *testing.T) {
-	w := newReportWorld(t)
-	huge := strings.Repeat("é", mwanachamaforms.MaxReportTextBytes)
-	w.fm.UseReportText(func(context.Context, string, string) (string, error) { return huge, nil })
-	w.publishTo(t, "abc", "ward-1")
+func TestAReportTextIsCutAtTheBoundOnACharacterBoundaryAndSaysSo(t *testing.T) {
+	cases := []struct {
+		name     string
+		unit     string
+		unitSize int
+	}{
+		{"two-byte characters", "é", 2},
+		{"three-byte characters", "€", 3},
+		{"four-byte characters", "😀", 4},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			w := newReportWorld(t)
+			huge := "a" + strings.Repeat(c.unit, documentedReportTextBound/c.unitSize+1)
+			w.fm.UseReportText(func(context.Context, string, string) (string, error) { return huge, nil })
+			w.publishTo(t, "abc", "ward-1")
 
-	rec := w.textAs(t, "alice", w.formID)
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, body = %.200s", rec.Code, rec.Body.String())
-	}
-	var text mwanachamaforms.ReportText
-	if err := json.Unmarshal(rec.Body.Bytes(), &text); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
-	if !text.Truncated || len(text.Text) == 0 || len(text.Text) > mwanachamaforms.MaxReportTextBytes || text.Size != len(huge) {
-		t.Fatalf("truncated = %v, len = %d, size = %d", text.Truncated, len(text.Text), text.Size)
-	}
-	if strings.ContainsRune(text.Text, '�') {
-		t.Fatalf("the cut split a character")
+			rec := w.textAs(t, "alice", w.formID)
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, body = %.200s", rec.Code, rec.Body.String())
+			}
+			var text mwanachamaforms.ReportText
+			if err := json.Unmarshal(rec.Body.Bytes(), &text); err != nil {
+				t.Fatalf("unmarshal: %v", err)
+			}
+			if !text.Truncated || text.Size != len(huge) {
+				t.Fatalf("truncated = %v, size = %d, want size %d", text.Truncated, text.Size, len(huge))
+			}
+			if len(text.Text) > documentedReportTextBound || len(text.Text) <= documentedReportTextBound-c.unitSize {
+				t.Fatalf("len = %d, want within %d bytes under %d", len(text.Text), c.unitSize, documentedReportTextBound)
+			}
+			if strings.ContainsRune(text.Text, '�') || !strings.HasPrefix(huge, text.Text) {
+				t.Fatalf("the cut split a character")
+			}
+		})
 	}
 }
 
