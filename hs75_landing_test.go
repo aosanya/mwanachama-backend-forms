@@ -182,7 +182,7 @@ func TestAStandingFormComposedWithAScheduleStillTakesRepeatedSends(t *testing.T)
 			t.Fatalf("SubmitAnswers %q: %v", text, err)
 		}
 	}
-	sends, err := mgr.ListSubmissions(ctx, f.ID, "alice", "")
+	sends, err := mgr.ListSubmissions(ctx, f.ID, "alice", "", "")
 	if err != nil || len(sends) != 3 {
 		t.Fatalf("sends = %+v, %v, want three kept apart", sends, err)
 	}
@@ -228,7 +228,7 @@ func TestTheSendIdIsTheOneTheAnsweredListAndTheSubmissionsCarry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SubmitAnswers: %v", err)
 	}
-	held, err := mgr.ListSubmissions(ctx, f.ID, "alice", stored[0].PeriodKey)
+	held, err := mgr.ListSubmissions(ctx, f.ID, "alice", stored[0].PeriodKey, "")
 	if err != nil || len(held) != 1 || held[0].ID != stored[0].SendID {
 		t.Fatalf("submissions = %+v, %v, want one with id %q", held, err, stored[0].SendID)
 	}
@@ -327,7 +327,7 @@ func TestAnEmptySendToAStandingFormReturnsNoAnswersAndIsTheNewestSubmission(t *t
 	if err != nil || len(empty) != 0 {
 		t.Fatalf("empty send = %+v, %v, want no answers", empty, err)
 	}
-	held, err := mgr.ListSubmissions(ctx, f.ID, "alice", "")
+	held, err := mgr.ListSubmissions(ctx, f.ID, "alice", "", "")
 	if err != nil || len(held) != 2 {
 		t.Fatalf("submissions = %+v, %v, want two", held, err)
 	}

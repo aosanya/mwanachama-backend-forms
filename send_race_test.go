@@ -108,7 +108,7 @@ func (r raceRound) stored(t *testing.T, member string) (answers []models.Answer,
 	if err != nil {
 		t.Fatalf("ListAllAnswers: %v", err)
 	}
-	submissions, err = r.m.ListSubmissions(ctx, r.form.ID, member, "")
+	submissions, err = r.m.ListSubmissions(ctx, r.form.ID, member, "", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}

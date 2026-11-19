@@ -130,12 +130,12 @@ func TestTwoRunsAndTheLiveCopyKeepTheirSendsApart(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sends, err := a.ListSubmissions(ctx, fa.ID, "", "")
+	sends, err := a.ListSubmissions(ctx, fa.ID, "", "", "")
 	if err != nil || len(sends) != 1 {
 		t.Fatalf("run-a sends = %+v, %v; want one", sends, err)
 	}
 	for name, other := range map[string]mwanachamaforms.FormManager{"live": mgr, "run-b": b} {
-		got, err := other.ListSubmissions(ctx, fa.ID, "", "")
+		got, err := other.ListSubmissions(ctx, fa.ID, "", "", "")
 		if err != nil || len(got) != 0 {
 			t.Fatalf("%s sees %+v, %v of run-a's sends; want none", name, got, err)
 		}

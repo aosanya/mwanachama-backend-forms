@@ -86,7 +86,7 @@ func TestASendOnARepeatingFormIsStampedWithTheCurrentPeriod(t *testing.T) {
 	if len(answers) != 1 || answers[0].PeriodKey != want {
 		t.Fatalf("answers = %+v, want period %s", answers, want)
 	}
-	subs, err := mgr.ListSubmissions(ctx, f.ID, "alice", "")
+	subs, err := mgr.ListSubmissions(ctx, f.ID, "alice", "", "")
 	if err != nil || len(subs) != 1 || subs[0].PeriodKey != want {
 		t.Fatalf("submissions = %+v, %v, want period %s", subs, err, want)
 	}
@@ -181,7 +181,7 @@ func TestMySubmissionIsThisPeriodsAndCountsOnlyItsOwnAnswers(t *testing.T) {
 	if err != nil || mine.PeriodKey == prev.Key || mine.Answers != 1 {
 		t.Fatalf("this period's submission = %+v, %v", mine, err)
 	}
-	all, err := mgr.ListSubmissions(ctx, f.ID, "alice", "")
+	all, err := mgr.ListSubmissions(ctx, f.ID, "alice", "", "")
 	if err != nil || len(all) != 2 {
 		t.Fatalf("submissions = %+v, %v", all, err)
 	}
@@ -233,10 +233,10 @@ func TestSubmissionsNarrowToOnePeriod(t *testing.T) {
 		t.Fatalf("SubmitAnswers this period: %v", err)
 	}
 
-	if all, err := mgr.ListSubmissions(ctx, f.ID, "", ""); err != nil || len(all) != 2 {
+	if all, err := mgr.ListSubmissions(ctx, f.ID, "", "", ""); err != nil || len(all) != 2 {
 		t.Fatalf("every period = %+v, %v", all, err)
 	}
-	last, err := mgr.ListSubmissions(ctx, f.ID, "", prev.Key)
+	last, err := mgr.ListSubmissions(ctx, f.ID, "", prev.Key, "")
 	if err != nil || len(last) != 1 || last[0].PeriodKey != prev.Key || last[0].Answers != 1 {
 		t.Fatalf("last period = %+v, %v", last, err)
 	}

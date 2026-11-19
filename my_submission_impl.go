@@ -9,5 +9,6 @@ import (
 func (m *formManager) ShowMySubmission(ctx context.Context, formID, memberID string) (models.Submission, error) {
 	held, err := m.GetSubmission(ctx, formID, memberID)
 	held.PaidBy = ""
+	held = withoutFinding(held)
 	return held, err
 }

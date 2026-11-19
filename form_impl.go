@@ -75,6 +75,7 @@ func (m *formManager) Create(ctx context.Context, f models.Form) (models.Form, e
 	f.ClosedAt, f.ClosedBy = "", ""
 	f.SubmittedAt, f.SubmittedBy = "", ""
 	f.ApprovedAt, f.ApprovedBy = "", ""
+	f.OverLimit, f.LimitInForce = false, 0
 	f.ResultsPublishedAt = ""
 
 	now := models.NowRFC3339()

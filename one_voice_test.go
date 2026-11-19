@@ -110,7 +110,7 @@ func TestAFlaggedSecondVoiceIsKeptBesideTheFirstAndNeverCounted(t *testing.T) {
 	if got := r.respondents(t); got != 1 {
 		t.Fatalf("respondents = %d, want 1", got)
 	}
-	sent, err := r.m.ListSubmissions(ctx, r.form.ID, "mem-1", "")
+	sent, err := r.m.ListSubmissions(ctx, r.form.ID, "mem-1", "", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}

@@ -10,11 +10,11 @@ import (
 )
 
 func limitsOf(cap int) forms.ApprovalLimits {
-	return func(_ context.Context, approverID string, amount int) error {
+	return func(_ context.Context, approverID string, amount int) (forms.ApprovalCover, error) {
 		if approverID == "approver-1" && amount <= cap {
-			return nil
+			return forms.ApprovalCover{}, nil
 		}
-		return forms.ErrOverApprovalLimit
+		return forms.ApprovalCover{}, forms.ErrOverApprovalLimit
 	}
 }
 

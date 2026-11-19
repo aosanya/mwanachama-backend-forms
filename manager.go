@@ -151,7 +151,7 @@ type FormManager interface {
 	Register(ctx context.Context, q models.RegisterQuery) (models.RegisterPage, error)
 
 	ListWaiting(ctx context.Context, callerID string) ([]models.WaitingForm, error)
-
+	ListReachingPerson(ctx context.Context, personID string) ([]models.Form, error)
 	ListAnswered(ctx context.Context, callerID string) ([]models.AnsweredForm, error)
 
 	UseGroups(g Groups)
@@ -175,9 +175,10 @@ type FormManager interface {
 
 	UseApprovalRequired(required bool)
 	UseApprovalLimits(l ApprovalLimits)
+	UseInspectorForms(f InspectorForms)
 	FormTypes() []models.FormType
 	UseDefaultMaxFiles(n int)
-
+	UseAddressCheck(c AddressCheck)
 	Submit(ctx context.Context, id, submittedBy string) (models.Form, error)
 
 	Withdraw(ctx context.Context, id, actorID string) (models.Form, error)
@@ -244,10 +245,8 @@ type FormManager interface {
 	SubmitAnswers(ctx context.Context, formID, memberID string, answers []models.Answer) ([]models.Answer, error)
 	SubmitAnswersAs(ctx context.Context, formID, memberID, answeringAs string, answers []models.Answer) ([]models.Answer, error)
 	SubmitAnswersIn(ctx context.Context, formID, memberID, answeringAs, language string, answers []models.Answer) ([]models.Answer, error)
-	SubmitAnswersFor(ctx context.Context, formID, memberID, answeringAs, language, periodKey string, answers []models.Answer) ([]models.Answer, error)
-
-	FileSubmission(ctx context.Context, formID, memberID, answeringAs, language, periodKey, channel, filedBy string, answers []models.Answer) ([]models.Answer, error)
-
+	SubmitAnswersFor(ctx context.Context, formID, memberID, answeringAs, language, periodKey, recordRowID string, answers []models.Answer) ([]models.Answer, error)
+	FileSubmission(ctx context.Context, formID, memberID, answeringAs, language, periodKey, channel, recordRowID, filedBy string, answers []models.Answer) ([]models.Answer, error)
 	ListAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 	ListPreviousAnswers(ctx context.Context, formID, memberID string) ([]models.Answer, error)
 
@@ -255,11 +254,13 @@ type FormManager interface {
 
 	GetSubmission(ctx context.Context, formID, memberID string) (models.Submission, error)
 	ShowMySubmission(ctx context.Context, formID, memberID string) (models.Submission, error)
-
-	ListSubmissions(ctx context.Context, formID, memberID, periodKey string) ([]models.Submission, error)
-
+	ListSubmissions(ctx context.Context, formID, memberID, periodKey, recordRowID string) ([]models.Submission, error)
+	ListSubmissionsOfPerson(ctx context.Context, memberID, recordRowID string) ([]models.Submission, error)
+	ListInspectableSubmissions(ctx context.Context, inspectorID string) ([]models.Submission, error)
 	MarkPaid(ctx context.Context, formID, memberID string, paid bool, markedBy string) (models.Submission, error)
-
+	DecideSubmission(ctx context.Context, formID, memberID string, decision models.Decision, note, decidedBy string, grant ...string) (models.Submission, error)
+	InspectSubmission(ctx context.Context, formID, memberID string, result models.InspectionResult, note, inspectedBy string) (models.Submission, error)
+	CorrectSubmission(ctx context.Context, formID, memberID, correctedBy string, answers []models.Answer) ([]models.Answer, error)
 	GetSend(ctx context.Context, formID, sendID, memberID string) (models.Send, error)
 
 	Declare(ctx context.Context, d models.Declaration) (models.Declaration, error)
@@ -301,8 +302,10 @@ type formManager struct {
 	recordWriters RecordWriters
 
 	approvalLimits   ApprovalLimits
+	inspectorForms   InspectorForms
 	approvalRequired atomic.Bool
 	defaultMaxFiles  int
+	addressCheck     AddressCheck
 	formTypes        []models.FormType
 }
 

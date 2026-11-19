@@ -195,6 +195,7 @@ type sending struct {
 	periodKey   string
 	channel     string
 	collector   string
+	recordRowID string
 	filed       bool
 }
 
@@ -207,14 +208,14 @@ func (m *formManager) SubmitAnswersAs(ctx context.Context, formID, memberID, ans
 }
 
 func (m *formManager) SubmitAnswersIn(ctx context.Context, formID, memberID, answeringAs, language string, in []models.Answer) ([]models.Answer, error) {
-	return m.SubmitAnswersFor(ctx, formID, memberID, answeringAs, language, "", in)
+	return m.SubmitAnswersFor(ctx, formID, memberID, answeringAs, language, "", "", in)
 }
 
-func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, answeringAs, language, periodKey string, in []models.Answer) ([]models.Answer, error) {
-	return m.submitAnswers(ctx, formID, sending{memberID: memberID, answeringAs: answeringAs, language: language, periodKey: periodKey}, in)
+func (m *formManager) SubmitAnswersFor(ctx context.Context, formID, memberID, answeringAs, language, periodKey, recordRowID string, in []models.Answer) ([]models.Answer, error) {
+	return m.submitAnswers(ctx, formID, sending{memberID: memberID, answeringAs: answeringAs, language: language, periodKey: periodKey, recordRowID: recordRowID}, in)
 }
 
-func (m *formManager) FileSubmission(ctx context.Context, formID, memberID, answeringAs, language, periodKey, channel, filedBy string, in []models.Answer) ([]models.Answer, error) {
+func (m *formManager) FileSubmission(ctx context.Context, formID, memberID, answeringAs, language, periodKey, channel, recordRowID, filedBy string, in []models.Answer) ([]models.Answer, error) {
 	if filedBy == "" {
 		return nil, fmt.Errorf("%w: nobody is filing", ErrInvalidAnswer)
 	}
@@ -223,13 +224,13 @@ func (m *formManager) FileSubmission(ctx context.Context, formID, memberID, answ
 		return nil, ErrInvalidChannel
 	}
 	return m.submitAnswers(unnarrowed(ctx), formID, sending{
-		memberID: memberID, answeringAs: answeringAs, language: language, periodKey: periodKey,
+		memberID: memberID, answeringAs: answeringAs, language: language, periodKey: periodKey, recordRowID: recordRowID,
 		channel: channel, collector: filedBy, filed: true,
 	}, in)
 }
 
 func (m *formManager) submitAnswers(ctx context.Context, formID string, who sending, in []models.Answer) ([]models.Answer, error) {
-	memberID, answeringAs, language, periodKey := who.memberID, who.answeringAs, who.language, who.periodKey
+	memberID, answeringAs, language, periodKey, recordRowID := who.memberID, who.answeringAs, who.language, who.periodKey, who.recordRowID
 	if memberID == "" {
 		return nil, fmt.Errorf("%w: nobody is answering", ErrInvalidAnswer)
 	}
@@ -274,6 +275,9 @@ func (m *formManager) submitAnswers(ctx context.Context, formID string, who send
 			return nil, fmt.Errorf("%w: question %s: %v", ErrInvalidAnswer, a.QuestionID, err)
 		}
 	}
+	if err := m.checkPlaceRefs(ctx, in); err != nil {
+		return nil, err
+	}
 	if err := m.requiredAnswered(ctx, formID, in); err != nil {
 		return nil, err
 	}
@@ -290,7 +294,7 @@ func (m *formManager) submitAnswers(ctx context.Context, formID string, who send
 		}
 	}
 	kept, err := m.keepSend(ctx, sendToKeep{
-		form: f, memberID: memberID, collector: cmp.Or(who.collector, memberID), chapterID: chapterID, period: period, channel: channel, language: language, answers: in,
+		form: f, memberID: memberID, collector: cmp.Or(who.collector, memberID), chapterID: chapterID, period: period, channel: channel, language: language, recordRowID: recordRowID, answers: in,
 	})
 	if err != nil {
 		return nil, err

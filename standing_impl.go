@@ -80,5 +80,6 @@ func (m *formManager) GetSend(ctx context.Context, formID, sendID, memberID stri
 		return models.Send{}, fmt.Errorf("GetSend: %w", err)
 	}
 	held.Answers = len(answers)
+	held = withoutFinding(held)
 	return models.Send{Submission: held, Answers: answers}, nil
 }

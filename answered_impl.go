@@ -56,6 +56,8 @@ func (m *formManager) ListAnswered(ctx context.Context, callerID string) ([]mode
 				AnsweredAt:          sub.SubmittedAt,
 				EditedAt:            sub.EditedAt,
 				PeriodKey:           sub.PeriodKey,
+				Decision:            sub.Decision,
+				DecidedAt:           sub.DecidedAt,
 			})
 		}
 	}

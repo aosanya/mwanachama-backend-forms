@@ -77,7 +77,7 @@ func sendTogetherAcross(r voiceRound, managers []forms.FormManager, copies int) 
 
 func voicesHeld(t *testing.T, m forms.FormManager, formID string) int {
 	t.Helper()
-	listed, err := m.ListSubmissions(context.Background(), formID, "mem-1", "")
+	listed, err := m.ListSubmissions(context.Background(), formID, "mem-1", "", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}

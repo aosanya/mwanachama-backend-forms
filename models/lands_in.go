@@ -111,6 +111,8 @@ func (s LandingSource) value() any {
 		return a.ValueDate
 	case AnswerTime:
 		return a.ValueTime
+	case AnswerTimeRange:
+		return TimeRangeWords(a.ValueTime, a.ValueTimeTo)
 	case AnswerSingleChoice, AnswerMultiSelect:
 		labels := make([]string, 0, len(a.OptionIDs))
 		for _, id := range a.OptionIDs {

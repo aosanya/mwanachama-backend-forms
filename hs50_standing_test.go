@@ -20,7 +20,7 @@ func TestAStandingFormKeepsEverySendAsItsOwnRecord(t *testing.T) {
 			t.Fatalf("SubmitAnswers %q: %v", text, err)
 		}
 	}
-	sends, err := mgr.ListSubmissions(ctx, f.ID, "alice", "")
+	sends, err := mgr.ListSubmissions(ctx, f.ID, "alice", "", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}
@@ -53,7 +53,7 @@ func TestAnOrdinaryFormStillEditsItsOneSend(t *testing.T) {
 			t.Fatalf("SubmitAnswers: %v", err)
 		}
 	}
-	sends, _ := mgr.ListSubmissions(ctx, f.ID, "alice", "")
+	sends, _ := mgr.ListSubmissions(ctx, f.ID, "alice", "", "")
 	answers, _ := mgr.ListAnswers(ctx, f.ID, "alice")
 	if len(sends) != 1 || sends[0].PeriodKey != "" || len(answers) != 1 || answers[0].ValueText != "second" {
 		t.Fatalf("sends = %+v answers = %+v, want one send edited to the second", sends, answers)

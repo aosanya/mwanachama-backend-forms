@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/aosanya/mwanachama-backend-shared/answerrules"
 	"time"
 )
 
@@ -29,6 +30,9 @@ func ValidateValidators(q Question) error {
 		return err
 	}
 	if err := boundsOnlyFor(q, q.MinSelections != nil || q.MaxSelections != nil, "min_selections and max_selections", AnswerMultiSelect); err != nil {
+		return err
+	}
+	if err := boundsOnlyFor(q, q.AllowFreeText, "allow_free_text", AnswerAddress); err != nil {
 		return err
 	}
 	if err := validateFileRules(q); err != nil {
@@ -131,4 +135,10 @@ func UnansweredRequired(questions []Question, answers []Answer) []Question {
 		}
 	}
 	return out
+}
+func checkTimeRange(a Answer) error {
+	return answerrules.CheckTimeRange(a.ValueTime, a.ValueTimeTo)
+}
+func TimeRangeWords(from, to string) string {
+	return answerrules.TimeRangeWords(from, to)
 }

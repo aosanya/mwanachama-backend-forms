@@ -53,6 +53,8 @@ var (
 	ErrNotDraft            = errors.New("mwanachamaforms: form is not a draft")
 	ErrNotWithdrawable     = errors.New("mwanachamaforms: form cannot be withdrawn from its current status")
 	ErrNotSubmitted        = errors.New("mwanachamaforms: form is not awaiting approval")
+	ErrInvalidDecision     = errors.New("mwanachamaforms: a decision on a send is approved or refused, by a named person")
+	ErrSelfDecision        = errors.New("mwanachamaforms: an applicant cannot decide their own send")
 	ErrMissingNote         = errors.New("mwanachamaforms: a note is required to refuse")
 	ErrAwaitingApproval    = errors.New("mwanachamaforms: form is awaiting approval")
 	ErrNotApproved         = errors.New("mwanachamaforms: form has not been cleared to publish")

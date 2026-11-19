@@ -85,3 +85,9 @@ func TestLandsInListsUnmappedQuestionsSorted(t *testing.T) {
 		t.Fatalf("got %v", got)
 	}
 }
+func TestLandsInReadsATimeRangeAsFromAndTo(t *testing.T) {
+	source := LandingSource{Question: Question{Prompt: "Between which hours?", AnswerType: AnswerTimeRange}, Answer: Answer{ValueTime: "09:00", ValueTimeTo: "22:00"}}
+	if got := source.value(); got != "from 09:00 to 22:00" {
+		t.Fatalf("a time range lands as %v, want from 09:00 to 22:00", got)
+	}
+}

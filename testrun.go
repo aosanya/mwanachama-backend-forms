@@ -15,6 +15,7 @@ func (m *formManager) ForRun(runID string) (FormManager, error) {
 		declarable:       m.declarable,
 		recordWriters:    m.recordWriters.Discarding(),
 		defaultMaxFiles:  m.defaultMaxFiles,
+		addressCheck:     m.addressCheck,
 		approvalLimits:   m.approvalLimits,
 		formTypes:        m.formTypes,
 	}

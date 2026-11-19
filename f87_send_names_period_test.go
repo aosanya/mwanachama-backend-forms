@@ -15,7 +15,7 @@ func TestASendNamingTheOpenPeriodLandsInIt(t *testing.T) {
 	ctx := context.Background()
 	f, q := composeAimedForm(t, mgr, mwanachamaforms.Form{Title: "Weekly", Schedule: weeklySchedule()})
 	key := currentWeeklyKey(t)
-	answers, err := mgr.SubmitAnswersFor(ctx, f.ID, "alice", "", "", key, []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "fine"}})
+	answers, err := mgr.SubmitAnswersFor(ctx, f.ID, "alice", "", "", key, "", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "fine"}})
 	if err != nil {
 		t.Fatalf("SubmitAnswersFor: %v", err)
 	}
@@ -32,11 +32,11 @@ func TestASendNamingAPeriodThatHasClosedIsRefused(t *testing.T) {
 	if err != nil {
 		t.Fatalf("PreviousPeriod: %v", err)
 	}
-	_, err = mgr.SubmitAnswersFor(ctx, f.ID, "alice", "", "", p.Key, []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "late"}})
+	_, err = mgr.SubmitAnswersFor(ctx, f.ID, "alice", "", "", p.Key, "", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "late"}})
 	if !errors.Is(err, mwanachamaforms.ErrPeriodClosed) {
 		t.Fatalf("err = %v, want ErrPeriodClosed", err)
 	}
-	subs, err := mgr.ListSubmissions(ctx, f.ID, "alice", "")
+	subs, err := mgr.ListSubmissions(ctx, f.ID, "alice", "", "")
 	if err != nil || len(subs) != 0 {
 		t.Fatalf("submissions = %+v, %v, want none", subs, err)
 	}
@@ -58,7 +58,7 @@ func TestAPeriodKeyOnAFormThatRunsOnceIsIgnored(t *testing.T) {
 	mgr := newTestManager(t)
 	ctx := context.Background()
 	f, q := composeAimedForm(t, mgr, mwanachamaforms.Form{Title: "Once"})
-	answers, err := mgr.SubmitAnswersFor(ctx, f.ID, "alice", "", "", "2026-01-01", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "x"}})
+	answers, err := mgr.SubmitAnswersFor(ctx, f.ID, "alice", "", "", "2026-01-01", "", []mwanachamaforms.Answer{{QuestionID: q.ID, ValueText: "x"}})
 	if err != nil || len(answers) != 1 || answers[0].PeriodKey != "" {
 		t.Fatalf("answers = %+v, %v", answers, err)
 	}

@@ -41,7 +41,7 @@ func TestTheOrganiserMarksASendPaidAndTheListShowsIt(t *testing.T) {
 	if err != nil || !mine.Paid {
 		t.Fatalf("alice's own entry = %+v, %v, want paid", mine, err)
 	}
-	all, err := mgr.ListSubmissions(ctx, f.ID, "", "")
+	all, err := mgr.ListSubmissions(ctx, f.ID, "", "", "")
 	if err != nil || len(all) != 2 {
 		t.Fatalf("list = %+v, %v, want two", all, err)
 	}

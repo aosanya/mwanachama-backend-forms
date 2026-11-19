@@ -17,7 +17,7 @@ func TestASecondSendBySameCallerLeavesOneSubmissionAndTheStoreRefusesADouble(t *
 			t.Fatalf("SubmitAnswers: %v", err)
 		}
 	}
-	got, err := mgr.ListSubmissions(ctx, f.ID, "", "")
+	got, err := mgr.ListSubmissions(ctx, f.ID, "", "", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}

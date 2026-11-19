@@ -17,6 +17,10 @@ The default path is `../projects/hub-steward/code/wakala-api/modules/forms`, rel
 3. Runs every Go file on both sides through `scripts/hubdiff`, which parses it, drops all comments and prints it with `gofmt`, so comments and layout do not show as differences.
 4. Runs `diff -r backend hub`.
 
+## Result of 2026-11-19
+
+The hub had moved on by 21 commits since the replay below. They are merged here, and the differences that remain are listed with a disposition in [hub-import-drift.md](hub-import-drift.md). The result of 2026-11-16 below is the earlier state.
+
 ## Result of 2026-11-16
 
 Every non-test file is identical after the rewrite except two, both because of hub commit 4df627b4, which the owner settled as option B (hub `documentation/2. design/forms-approvals-apart.md`, see [agency-approvals-apart.md](agency-approvals-apart.md)):

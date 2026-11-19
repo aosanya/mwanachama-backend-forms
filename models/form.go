@@ -73,6 +73,8 @@ type Form struct {
 	ApprovedBy         string   `json:"approved_by,omitempty"`
 	ApprovalRoles      []string `json:"approval_roles,omitempty"`
 	Amount             int      `json:"amount,omitempty"`
+	OverLimit          bool     `json:"over_limit,omitempty"`
+	LimitInForce       int      `json:"limit_in_force,omitempty"`
 	ResultsPublishedAt string   `json:"results_published_at,omitempty"`
 
 	PublisherName       string `json:"publisher_name,omitempty"`

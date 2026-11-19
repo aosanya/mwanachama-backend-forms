@@ -14,21 +14,23 @@ import (
 
 func (m *formManager) UseApprovalRequired(required bool) { m.approvalRequired.Store(required) }
 
-type ApprovalLimits func(ctx context.Context, approverID string, amount int) error
+type ApprovalCover struct {
+	OverLimit bool
+	Limit     int
+}
+type ApprovalLimits func(ctx context.Context, approverID string, amount int) (ApprovalCover, error)
 
-func (m *formManager) UseApprovalLimits(l ApprovalLimits) { m.approvalLimits = l }
-
-func (m *formManager) authoriseAmount(ctx context.Context, f models.Form, approverID string) error {
+func (m *formManager) UseApprovalLimits(l ApprovalLimits) {
+	m.approvalLimits = l
+}
+func (m *formManager) authoriseAmount(ctx context.Context, f models.Form, approverID string) (ApprovalCover, error) {
 	if f.Amount <= 0 {
-		return nil
+		return ApprovalCover{}, nil
 	}
 	if m.approvalLimits == nil {
-		return ErrOverApprovalLimit
+		return ApprovalCover{}, ErrOverApprovalLimit
 	}
-	if err := m.approvalLimits(ctx, approverID, f.Amount); err != nil {
-		return err
-	}
-	return nil
+	return m.approvalLimits(ctx, approverID, f.Amount)
 }
 
 func (m *formManager) UseDefaultMaxFiles(n int) { m.defaultMaxFiles = n }
@@ -100,6 +102,7 @@ func (m *formManager) Withdraw(ctx context.Context, id, actorID string) (models.
 	f.Status = models.StatusDraft
 	f.SubmittedAt, f.SubmittedBy = "", ""
 	f.ApprovedAt, f.ApprovedBy = "", ""
+	f.OverLimit, f.LimitInForce = false, 0
 	f.LastUpdated = now
 
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -137,8 +140,10 @@ func (m *formManager) decide(ctx context.Context, id, approverID, note string, d
 	if decision == models.DecisionApproved && len(f.ApprovalRoles) > 0 {
 		return models.Form{}, ErrSlotRequired
 	}
+	var cover ApprovalCover
 	if decision == models.DecisionApproved {
-		if err := m.authoriseAmount(ctx, f, approverID); err != nil {
+		var err error
+		if cover, err = m.authoriseAmount(ctx, f, approverID); err != nil {
 			return models.Form{}, err
 		}
 	}
@@ -152,8 +157,11 @@ func (m *formManager) decide(ctx context.Context, id, approverID, note string, d
 	now := models.NowRFC3339()
 	if decision == models.DecisionApproved {
 		f.Status, f.ApprovedAt, f.ApprovedBy = models.StatusApproved, now, approverID
+		f.OverLimit, f.LimitInForce = cover.OverLimit, cover.Limit
+		round.OverLimit, round.LimitInForce = cover.OverLimit, cover.Limit
 	} else {
 		f.Status, f.SubmittedAt, f.SubmittedBy = models.StatusDraft, "", ""
+		f.OverLimit, f.LimitInForce = false, 0
 	}
 	f.LastUpdated = now
 
@@ -200,7 +208,8 @@ func (m *formManager) ApproveSlot(ctx context.Context, id, approverID, slot, not
 	if !declaresSlot(f.ApprovalRoles, slot) {
 		return models.Form{}, ErrUnknownSlot
 	}
-	if err := m.authoriseAmount(ctx, f, approverID); err != nil {
+	cover, err := m.authoriseAmount(ctx, f, approverID)
+	if err != nil {
 		return models.Form{}, err
 	}
 	round, found, err := m.openApproval(ctx, id)
@@ -224,25 +233,29 @@ func (m *formManager) ApproveSlot(ctx context.Context, id, approverID, slot, not
 	}
 
 	now := models.NowRFC3339()
-	grant := models.Approval{
-		ID: newID(), FormID: id, RequestedBy: round.RequestedBy, RequestedAt: round.RequestedAt,
-		DecidedBy: approverID, DecidedAt: now, Decision: models.DecisionApproved, Note: note, Slot: slot,
-	}
+	grant := models.Approval{ID: newID(), FormID: id, RequestedBy: round.RequestedBy, RequestedAt: round.RequestedAt, DecidedBy: approverID, DecidedAt: now, Decision: models.DecisionApproved, Note: note, Slot: slot, OverLimit: cover.OverLimit, LimitInForce: cover.Limit}
 	cleared := len(grants)+1 == len(distinctSlots(f.ApprovalRoles))
+	if cover.OverLimit {
+		f.OverLimit, f.LimitInForce, f.LastUpdated = true, cover.Limit, now
+	}
 	if cleared {
 		f.Status, f.ApprovedAt, f.ApprovedBy, f.LastUpdated = models.StatusApproved, now, approverID, now
 		round.DecidedBy, round.DecidedAt, round.Decision = approverID, now, models.DecisionApproved
+		round.OverLimit, round.LimitInForce = f.OverLimit, f.LimitInForce
 	}
 
 	err = m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := m.insertTx(tx, roleApproval, grant); err != nil {
 			return err
 		}
-		if !cleared {
+		if !cleared && !cover.OverLimit {
 			return nil
 		}
 		if err := m.replaceTx(tx, roleForm, id, f); err != nil {
 			return err
+		}
+		if !cleared {
+			return nil
 		}
 		return m.replaceTx(tx, roleApproval, round.ID, round)
 	})

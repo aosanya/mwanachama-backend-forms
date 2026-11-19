@@ -105,7 +105,7 @@ func TestAWithdrawnMembersAnswersLeaveTheReportCountButStayStoredAndRestorable(t
 		}
 	}
 	reported := func() map[string]int {
-		listed, err := m.ListSubmissions(ctx, "f-1", "", "")
+		listed, err := m.ListSubmissions(ctx, "f-1", "", "", "")
 		if err != nil {
 			t.Fatalf("ListSubmissions: %v", err)
 		}

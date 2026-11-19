@@ -61,6 +61,13 @@
     "ErrMissingPrompt": 400,
     "ErrMissingOptionLabel": 400,
     "ErrMissingNote": 400,
+    "ErrInvalidDecision": 400,
+    "ErrSelfDecision": 403,
+    "ErrGrantOnRefusal": 400,
+    "ErrInvalidValidUntil": 400,
+    "ErrValidUntilPast": 400,
+    "ErrInvalidInspection": 400,
+    "ErrSelfInspection": 403,
     "ErrQuestionNotOnForm": 400
   },
   "operations": {
@@ -98,6 +105,18 @@
       "args": [
         {"from": "caller", "as": "caller_id", "description": "The caller, from the session."},
         {"from": "query", "as": "language", "description": "A language tag to read the titles in. Each instrument with a reviewed title in that language is listed under it; an unknown or unreviewed language, or none, lists the original title."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_forms_reaching_person": {
+      "method": "GET",
+      "path": "/forms/reaching",
+      "call": "ListReachingPerson",
+      "action": "forms.form.list_reaching_person",
+      "title": "Forms that reach a person",
+      "description": "The published instruments that reach one person by the same rule that decides who may answer them: a group the person is in that the instrument was sent to, a group reached by propagation, or the standing audience of a standing instrument. Drafts are never listed. It is how a clerk is offered only the applications a resident can make.",
+      "args": [
+        {"from": "query", "as": "person_id", "required": true, "description": "The person the instruments must reach."}
       ],
       "returns": [{"body": true}]
     },
@@ -247,7 +266,7 @@
       "title": "Reports published to my groups",
       "description": "The newest report of each instrument whose newest report was published to a group the caller is in or a group inside one, as the host names the caller's groups, newest published first. Each carries the instrument's id and title, the report's version, when it was published and where it sits. A report published to none of the caller's groups is not listed, and a caller in no group lists nothing.",
       "args": [
-        {"from": "caller", "as": "caller_id"}
+        {"from": "caller", "as": "caller_id", "description": "The caller, from the session."}
       ],
       "returns": [{"body": true}]
     },
@@ -536,6 +555,7 @@
         {"from": "query", "as": "as", "description": "The group being answered as. Absent picks the first group the instrument was aimed at that the caller belongs to."},
         {"from": "query", "as": "language", "description": "The language tag the caller answered in, recorded on the send. Absent records none."},
         {"from": "query", "as": "period_key", "description": "The period of a repeating instrument this send was opened for, keyed by the day it opened. The send is refused when that period is no longer open, even because the next one opened. Absent sends to the period open now."},
+        {"from": "query", "as": "record_row_id", "description": "The business or trader row of the agency this send is for, such as a licence application for a stall. Only a row that names the caller as its owner is accepted; any other row is refused. Absent names none."},
         {"from": "body", "as": "answers", "description": "One answer per prompt being answered."}
       ],
       "returns": [{"body": true}]
@@ -554,6 +574,7 @@
         {"from": "query", "as": "language", "description": "The language tag the person answered in, recorded on the send. Absent records none."},
         {"from": "query", "as": "period_key", "description": "The period of a repeating instrument this send was opened for, keyed by the day it opened. Absent files to the period open now."},
         {"from": "query", "as": "channel", "description": "How the answers were taken: paper or field. Absent is paper; any other is refused."},
+        {"from": "query", "as": "record_row_id", "description": "The business or trader row of the agency this send is for, such as a licence application for a stall. Only a row that names the person as its owner is accepted; any other row is refused. Absent names none."},
         {"from": "caller", "as": "filed_by", "description": "The clerk filing, resolved from the session rather than the request."},
         {"from": "body", "as": "answers", "description": "One answer per prompt being filed."}
       ],
@@ -636,7 +657,33 @@
       "args": [
         {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument sent to."},
         {"from": "query", "as": "member_id", "description": "Only this person's send. Absent reads everyone's."},
-        {"from": "query", "as": "period_key", "description": "Only the sends made in this period of a repeating instrument, keyed by the day it opened. Absent reads every period."}
+        {"from": "query", "as": "period_key", "description": "Only the sends made in this period of a repeating instrument, keyed by the day it opened. Absent reads every period."},
+        {"from": "query", "as": "record_row_id", "description": "Only the sends that name this business or trader row, or an older row it replaced by correction. Absent reads every send; a send naming no row is never listed for a row."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_person_submissions": {
+      "method": "GET",
+      "path": "/submissions",
+      "call": "ListSubmissionsOfPerson",
+      "action": "forms.submission.list_of_person",
+      "title": "List what one person sent across forms",
+      "description": "Every send one person has made, across every instrument, newest first, each with the title of the instrument it went to, when it was sent and how many answers it carried. A withdrawn send is left out. Staff's read of another person's sends; the person is named in the request, never taken from the session.",
+      "args": [
+        {"from": "query", "as": "member_id", "required": true, "description": "The person whose sends to list."},
+        {"from": "query", "as": "record_row_id", "description": "Only the sends that name this business or trader row, or an older row it replaced by correction. Absent lists every send."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "list_inspectable_submissions": {
+      "method": "GET",
+      "path": "/submissions/inspectable",
+      "call": "ListInspectableSubmissions",
+      "action": "forms.submission.list_inspectable",
+      "title": "List the sends of the permits the caller inspects",
+      "description": "Every send made to a permit whose inspector role the caller holds, across those permits, first sender first. A permit that names no inspector role is never listed, and a role never sees the sends of a permit it does not inspect. The inspector is the caller, resolved from the session. Writing a finding stays with forms.submission.inspect.",
+      "args": [
+        {"from": "caller", "as": "inspector_id", "description": "The inspector, resolved from the session rather than the request."}
       ],
       "returns": [{"body": true}]
     },
@@ -652,6 +699,55 @@
         {"from": "path", "as": "member_id", "description": "The person whose send is marked."},
         {"from": "body", "as": "paid", "description": "True marks the send paid, false marks it not paid."},
         {"from": "caller", "as": "marked_by"}
+      ],
+      "returns": [{"body": true}]
+    },
+    "decide_submission": {
+      "method": "PUT",
+      "path": "/forms/{form_id}/submissions/{member_id}/decision",
+      "call": "DecideSubmission",
+      "action": "forms.submission.decide",
+      "title": "Decide an applicant's send",
+      "description": "A clerk records the decision on what one applicant sent: approved or refused, with an optional note for an approval and a required note for a refusal. The decider is the caller, resolved from the session, and the time is now. The decision sits on the applicant's own send and the applicant reads it back with their send and in the list of what they answered. An approval may also carry the certificate number and the day the grant ends, which the applicant reads back with the decision; a refusal carries neither. Deciding again replaces the earlier decision, with its certificate and end day. An applicant cannot decide their own send. A person who sent nothing, or whose send was withdrawn, is not found.",
+      "args": [
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument that was sent to."},
+        {"from": "path", "as": "member_id", "description": "The applicant whose send is decided."},
+        {"from": "body", "as": "decision", "required": true, "description": "approved or refused."},
+        {"from": "body", "as": "note", "description": "Why. Required for a refusal, optional for an approval."},
+        {"from": "caller", "as": "decided_by", "description": "The clerk deciding, resolved from the session rather than the request."},
+        {"from": "body", "as": "certificate_ref", "description": "The certificate number of a grant. Only with approved."},
+        {"from": "body", "as": "valid_until", "description": "The day the grant ends, as YYYY-MM-DD, today or later. Only with approved."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "inspect_submission": {
+      "method": "PUT",
+      "path": "/forms/{form_id}/submissions/{member_id}/inspection",
+      "call": "InspectSubmission",
+      "action": "forms.submission.inspect",
+      "title": "Record an inspector's finding on an applicant's send",
+      "description": "An inspector records what they found on what one applicant sent: complies, does_not_comply or needs_more, with a note that is required unless it complies. The inspector is the caller, resolved from the session, and the time is now. Nobody inspects their own send. Inspecting again replaces the earlier finding. The finding is for the council: the applicant does not read it with their send. A person who sent nothing, or whose send was withdrawn, is not found.",
+      "args": [
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument that was sent to."},
+        {"from": "path", "as": "member_id", "description": "The applicant whose send is inspected."},
+        {"from": "body", "as": "result", "required": true, "description": "complies, does_not_comply or needs_more."},
+        {"from": "body", "as": "note", "description": "What was found. Required unless the result is complies."},
+        {"from": "caller", "as": "inspected_by", "description": "The inspector, resolved from the session rather than the request."}
+      ],
+      "returns": [{"body": true}]
+    },
+    "correct_submission": {
+      "method": "PUT",
+      "path": "/forms/{form_id}/submissions/{member_id}/answers",
+      "call": "CorrectSubmission",
+      "action": "forms.submission.correct",
+      "title": "Correct a sent application",
+      "description": "A clerk records the correction a resident asked for on what they sent: each answer named replaces the one the resident gave, answers not named stay as sent, and the send is stamped edited. It works on a form that locks after sending, because the resident cannot change it themselves. The answers are all checked before any is written. A person who sent nothing, or whose send was withdrawn, is not found.",
+      "args": [
+        {"from": "path", "as": "form_id", "refers": "forms.form", "description": "The instrument that was sent to."},
+        {"from": "path", "as": "member_id", "description": "The resident whose send is corrected."},
+        {"from": "caller", "as": "corrected_by", "description": "The clerk making the correction, resolved from the session rather than the request."},
+        {"from": "body", "as": "answers", "description": "One answer per prompt being corrected."}
       ],
       "returns": [{"body": true}]
     },

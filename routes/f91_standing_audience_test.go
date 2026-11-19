@@ -79,7 +79,7 @@ func TestF91AStandingFormIsReachedByTheAudienceTheHostSupplies(t *testing.T) {
 	if rec := doAs(t, mux, "bob", http.MethodPost, "/forms/"+sf.form.ID+"/answers", standingBody(sf, "help")); rec.Code != http.StatusNotFound {
 		t.Fatalf("bob submit_answers = %d %s, want 404", rec.Code, rec.Body.String())
 	}
-	sends, _ := fm.ListSubmissions(context.Background(), sf.form.ID, "carol", "")
+	sends, _ := fm.ListSubmissions(context.Background(), sf.form.ID, "carol", "", "")
 	if len(sends) != 1 || sends[0].ChapterID != "service-1" {
 		t.Fatalf("carol's send = %+v, want one recorded as the group whose audience admitted her", sends)
 	}

@@ -73,7 +73,7 @@ func periodHasClosed(s models.FormSchedule, periodKey string, now time.Time) err
 }
 
 func (m *formManager) sendersIn(ctx context.Context, formID, periodKey string) (map[string]bool, error) {
-	subs, err := m.ListSubmissions(ctx, formID, "", periodKey)
+	subs, err := m.ListSubmissions(ctx, formID, "", periodKey, "")
 	if err != nil {
 		return nil, err
 	}

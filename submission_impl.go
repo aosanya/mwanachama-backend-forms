@@ -22,11 +22,14 @@ func (m *formManager) writeSubmission(tx *gorm.DB, s sendToKeep, repeatOf, now s
 	case err == nil:
 		held.EditedAt = now
 		held.Collector, held.CollectedAt, held.Channel, held.Language = s.collector, now, s.channel, s.language
+		if s.recordRowID != "" {
+			held.RecordRowID = s.recordRowID
+		}
 		return held.ID, m.replaceTx(tx, roleSubmission, held.ID, held)
 	case errors.Is(err, ErrSubmissionNotFound):
 		sent := models.Submission{
 			ID: newID(), FormID: s.form.ID, MemberID: s.memberID, ChapterID: s.chapterID, PeriodKey: s.period, RepeatOf: repeatOf, SubmittedAt: now,
-			Collector: s.collector, CollectedAt: now, Channel: s.channel, Language: s.language,
+			Collector: s.collector, CollectedAt: now, Channel: s.channel, Language: s.language, RecordRowID: s.recordRowID,
 			VoiceKey: voiceKeyOf(s, repeatOf),
 		}
 		return sent.ID, m.insertTx(tx, roleSubmission, sent)
@@ -54,7 +57,7 @@ func (m *formManager) GetSubmission(ctx context.Context, formID, memberID string
 	if err != nil {
 		return models.Submission{}, fmt.Errorf("GetSubmission: %w", err)
 	}
-	held, err := m.ListSubmissions(ctx, formID, memberID, period)
+	held, err := m.ListSubmissions(ctx, formID, memberID, period, "")
 	if err != nil {
 		return models.Submission{}, fmt.Errorf("GetSubmission: %w", err)
 	}
@@ -66,13 +69,16 @@ func (m *formManager) GetSubmission(ctx context.Context, formID, memberID string
 	return models.Submission{}, ErrSubmissionNotFound
 }
 
-func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID, periodKey string) ([]models.Submission, error) {
+func (m *formManager) ListSubmissions(ctx context.Context, formID, memberID, periodKey, recordRowID string) ([]models.Submission, error) {
 	q := m.q(ctx, roleSubmission).Where("form_id = ? AND withdrawn_at = ''", formID)
 	if memberID != "" {
 		q = q.Where("member_id = ?", memberID)
 	}
 	if periodKey != "" {
 		q = q.Where("period_key = ?", periodKey)
+	}
+	if recordRowID != "" {
+		q = q.Where("record_row_id = ?", recordRowID)
 	}
 	out, err := listOf[models.Submission](m, q, roleSubmission)
 	if err != nil {

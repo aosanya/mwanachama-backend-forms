@@ -14,14 +14,15 @@ import (
 const sendAttempts = 8
 
 type sendToKeep struct {
-	form      models.Form
-	memberID  string
-	collector string
-	chapterID string
-	period    string
-	channel   string
-	language  string
-	answers   []models.Answer
+	form        models.Form
+	memberID    string
+	collector   string
+	chapterID   string
+	period      string
+	channel     string
+	language    string
+	recordRowID string
+	answers     []models.Answer
 }
 
 type sendKept struct {

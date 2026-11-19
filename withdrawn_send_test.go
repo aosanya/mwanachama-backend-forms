@@ -11,7 +11,7 @@ import (
 
 func (r voiceRound) sendersListed(t *testing.T) []string {
 	t.Helper()
-	listed, err := r.m.ListSubmissions(context.Background(), r.form.ID, "", "")
+	listed, err := r.m.ListSubmissions(context.Background(), r.form.ID, "", "", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}

@@ -24,7 +24,7 @@ func TestTwoSendsAsTwoGroupsAreBothKeptWhenTheFormAllowsSeveralVoices(t *testing
 	if err := r.sendAs("mem-1", "g-2", "close the market"); err != nil {
 		t.Fatalf("send as g-2: %v", err)
 	}
-	subs, err := r.m.ListSubmissions(context.Background(), r.form.ID, "mem-1", "")
+	subs, err := r.m.ListSubmissions(context.Background(), r.form.ID, "mem-1", "", "")
 	if err != nil {
 		t.Fatalf("ListSubmissions: %v", err)
 	}

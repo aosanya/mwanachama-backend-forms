@@ -9,6 +9,8 @@ const (
 	AnswerFreeText     AnswerType = "free_text"
 	AnswerDate         AnswerType = "date"
 	AnswerTime         AnswerType = "time"
+	AnswerTimeRange    AnswerType = "time_range"
+	AnswerAddress      AnswerType = "address"
 	AnswerNumber       AnswerType = "number"
 	AnswerCurrency     AnswerType = "currency"
 	AnswerPhoto        AnswerType = "photo"
@@ -49,6 +51,7 @@ type Question struct {
 
 	MaxFiles       *int `json:"max_files,omitempty"`
 	RequireCapture bool `json:"require_capture,omitempty"`
+	AllowFreeText  bool `json:"allow_free_text,omitempty"`
 
 	Version              int    `json:"version"`
 	SupersedesQuestionID string `json:"supersedes_question_id,omitempty"`
